@@ -43,7 +43,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     setState(() => _busy = true);
     try {
       final service = QndxxXboardService.instance;
-      await service.login(email: email, password: password);
+      final account = await service.login(email: email, password: password);
       final subscription = await service.downloadSubscription();
       final action = ref.read(profilesActionProvider.notifier);
 
@@ -62,9 +62,10 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
               : SubscriptionInfo.formHString(subscription.userInfo),
         ),
       );
+      await service.bindProfile(profile.id);
 
       if (!mounted) return;
-      dialogs.showBanner('QNDXX 登录成功，订阅已导入', level: BannerLevel.success);
+      dialogs.showBanner('QNDXX 登录成功：${account.email}，订阅已导入', level: BannerLevel.success);
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
