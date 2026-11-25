@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:crisp_chat/crisp_chat.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'qndxx_config_service.dart';
 
@@ -44,11 +46,15 @@ class QndxxCrispService {
       }
 
       await _desktopWindow?.close();
+      final supportDirectory = await getApplicationSupportDirectory();
       final window = await WebviewWindow.create(
         configuration: CreateConfiguration(
           title: 'QNDXX 在线客服',
           windowWidth: 440,
           windowHeight: 760,
+          userDataFolderWindows: Platform.isWindows
+              ? p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2')
+              : null,
         ),
       );
       _desktopWindow = window;
