@@ -92,10 +92,10 @@ class QndxxConfigService {
             ? (settings['sources'] as List).whereType<Map>().toList()
             : <Map>[])
         ..sort((a, b) =>
-            (int.tryParse('\${b['priority'] ?? 0}') ?? 0).compareTo(
-              int.tryParse('\${a['priority'] ?? 0}') ?? 0,
+            (int.tryParse('${b['priority'] ?? 0}') ?? 0).compareTo(
+              int.tryParse('${a['priority'] ?? 0}') ?? 0,
             ));
-    final retries = int.tryParse('\${settings['max_retries'] ?? 3}') ?? 3;
+    final retries = int.tryParse('${settings['max_retries'] ?? 3}') ?? 3;
     final candidates = sources.isEmpty
         ? <String>[remoteConfigUrl]
         : sources
@@ -121,7 +121,7 @@ class QndxxConfigService {
         } catch (_) {
           if (attempt < retries) {
             final delaySeconds =
-                int.tryParse('\${settings['retry_delay_seconds'] ?? 2}') ?? 2;
+                int.tryParse('${settings['retry_delay_seconds'] ?? 2}') ?? 2;
             await Future<void>.delayed(Duration(seconds: delaySeconds));
           }
         }
