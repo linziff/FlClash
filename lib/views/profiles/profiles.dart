@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'add.dart';
 import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
+import 'package:fl_clash/xboard/qndxx_crisp_service.dart';
 import 'edit.dart';
 import 'preview.dart';
 
@@ -119,6 +120,19 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
                       );
                     },
                     child: const Text('XBoard 登录'),
+                  ),
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await QndxxCrispService.instance.open();
+                      } catch (error) {
+                        await dialogs.showAlert(
+                          title: 'Crisp 客服暂不可用',
+                          message: TextSpan(text: error.toString()),
+                        );
+                      }
+                    },
+                    child: const Text('在线客服'),
                   ),
                   AddProfileMenu(
                     builder: (open) => IconButton(
