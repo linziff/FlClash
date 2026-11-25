@@ -157,10 +157,10 @@ packages:
     dependency: transitive
     description:
       name: cli_util
-      sha256: "89b8801ba49f8b593fbf2d3e59efd0f566c46cd4ba6837ae2610c72b52a0f899"
+      sha256: ff6785f7e9e3c38ac98b2fb035701789de90154024a75b6cb926445e83197d1c
       url: "https://pub.dev"
     source: hosted
-    version: "0.6.0"
+    version: "0.4.2"
   clock:
     dependency: transitive
     description:
@@ -216,6 +216,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.15.1"
+  crisp_chat:
+    dependency: "direct main"
+    description:
+      name: crisp_chat
+      sha256: e21e3b115151f3bc43515910ebc4d376bcd5d5b9e406fe528d765f87336643c7
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.0.0"
   cross_file:
     dependency: "direct dev"
     description:
@@ -248,6 +256,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.7.15"
+  desktop_webview_window:
+    dependency: "direct main"
+    description:
+      name: desktop_webview_window
+      sha256: "20c3ac0f0404f72a0ce76f6f729f4dc656c04747f42e0a38d9553855b1d6012e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.3.2"
   dio:
     dependency: "direct main"
     description:
@@ -420,6 +436,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.4.5"
+  flutter_launcher_icons:
+    dependency: "direct dev"
+    description:
+      name: flutter_launcher_icons
+      sha256: "10f13781741a2e3972126fae08393d3c4e01fa4cd7473326b94b72cf594195e7"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.14.4"
   flutter_lints:
     dependency: "direct dev"
     description:
@@ -555,6 +579,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
+  image:
+    dependency: transitive
+    description:
+      name: image
+      sha256: d701df3ef4761a22854c69b9661c9d8f25b264b3982985f25944247ce644761f
+      url: "https://pub.dev"
+    source: hosted
+    version: "4.11.0"
   image_picker:
     dependency: "direct main"
     description:
