@@ -58,6 +58,8 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> autoUpdateProfiles() async {
+    final qndxxProfileId =
+        await QndxxXboardService.instance.boundProfileId;
     for (final id in [
       for (final profile in ref.read(profilesProvider)) profile.id,
     ]) {
@@ -66,11 +68,13 @@ class ProfilesAction extends _$ProfilesAction {
       final isNotNeedUpdate = profile.lastUpdateDate
           ?.add(profile.autoUpdateDuration)
           .isBeforeNow;
-      if (isNotNeedUpdate == false || profile.type != ProfileType.url) {
-        continue;
-      }
+      if (isNotNeedUpdate == false) continue;
       try {
-        await updateProfile(profile);
+        if (id == qndxxProfileId) {
+          await _updateQndxxProfile(profile);
+        } else if (profile.type == ProfileType.url) {
+          await updateProfile(profile);
+        }
       } catch (e) {
         commonPrint.log(compactError(e), logLevel: LogLevel.warning);
       }
@@ -144,12 +148,67 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> updateProfiles() async {
+    final qndxxProfileId =
+        await QndxxXboardService.instance.boundProfileId;
     for (final id in [
       for (final profile in ref.read(profilesProvider)) profile.id,
     ]) {
       final profile = ref.read(profilesProvider).getProfile(id);
-      if (profile == null || profile.type != ProfileType.url) continue;
-      await updateProfile(profile, showLoading: true);
+      if (profile == null) continue;
+      if (id == qndxxProfileId) {
+        await _updateQndxxProfile(profile, showLoading: true);
+      } else if (profile.type == ProfileType.url) {
+        await updateProfile(profile, showLoading: true);
+      }
+    }
+  }
+
+  Future<void> updateQndxxProfile() async {
+    final profileId = await QndxxXboardService.instance.boundProfileId;
+    if (profileId == null) {
+      throw StateError('请先登录 QNDXX XBoard 并导入订阅');
+    }
+    final profile = ref.read(profilesProvider).getProfile(profileId);
+    if (profile == null) {
+      throw StateError('绑定的 QNDXX 配置已不存在，请重新登录并导入');
+    }
+    await _updateQndxxProfile(profile, showLoading: true);
+  }
+
+  Future<void> _updateQndxxProfile(
+    Profile profile, {
+    bool showLoading = false,
+  }) async {
+    final operation = showLoading
+        ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
+        : null;
+    try {
+      final subscription =
+          await QndxxXboardService.instance.downloadSubscription();
+      final updated = await profile.saveFile(
+        subscription.bytes,
+        validate: (path, key) => _core.validateProfile(path, key),
+      );
+      final latest = ref.read(profilesProvider).getProfile(profile.id);
+      if (latest == null) return;
+      final newProfile = latest.copyWith(
+        subscriptionInfo: subscription.userInfo == null
+            ? latest.subscriptionInfo
+            : SubscriptionInfo.formHString(subscription.userInfo),
+        lastUpdateDate: updated.lastUpdateDate,
+      );
+      ref.read(profilesProvider.notifier).put(newProfile);
+      if (profile.id == ref.read(currentProfileIdProvider)) {
+        ref
+            .read(setupActionProvider.notifier)
+            .applyProfileDebounce(silence: true);
+      }
+    } finally {
+      if (operation != null) {
+        ref
+            .read(updatingKeysProvider.notifier)
+            .stop(profile.updatingKey, operation);
+      }
     }
   }
 
