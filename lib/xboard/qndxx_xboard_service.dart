@@ -89,8 +89,17 @@ class QndxxXboardService {
     return const {};
   }
 
+  String _safeError(Object? error) {
+    return (error?.toString() ?? 'unknown error').replaceAll(
+      RegExp(r'([?&]token=)[^&\\s]+', caseSensitive: false),
+      r'$1[redacted]',
+    );
+  }
+
   String? _message(Map<String, dynamic> body) =>
-      (body['message'] ?? body['msg'] ?? body['error'])?.toString();
+      body['message'] == null
+          ? (body['msg'] ?? body['error'])?.toString()
+          : _safeError(body['message']!);
 
   Future<QndxxAccount> login({
     required String email,
@@ -451,7 +460,7 @@ class QndxxXboardService {
         lastError = error;
       }
     }
-    throw StateError('获取订阅失败：$lastError');
+    throw StateError('获取订阅失败：' + _safeError(lastError));
   }
 
   void dispose() {
