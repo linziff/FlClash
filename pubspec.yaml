@@ -56,10 +56,6 @@ dependencies:
     path: plugins/prism_ui
   setup:
     path: plugins/setup
-  flutter_xboard_sdk:
-    git:
-      url: https://github.com/hakimi-x/flutter_xboard_sdk.git
-      ref: main
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -81,6 +77,7 @@ flutter:
   generate: true
   assets:
     - assets/data/
+    - assets/config/xboard.config.yaml
     - assets/config/xboard.config.yaml
     - assets/fonts/
     - assets/images/
