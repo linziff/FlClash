@@ -71,11 +71,11 @@ jobs:
       matrix:
         include:
           - arch: x64
-              runner: windows-2022
+            runner: windows-2022
             channel: stable
           - arch: arm64
             runner: windows-11-arm
-            channel: master
+            channel: stable
     steps:
       - uses: actions/checkout@v4
         with:
