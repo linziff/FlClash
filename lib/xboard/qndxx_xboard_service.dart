@@ -303,18 +303,42 @@ class QndxxXboardService {
     Object? lastError;
     for (final url in candidates) {
       try {
-        final result = await _dio.get<Object?>(
-          url,
-          options: Options(
-            responseType: ResponseType.plain,
-            headers: {
-              'User-Agent': 'QNDXX/6.6.6',
-              'Accept': '*/*',
-            },
-          ),
-        );
-        final text = result.data?.toString() ?? '';
+        Response<Object?>? result;
+        Object? requestError;
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            result = await _dio.get<Object?>(
+              url,
+              options: Options(
+                responseType: ResponseType.plain,
+                headers: {
+                  'User-Agent': config.subscriptionUserAgent,
+                  'Accept': '*/*',
+                },
+              ),
+            );
+            break;
+          } catch (error) {
+            requestError = error;
+            if (attempt < 2) {
+              await Future<void>.delayed(Duration(seconds: attempt + 1));
+            }
+          }
+        }
+        if (result == null) {
+          lastError = requestError ?? StateError('订阅请求失败');
+          continue;
+        }
+        var text = result.data?.toString() ?? '';
         if (text.isEmpty) continue;
+        try {
+          final json = _map(jsonDecode(text));
+          if (json['data'] is String) {
+            text = json['data'] as String;
+          }
+        } catch (_) {
+          // Plain-text subscription bodies are expected for many panels.
+        }
         final decrypted = _decrypt(text, config.decryptKey);
         final content = decrypted != null && _looksLikeClash(decrypted)
             ? decrypted
