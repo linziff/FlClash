@@ -18,6 +18,13 @@ class QndxxAccount {
   final Map<String, dynamic> userInfo;
 }
 
+class _SubscriptionCandidate {
+  const _SubscriptionCandidate(this.url, this.method);
+
+  final String url;
+  final String method;
+}
+
 class QndxxSubscription {
   const QndxxSubscription({
     required this.bytes,
@@ -67,9 +74,13 @@ class QndxxXboardService {
 
   dynamic _decode(dynamic value) {
     if (value is! String) return value;
-    final text = value.trim();
+    var text = value.trim();
+    final prefix = QndxxConfigService.instance.obfuscationPrefix;
+    if (prefix.isNotEmpty && text.startsWith(prefix)) {
+      text = text.substring(prefix.length);
+    }
     if (text.startsWith('{') || text.startsWith('[')) return jsonDecode(text);
-    return value;
+    return text;
   }
 
   Map<String, dynamic> _map(dynamic value) {
@@ -108,7 +119,10 @@ class QndxxXboardService {
         final response = await _dio.post<Object?>(
           '$baseUrl/api/v1/passport/auth/login',
           data: {'email': email.trim(), 'password': password},
-          options: Options(responseType: ResponseType.plain),
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {'User-Agent': config.apiUserAgent},
+          ),
         );
         final body = _map(_decode(response.data));
         final data = _map(body['data']);
@@ -178,7 +192,10 @@ class QndxxXboardService {
         '$_panelUrl$path',
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'Authorization': 'Bearer $_token'},
+          headers: {
+            'Authorization': 'Bearer $_token',
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
         ),
       );
     } on DioException catch (error) {
@@ -191,7 +208,10 @@ class QndxxXboardService {
         '$_panelUrl$path',
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'Authorization': _token!},
+          headers: {
+            'Authorization': _token!,
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
         ),
       );
     }
@@ -208,7 +228,10 @@ class QndxxXboardService {
         data: data,
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'Authorization': 'Bearer $_token'},
+          headers: {
+            'Authorization': 'Bearer $_token',
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
         ),
       );
     } on DioException catch (error) {
@@ -221,7 +244,10 @@ class QndxxXboardService {
         data: data,
         options: Options(
           responseType: ResponseType.plain,
-          headers: {'Authorization': _token!},
+          headers: {
+            'Authorization': _token!,
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
         ),
       );
     }
@@ -242,21 +268,22 @@ class QndxxXboardService {
     return null;
   }
 
-  List<String> _subscriptionCandidates(
+  List<_SubscriptionCandidate> _subscriptionCandidates(
     String subscribeUrl,
     String token,
     bool preferEncrypt,
   ) {
     final config = QndxxConfigService.instance;
-    final candidates = <String>[];
+    final candidates = <_SubscriptionCandidate>[];
     for (final item in config.subscriptionUrls) {
       final base = item['url']?.toString() ?? '';
       final endpoints = _map(item['endpoints']);
       final ordered = endpoints.entries.toList()
         ..sort((a, b) {
-          bool encrypted(Map value) => value['isEncrypt'] == true;
-          final ae = encrypted(_map(a.value));
-          final be = encrypted(_map(b.value));
+          bool encrypted(Map value, String key) =>
+              value['isEncrypt'] == true || key.toLowerCase() == 'v2';
+          final ae = encrypted(_map(a.value), a.key);
+          final be = encrypted(_map(b.value), b.key);
           if (ae == be) return a.key.compareTo(b.key);
           return preferEncrypt ? (be ? 1 : -1) : (ae ? 1 : -1);
         });
@@ -271,11 +298,22 @@ class QndxxXboardService {
         final uri = Uri.parse(joined);
         final query = Map<String, String>.from(uri.queryParameters);
         query.putIfAbsent('flag', () => 'flclash');
-        candidates.add(uri.replace(queryParameters: query).toString());
+        candidates.add(
+          _SubscriptionCandidate(
+            uri.replace(queryParameters: query).toString(),
+            endpoint['method']?.toString().toUpperCase() ?? 'GET',
+          ),
+        );
       }
     }
-    if (subscribeUrl.isNotEmpty) candidates.add(subscribeUrl);
-    return candidates.toSet().toList(growable: false);
+    if (subscribeUrl.isNotEmpty) {
+      candidates.add(_SubscriptionCandidate(subscribeUrl, 'GET'));
+    }
+    final unique = <String, _SubscriptionCandidate>{};
+    for (final candidate in candidates) {
+      unique.putIfAbsent(candidate.url, () => candidate);
+    }
+    return unique.values.toList(growable: false);
   }
 
   String? _decrypt(String encrypted, String key) {
@@ -331,22 +369,27 @@ class QndxxXboardService {
       config.preferEncrypt,
     );
     Object? lastError;
-    for (final url in candidates) {
+    for (final candidate in candidates) {
+      final url = candidate.url;
       try {
         Response<Object?>? result;
         Object? requestError;
         for (var attempt = 0; attempt < 3; attempt++) {
           try {
-            result = await _dio.get<Object?>(
-              url,
-              options: Options(
-                responseType: ResponseType.plain,
-                headers: {
-                  'User-Agent': config.subscriptionUserAgent,
-                  'Accept': '*/*',
-                },
-              ),
+            final options = Options(
+              responseType: ResponseType.plain,
+              headers: {
+                'User-Agent': config.subscriptionUserAgent,
+                'Accept': '*/*',
+              },
             );
+            result = candidate.method == 'POST'
+                ? await _dio.post<Object?>(
+                    url,
+                    data: {'token': token},
+                    options: options,
+                  )
+                : await _dio.get<Object?>(url, options: options);
             break;
           } catch (error) {
             requestError = error;
@@ -360,6 +403,10 @@ class QndxxXboardService {
           continue;
         }
         var text = result.data?.toString() ?? '';
+        final obfuscationPrefix = config.obfuscationPrefix;
+        if (obfuscationPrefix.isNotEmpty && text.startsWith(obfuscationPrefix)) {
+          text = text.substring(obfuscationPrefix.length);
+        }
         if (text.isEmpty) continue;
         try {
           final json = _map(jsonDecode(text));
