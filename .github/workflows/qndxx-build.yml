@@ -56,7 +56,7 @@ jobs:
       - name: Build split APKs (armeabi-v7a, arm64-v8a, x86_64)
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
-        run: dart tool/package.dart android --arch arm64 --arch armv7 --arch amd64 --arch universal --env pre --verbose
+        run: dart tool/package.dart android --arch arm64 --arch armv7 --arch amd64 --arch universal --tag v6.6.6 --env pre --verbose
       - uses: actions/upload-artifact@v4
         with:
           name: QNDXX-Android-APKs
@@ -75,7 +75,7 @@ jobs:
             channel: stable
           - arch: arm64
             runner: windows-11-arm
-            channel: stable
+            channel: master
     steps:
       - uses: actions/checkout@v4
         with:
@@ -101,7 +101,7 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
       - name: Build Windows
-        run: dart tool/package.dart windows --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --env pre --verbose
+        run: dart tool/package.dart windows --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --tag v6.6.6 --env pre --verbose
       - uses: actions/upload-artifact@v4
         with:
           name: QNDXX-Windows-${{ matrix.arch }}
@@ -141,7 +141,7 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
           xcodebuild -version
       - name: Build macOS
-        run: dart tool/package.dart macos --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --env pre --verbose
+        run: dart tool/package.dart macos --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --tag v6.6.6 --env pre --verbose
       - uses: actions/upload-artifact@v4
         with:
           name: QNDXX-macOS-${{ matrix.arch }}
