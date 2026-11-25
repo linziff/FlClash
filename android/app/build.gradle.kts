@@ -36,6 +36,7 @@ android {
         applicationId = "qndxx.app"
         minSdk = flutter.minSdkVersion
         targetSdk = libs.versions.targetSdk.get().toInt()
+        multiDexEnabled = true
         versionCode = flutter.versionCode
         versionName = flutter.versionName
     }
@@ -96,6 +97,8 @@ flutter {
 }
 
 dependencies {
+    implementation("im.crisp:crisp-sdk:2.0.25")
+    implementation("androidx.multidex:multidex:2.0.1")
     implementation(project(":service"))
     implementation(project(":common"))
     implementation(project(":core"))
