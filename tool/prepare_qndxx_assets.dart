@@ -17,7 +17,7 @@ Future<void> main() async {
     final response = await request.close();
     if (response.statusCode != HttpStatus.ok) {
       throw HttpException(
-        'QNDXX logo download returned HTTP ' + response.statusCode.toString(),
+        'QNDXX logo download returned HTTP ${response.statusCode}',
         uri: Uri.parse(_logoUrl),
       );
     }
@@ -37,9 +37,7 @@ Future<void> main() async {
     await file.writeAsBytes(bytes, flush: true);
     await file.copy('assets/images/icon.png');
     stdout.writeln(
-      'Downloaded QNDXX logo to $_logoPath (' +
-          bytes.length.toString() +
-          ' bytes).',
+      'Downloaded QNDXX logo to $_logoPath (${bytes.length} bytes).',
     );
   } finally {
     client.close(force: true);
