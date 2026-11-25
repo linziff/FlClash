@@ -46,8 +46,12 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
       final account = await service.login(email: email, password: password);
       final subscription = await service.downloadSubscription();
       final action = ref.read(profilesActionProvider.notifier);
+      final boundId = await service.boundProfileId;
+      final existingProfile = boundId == null
+          ? null
+          : ref.read(profilesProvider).getProfile(boundId);
 
-      final profile = await Profile.normal(label: 'QNDXX').saveFile(
+      final profile = await (existingProfile ?? Profile.normal(label: 'QNDXX')).saveFile(
         subscription.bytes,
         validate: (path, ageSecretKey) async {
           final file = File(path);
