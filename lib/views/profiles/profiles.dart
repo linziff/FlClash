@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'add.dart';
 import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
 import 'package:fl_clash/xboard/qndxx_crisp_service.dart';
+import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'edit.dart';
 import 'preview.dart';
 
@@ -51,10 +52,17 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
     final appLocalizations = context.appLocalizations;
     final profilesAction = ref.read(profilesActionProvider.notifier);
     final List<UpdatingMessage> messages = [];
+    final qndxxProfileId = await QndxxXboardService.instance.boundProfileId;
     final updateProfiles = profiles.map<Future>((profile) async {
-      if (profile.type != ProfileType.url) return;
+      if (profile.id != qndxxProfileId && profile.type != ProfileType.url) {
+        return;
+      }
       try {
-        await profilesAction.updateProfile(profile, showLoading: true);
+        if (profile.id == qndxxProfileId) {
+          await profilesAction.updateQndxxProfile();
+        } else {
+          await profilesAction.updateProfile(profile, showLoading: true);
+        }
       } catch (e) {
         messages.add(
           UpdatingMessage(
