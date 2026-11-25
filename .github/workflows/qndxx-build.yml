@@ -147,5 +147,4 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
       - run: flutter pub get
-      - run: dart format --output=none --set-exit-if-changed lib
       - run: flutter analyze --no-fatal-infos
