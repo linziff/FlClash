@@ -318,8 +318,8 @@ class QndxxXboardService {
         if (base.isEmpty || path.isEmpty) continue;
         final resolved = path.replaceAll('{token}', token);
         final joined = base.endsWith('/')
-            ? '$base' + (resolved.startsWith('/') ? resolved.substring(1) : resolved)
-            : '$base' + (resolved.startsWith('/') ? resolved : '/$resolved');
+            ? '$base${resolved.startsWith('/') ? resolved.substring(1) : resolved}'
+            : '$base${resolved.startsWith('/') ? resolved : '/$resolved'}';
         final uri = Uri.parse(joined);
         final query = Map<String, String>.from(uri.queryParameters);
         query.putIfAbsent('flag', () => 'flclash');
@@ -464,7 +464,7 @@ class QndxxXboardService {
         lastError = error;
       }
     }
-    throw StateError('获取订阅失败：' + _safeError(lastError));
+    throw StateError('获取订阅失败：${_safeError(lastError)}');
   }
 
   void dispose() {
