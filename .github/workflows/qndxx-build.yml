@@ -182,13 +182,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libgtk-3-dev
       - run: flutter pub get
+      - name: Format QNDXX sources
+        run: dart format lib/providers/actions/profiles.dart lib/xboard tool/prepare_qndxx_assets.dart
       - name: Commit resolved dependency lockfile
         if: github.ref == 'refs/heads/qndxx/qndxx'
         shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -f pubspec.lock
+          git add -f pubspec.lock lib/providers/actions/profiles.dart lib/xboard tool/prepare_qndxx_assets.dart
           if ! git diff --cached --quiet; then
             git commit -m "chore(qndxx): commit resolved dependency lockfile [skip ci]"
             git push origin "HEAD:refs/heads/qndxx/qndxx"
