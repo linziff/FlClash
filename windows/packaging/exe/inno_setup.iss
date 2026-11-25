@@ -65,7 +65,7 @@ begin
   AppDir := AddBackslash(ExpandConstant('{app}'));
   StringChangeEx(AppDir, '''', '''''', True);
   Exec('powershell.exe',
-    '-NoProfile -NonInteractive -Command "Get-Process -Name FlClash,FlClashCore,FlClashHelperService -ErrorAction SilentlyContinue | ' +
+    '-NoProfile -NonInteractive -Command "Get-Process -Name QNDXX,FlClashCore,FlClashHelperService -ErrorAction SilentlyContinue | ' +
     'Where-Object { $_.Path -and $_.Path.StartsWith(''' + AppDir + ''', [StringComparison]::OrdinalIgnoreCase) } | Stop-Process -Force"',
     '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
 end;
