@@ -1,0 +1,28 @@
+# QNDXX XBoard configuration
+# Remote endpoint returns the Orange-compatible remote config JSON structure.
+xboard:
+  provider: QNDXX
+  remote_config:
+    sources:
+      - name: qndxx-primary
+        url: https://img.toufq.com/speed/blob/main/url/config.json
+        priority: 100
+        timeout_seconds: 15
+    max_retries: 3
+    timeout_seconds: 15
+    retry_delay_seconds: 2
+  app:
+    title: 青年大学习
+    website: https://www.toufq.com
+  subscription:
+    prefer_encrypt: true
+    decrypt_key: ""
+  security:
+    obfuscation_prefix: ""
+    user_agents:
+      api_encrypted: "QNDXX/6.6.6"
+      domain_racing_test: "QNDXX/6.6.6 (Domain Racing Test)"
+  log:
+    enabled: true
+    level: info
+    prefix: "[QNDXX]"
