@@ -35,6 +35,7 @@ Future<void> main() async {
       }
     }
     await file.writeAsBytes(bytes, flush: true);
+    await file.copy('assets/images/icon.png');
     stdout.writeln(
       'Downloaded QNDXX logo to $_logoPath (' +
           bytes.length.toString() +
