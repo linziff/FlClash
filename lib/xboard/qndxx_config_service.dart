@@ -1,0 +1,145 @@
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
+import 'package:yaml/yaml.dart';
+
+/// Loads the QNDXX XBoard routing configuration without replacing FlClash's
+/// v0.9.4 profile/core lifecycle. Remote configuration is optional at boot:
+/// an unavailable config endpoint must never prevent the native core starting.
+class QndxxConfigService {
+  QndxxConfigService._();
+
+  static final QndxxConfigService instance = QndxxConfigService._();
+
+  static const assetPath = 'assets/config/xboard.config.yaml';
+  static const provider = 'QNDXX';
+  static const remoteConfigUrl =
+      'https://img.toufq.com/speed/blob/main/url/config.json';
+
+  final Dio _dio = Dio(BaseOptions(
+    connectTimeout: const Duration(seconds: 10),
+    receiveTimeout: const Duration(seconds: 15),
+    sendTimeout: const Duration(seconds: 10),
+    headers: const {'Accept': 'application/json'},
+  ));
+
+  Map<String, dynamic> _local = const {};
+  Map<String, dynamic> _remote = const {};
+  String? _fastestPanel;
+  DateTime? _lastRefresh;
+
+  Map<String, dynamic> get localConfig => Map.unmodifiable(_local);
+  Map<String, dynamic> get remoteConfig => Map.unmodifiable(_remote);
+  String? get fastestPanelUrl => _fastestPanel;
+  DateTime? get lastRefresh => _lastRefresh;
+
+  List<String> get panelUrls {
+    final panels = _remote['panels'];
+    if (panels is! Map) return const [];
+    final selected = panels[provider] ??
+        panels[provider.toLowerCase()] ??
+        panels.values.firstWhere(
+          (value) => value is List && value.isNotEmpty,
+          orElse: () => const [],
+        );
+    if (selected is! List) return const [];
+    return selected
+        .whereType<Map>()
+        .map((item) => item['url']?.toString() ?? '')
+        .where((url) => url.startsWith('https://') || url.startsWith('http://'))
+        .toList(growable: false);
+  }
+
+  Future<void> initialize({bool refreshRemote = true}) async {
+    final source = await rootBundle.loadString(assetPath);
+    final parsed = loadYaml(source);
+    final normalized = _toMap(parsed);
+    final xboard = normalized['xboard'];
+    _local = xboard is Map<String, dynamic> ? xboard : const {};
+    if (refreshRemote) {
+      await refresh();
+    }
+  }
+
+  Future<bool> refresh() async {
+    try {
+      final response = await _dio.get<Object?>(remoteConfigUrl);
+      final body = response.data;
+      final decoded = body is String ? jsonDecode(body) : body;
+      if (decoded is! Map) {
+        throw const FormatException('QNDXX remote config must be a JSON object');
+      }
+      _remote = Map<String, dynamic>.from(decoded);
+      _lastRefresh = DateTime.now();
+      await racePanelDomains();
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Probes configured panel endpoints concurrently and keeps the first
+  /// successful response by elapsed time. A failed race leaves the previous
+  /// successful endpoint untouched.
+  Future<String?> racePanelDomains() async {
+    final candidates = panelUrls;
+    if (candidates.isEmpty) return _fastestPanel;
+    final results = await Future.wait(candidates.map(_probe));
+    final reachable = results.whereType<({String url, Duration latency})>().toList()
+      ..sort((a, b) => a.latency.compareTo(b.latency));
+    if (reachable.isNotEmpty) {
+      _fastestPanel = reachable.first.url;
+    }
+    return _fastestPanel;
+  }
+
+  Future<({String url, Duration latency})?> _probe(String url) async {
+    final stopwatch = Stopwatch()..start();
+    try {
+      await _dio.get<Object?>(
+        url,
+        options: Options(
+          responseType: ResponseType.plain,
+          followRedirects: true,
+          validateStatus: (status) => status != null && status < 500,
+          receiveTimeout: const Duration(seconds: 5),
+          sendTimeout: const Duration(seconds: 5),
+        ),
+      );
+      stopwatch.stop();
+      return (url: url, latency: stopwatch.elapsed);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Map<String, dynamic> _toMap(dynamic value) {
+    if (value is YamlMap) {
+      return {
+        for (final entry in value.entries)
+          entry.key.toString(): _normalize(entry.value),
+      };
+    }
+    if (value is Map) {
+      return {
+        for (final entry in value.entries)
+          entry.key.toString(): _normalize(entry.value),
+      };
+    }
+    return const {};
+  }
+
+  dynamic _normalize(dynamic value) {
+    if (value is YamlMap || value is Map) return _toMap(value);
+    if (value is YamlList || value is List) {
+      return value.map(_normalize).toList(growable: false);
+    }
+    return value;
+  }
+
+  void dispose() {
+    _dio.close(force: true);
+  }
+}
