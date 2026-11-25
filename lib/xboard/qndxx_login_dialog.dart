@@ -51,13 +51,14 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
           ? null
           : ref.read(profilesProvider).getProfile(boundId);
 
-      final profile = await (existingProfile ?? Profile.normal(label: 'QNDXX')).saveFile(
-        subscription.bytes,
-        validate: (path, ageSecretKey) async {
-          final file = File(path);
-          return action.validateConfigWithData(await file.readAsBytes());
-        },
-      );
+      final profile = await (existingProfile ?? Profile.normal(label: 'QNDXX'))
+          .saveFile(
+            subscription.bytes,
+            validate: (path, ageSecretKey) async {
+              final file = File(path);
+              return action.validateConfigWithData(await file.readAsBytes());
+            },
+          );
 
       action.putProfile(
         profile.copyWith(
@@ -69,7 +70,10 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
       await service.bindProfile(profile.id);
 
       if (!mounted) return;
-      dialogs.showBanner('QNDXX 登录成功：${account.email}，订阅已导入', level: BannerLevel.success);
+      dialogs.showBanner(
+        'QNDXX 登录成功：${account.email}，订阅已导入',
+        level: BannerLevel.success,
+      );
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
@@ -94,9 +98,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         ),
         FilledButton(
           onPressed: _busy ? null : _loginAndImport,
-          child: _busy
-              ? const Text('登录中…')
-              : const Text('登录并导入订阅'),
+          child: _busy ? const Text('登录中…') : const Text('登录并导入订阅'),
         ),
       ],
       child: Column(

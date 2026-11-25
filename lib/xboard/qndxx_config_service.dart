@@ -17,12 +17,14 @@ class QndxxConfigService {
   static const remoteConfigUrl =
       'https://img.toufq.com/speed/blob/main/url/config.json';
 
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 15),
-    sendTimeout: const Duration(seconds: 10),
-    headers: const {'Accept': 'application/json'},
-  ));
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 15),
+      sendTimeout: const Duration(seconds: 10),
+      headers: const {'Accept': 'application/json'},
+    ),
+  );
 
   Map<String, dynamic> _local = const {};
   Map<String, dynamic> _remote = const {};
@@ -45,11 +47,13 @@ class QndxxConfigService {
     final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
     return agents?['api_encrypted']?.toString() ?? 'QNDXX/6.6.6';
   }
+
   String get domainRacingUserAgent {
     final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
     return agents?['domain_racing_test']?.toString() ??
         'QNDXX/6.6.6 (Domain Racing Test)';
   }
+
   String get crispWebsiteId =>
       (_local['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       '92f20590-a75f-4b50-a521-6d5fc7a356dd';
@@ -60,13 +64,15 @@ class QndxxConfigService {
         agents?['api_encrypted']?.toString() ??
         'QNDXX/6.6.6';
   }
+
   String get panelType => _remote['panelType']?.toString() ?? 'xboard';
 
   List<String> get proxyUrls => _stringUrls(_remote['proxy']);
   List<String> get websocketUrls => _stringUrls(_remote['ws']);
   List<String> get updateUrls => _stringUrls(_remote['update']);
 
-  List<Map<String, dynamic>> get onlineSupport => _mapList(_remote['onlineSupport']);
+  List<Map<String, dynamic>> get onlineSupport =>
+      _mapList(_remote['onlineSupport']);
   List<Map<String, dynamic>> get subscriptionUrls =>
       _mapList((_remote['subscription'] as Map?)?['urls']);
 
@@ -86,9 +92,8 @@ class QndxxConfigService {
   List<String> get panelUrls {
     final panels = _remote['panels'];
     if (panels is! Map) return const [];
-    final selected = panels[provider] ??
-        panels[provider.toLowerCase()] ??
-        const <dynamic>[];
+    final selected =
+        panels[provider] ?? panels[provider.toLowerCase()] ?? const <dynamic>[];
     if (selected is! List) return const [];
     return selected
         .whereType<Map>()
@@ -111,20 +116,25 @@ class QndxxConfigService {
   Future<bool> refresh() async {
     final remoteSettings = _local['remote_config'];
     final settings = remoteSettings is Map ? remoteSettings : const {};
-    final sources = (settings['sources'] is List
-            ? (settings['sources'] as List).whereType<Map>().toList()
-            : <Map>[])
-        ..sort((a, b) =>
-            (int.tryParse('${b['priority'] ?? 0}') ?? 0).compareTo(
+    final sources =
+        (settings['sources'] is List
+              ? (settings['sources'] as List).whereType<Map>().toList()
+              : <Map>[])
+          ..sort(
+            (a, b) => (int.tryParse('${b['priority'] ?? 0}') ?? 0).compareTo(
               int.tryParse('${a['priority'] ?? 0}') ?? 0,
-            ));
+            ),
+          );
     final retries = int.tryParse('${settings['max_retries'] ?? 3}') ?? 3;
     final candidates = sources.isEmpty
         ? <String>[remoteConfigUrl]
         : sources
-            .map((source) => source['url']?.toString() ?? '')
-            .where((url) => url.startsWith('https://') || url.startsWith('http://'))
-            .toList(growable: false);
+              .map((source) => source['url']?.toString() ?? '')
+              .where(
+                (url) =>
+                    url.startsWith('https://') || url.startsWith('http://'),
+              )
+              .toList(growable: false);
 
     for (final url in candidates) {
       for (var attempt = 0; attempt <= retries; attempt++) {
@@ -168,8 +178,9 @@ class QndxxConfigService {
     final candidates = panelUrls;
     if (candidates.isEmpty) return _fastestPanel;
     final results = await Future.wait(candidates.map(_probe));
-    final reachable = results.whereType<({String url, Duration latency})>().toList()
-      ..sort((a, b) => a.latency.compareTo(b.latency));
+    final reachable =
+        results.whereType<({String url, Duration latency})>().toList()
+          ..sort((a, b) => a.latency.compareTo(b.latency));
     if (reachable.isNotEmpty) {
       _rankedPanels = reachable.map((item) => item.url).toList(growable: false);
       _fastestPanel = _rankedPanels.first;

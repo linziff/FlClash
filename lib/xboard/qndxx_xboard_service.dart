@@ -48,17 +48,19 @@ class QndxxXboardService {
   static const _emailKey = 'qndxx.xboard.email';
   static const _profileIdKey = 'qndxx.xboard.profile_id';
 
-  final Dio _dio = Dio(BaseOptions(
-    connectTimeout: const Duration(seconds: 15),
-    receiveTimeout: const Duration(seconds: 30),
-    sendTimeout: const Duration(seconds: 15),
-    responseType: ResponseType.plain,
-    headers: const {
-      'Accept': 'application/json, text/plain, */*',
-      'Content-Type': 'application/json',
-      'User-Agent': 'QNDXX/6.6.6',
-    },
-  ));
+  final Dio _dio = Dio(
+    BaseOptions(
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 30),
+      sendTimeout: const Duration(seconds: 15),
+      responseType: ResponseType.plain,
+      headers: const {
+        'Accept': 'application/json, text/plain, */*',
+        'Content-Type': 'application/json',
+        'User-Agent': 'QNDXX/6.6.6',
+      },
+    ),
+  );
 
   String? _token;
   String? _panelUrl;
@@ -66,7 +68,8 @@ class QndxxXboardService {
 
   String _normalizeBaseUrl(String value) {
     final uri = Uri.parse(value.trim());
-    if (!uri.hasScheme || uri.host.isEmpty ||
+    if (!uri.hasScheme ||
+        uri.host.isEmpty ||
         (uri.scheme != 'https' && uri.scheme != 'http')) {
       throw const FormatException('面板地址必须是有效的 HTTP/HTTPS URL');
     }
@@ -96,10 +99,9 @@ class QndxxXboardService {
     );
   }
 
-  String? _message(Map<String, dynamic> body) =>
-      body['message'] == null
-          ? (body['msg'] ?? body['error'])?.toString()
-          : _safeError(body['message']!);
+  String? _message(Map<String, dynamic> body) => body['message'] == null
+      ? (body['msg'] ?? body['error'])?.toString()
+      : _safeError(body['message']!);
 
   Future<QndxxAccount> login({
     required String email,
@@ -138,7 +140,8 @@ class QndxxXboardService {
         final data = _map(body['data']);
         final token = (data['token'] ?? data['auth_data'])?.toString().trim();
         final status = body['status'];
-        final rejected = status == false ||
+        final rejected =
+            status == false ||
             status == 0 ||
             status == 'error' ||
             status == 'failed' ||
@@ -382,8 +385,8 @@ class QndxxXboardService {
     final response = await _authorizedGet('/api/v1/user/getSubscribe');
     final body = _map(_decode(response.data));
     final data = _map(body['data']);
-    final subscribeUrl = (data['subscribe_url'] ?? data['subscribeUrl'])
-        ?.toString() ?? '';
+    final subscribeUrl =
+        (data['subscribe_url'] ?? data['subscribeUrl'])?.toString() ?? '';
     if (subscribeUrl.isEmpty) {
       throw StateError(_message(body) ?? '账号没有返回订阅地址');
     }
@@ -435,7 +438,8 @@ class QndxxXboardService {
         }
         var text = result.data?.toString() ?? '';
         final obfuscationPrefix = config.obfuscationPrefix;
-        if (obfuscationPrefix.isNotEmpty && text.startsWith(obfuscationPrefix)) {
+        if (obfuscationPrefix.isNotEmpty &&
+            text.startsWith(obfuscationPrefix)) {
           text = text.substring(obfuscationPrefix.length);
         }
         if (text.isEmpty) continue;

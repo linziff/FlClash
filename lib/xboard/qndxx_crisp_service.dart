@@ -28,10 +28,9 @@ class QndxxCrispService {
     }
 
     if (Platform.isAndroid) {
-      await _androidChannel.invokeMethod<void>(
-        'openChat',
-        {'websiteId': websiteId},
-      );
+      await _androidChannel.invokeMethod<void>('openChat', {
+        'websiteId': websiteId,
+      });
       return;
     }
 

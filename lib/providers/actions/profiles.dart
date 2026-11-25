@@ -58,8 +58,7 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> autoUpdateProfiles() async {
-    final qndxxProfileId =
-        await QndxxXboardService.instance.boundProfileId;
+    final qndxxProfileId = await QndxxXboardService.instance.boundProfileId;
     for (final id in [
       for (final profile in ref.read(profilesProvider)) profile.id,
     ]) {
@@ -148,8 +147,7 @@ class ProfilesAction extends _$ProfilesAction {
   }
 
   Future<void> updateProfiles() async {
-    final qndxxProfileId =
-        await QndxxXboardService.instance.boundProfileId;
+    final qndxxProfileId = await QndxxXboardService.instance.boundProfileId;
     for (final id in [
       for (final profile in ref.read(profilesProvider)) profile.id,
     ]) {
@@ -183,8 +181,8 @@ class ProfilesAction extends _$ProfilesAction {
         ? ref.read(updatingKeysProvider.notifier).start(profile.updatingKey)
         : null;
     try {
-      final subscription =
-          await QndxxXboardService.instance.downloadSubscription();
+      final subscription = await QndxxXboardService.instance
+          .downloadSubscription();
       final updated = await profile.saveFile(
         subscription.bytes,
         validate: (path, key) => _core.validateProfile(path, key),
