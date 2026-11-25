@@ -39,6 +39,9 @@ class QndxxConfigService {
       (_local['subscription'] as Map?)?['decrypt_key']?.toString() ?? '';
   bool get preferEncrypt =>
       (_local['subscription'] as Map?)?['prefer_encrypt'] == true;
+  String get crispWebsiteId =>
+      (_local['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
+      '92f20590-a75f-4b50-a521-6d5fc7a356dd';
   String get subscriptionUserAgent {
     final security = _local['security'] as Map?;
     final agents = security?['user_agents'] as Map?;
