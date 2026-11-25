@@ -15,6 +15,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'add.dart';
+import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
 import 'edit.dart';
 import 'preview.dart';
 
@@ -106,9 +107,19 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
           isLoading: isLoading,
           title: appLocalizations.profiles,
           iconActions: picker ? const [] : _buildActions(state.profiles),
-          actions: state.profiles.isEmpty || picker
+          actions: picker
               ? null
               : [
+                  TextButton(
+                    onPressed: () {
+                      unawaited(
+                        dialogs.showCommonDialog<void>(
+                          child: const QndxxLoginDialog(),
+                        ),
+                      );
+                    },
+                    child: const Text('XBoard 登录'),
+                  ),
                   AddProfileMenu(
                     builder: (open) => IconButton(
                       tooltip: appLocalizations.addProfile,
