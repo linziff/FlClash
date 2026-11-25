@@ -9,6 +9,8 @@ import 'package:rust_api/rust_api.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_platform_interface.dart';
 
 import 'application.dart';
+import 'xboard/qndxx_config_service.dart';
+
 import 'bootstrap.dart';
 import 'common/app_data.dart';
 import 'common/common.dart';
@@ -33,6 +35,7 @@ void main() {
         });
       };
       try {
+        await QndxxConfigService.instance.initialize(refreshRemote: false);
         await RustLib.init();
         final version = await system.init();
         final container = await bootstrap.init(version);
@@ -45,6 +48,7 @@ void main() {
             child: const Application(),
           ),
         );
+        unawaited(QndxxConfigService.instance.refresh());
       } catch (e, s) {
         runApp(
           InitErrorApp(
