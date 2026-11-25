@@ -27,12 +27,18 @@ class QndxxConfigService {
   Map<String, dynamic> _local = const {};
   Map<String, dynamic> _remote = const {};
   String? _fastestPanel;
+  List<String> _rankedPanels = const [];
   DateTime? _lastRefresh;
 
   Map<String, dynamic> get localConfig => Map.unmodifiable(_local);
   Map<String, dynamic> get remoteConfig => Map.unmodifiable(_remote);
   String? get fastestPanelUrl => _fastestPanel;
   DateTime? get lastRefresh => _lastRefresh;
+  List<String> get rankedPanelUrls => List.unmodifiable(_rankedPanels);
+  String get decryptKey =>
+      (_local['subscription'] as Map?)?['decrypt_key']?.toString() ?? '';
+  bool get preferEncrypt =>
+      (_local['subscription'] as Map?)?['prefer_encrypt'] == true;
   String get panelType => _remote['panelType']?.toString() ?? 'xboard';
 
   List<String> get proxyUrls => _stringUrls(_remote['proxy']);
@@ -144,7 +150,8 @@ class QndxxConfigService {
     final reachable = results.whereType<({String url, Duration latency})>().toList()
       ..sort((a, b) => a.latency.compareTo(b.latency));
     if (reachable.isNotEmpty) {
-      _fastestPanel = reachable.first.url;
+      _rankedPanels = reachable.map((item) => item.url).toList(growable: false);
+      _fastestPanel = _rankedPanels.first;
     }
     return _fastestPanel;
   }
