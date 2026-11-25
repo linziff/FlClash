@@ -173,13 +173,28 @@ class QndxxXboardService {
 
   Future<Response<Object?>> _authorizedGet(String path) async {
     if (_token == null || _panelUrl == null) await restoreSession();
-    return _dio.get<Object?>(
-      '$_panelUrl$path',
-      options: Options(
-        responseType: ResponseType.plain,
-        headers: {'Authorization': 'Bearer $_token'},
-      ),
-    );
+    try {
+      return await _dio.get<Object?>(
+        '$_panelUrl$path',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'Authorization': 'Bearer $_token'},
+        ),
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 401 &&
+          error.response?.statusCode != 403) {
+        rethrow;
+      }
+      // Older XBoard installations expect the raw token without "Bearer ".
+      return _dio.get<Object?>(
+        '$_panelUrl$path',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'Authorization': _token!},
+        ),
+      );
+    }
   }
 
   Future<Response<Object?>> _authorizedPost(
@@ -187,14 +202,29 @@ class QndxxXboardService {
     Map<String, dynamic> data,
   ) async {
     if (_token == null || _panelUrl == null) await restoreSession();
-    return _dio.post<Object?>(
-      '$_panelUrl$path',
-      data: data,
-      options: Options(
-        responseType: ResponseType.plain,
-        headers: {'Authorization': 'Bearer $_token'},
-      ),
-    );
+    try {
+      return await _dio.post<Object?>(
+        '$_panelUrl$path',
+        data: data,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'Authorization': 'Bearer $_token'},
+        ),
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 401 &&
+          error.response?.statusCode != 403) {
+        rethrow;
+      }
+      return _dio.post<Object?>(
+        '$_panelUrl$path',
+        data: data,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {'Authorization': _token!},
+        ),
+      );
+    }
   }
 
   String? _extractToken(String subscribeUrl, Map<String, dynamic> data) {
