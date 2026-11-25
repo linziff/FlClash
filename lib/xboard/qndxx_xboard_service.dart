@@ -91,7 +91,7 @@ class QndxxXboardService {
 
   String _safeError(Object? error) {
     return (error?.toString() ?? 'unknown error').replaceAll(
-      RegExp(r'([?&]token=)[^&\\s]+', caseSensitive: false),
+      RegExp(r'([?&]token=)[^&\s]+', caseSensitive: false),
       r'$1[redacted]',
     );
   }
