@@ -61,10 +61,7 @@ class QndxxConfigService {
     if (panels is! Map) return const [];
     final selected = panels[provider] ??
         panels[provider.toLowerCase()] ??
-        panels.values.firstWhere(
-          (value) => value is List && value.isNotEmpty,
-          orElse: () => const [],
-        );
+        const <dynamic>[];
     if (selected is! List) return const [];
     return selected
         .whereType<Map>()
