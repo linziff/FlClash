@@ -39,6 +39,17 @@ class QndxxConfigService {
       (_local['subscription'] as Map?)?['decrypt_key']?.toString() ?? '';
   bool get preferEncrypt =>
       (_local['subscription'] as Map?)?['prefer_encrypt'] == true;
+  String get obfuscationPrefix =>
+      (_local['security'] as Map?)?['obfuscation_prefix']?.toString() ?? '';
+  String get apiUserAgent {
+    final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
+    return agents?['api_encrypted']?.toString() ?? 'QNDXX/6.6.6';
+  }
+  String get domainRacingUserAgent {
+    final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
+    return agents?['domain_racing_test']?.toString() ??
+        'QNDXX/6.6.6 (Domain Racing Test)';
+  }
   String get crispWebsiteId =>
       (_local['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       '92f20590-a75f-4b50-a521-6d5fc7a356dd';
@@ -174,6 +185,7 @@ class QndxxConfigService {
         options: Options(
           responseType: ResponseType.plain,
           followRedirects: true,
+          headers: {'User-Agent': domainRacingUserAgent},
           validateStatus: (status) => status != null && status < 500,
           receiveTimeout: const Duration(seconds: 5),
           sendTimeout: const Duration(seconds: 5),
