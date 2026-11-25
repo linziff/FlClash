@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:crisp_chat/crisp_chat.dart';
@@ -47,6 +48,12 @@ class QndxxCrispService {
 
       await _desktopWindow?.close();
       final supportDirectory = await getApplicationSupportDirectory();
+      final webviewDataDirectory = Directory(
+        p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2'),
+      );
+      if (Platform.isWindows) {
+        await webviewDataDirectory.create(recursive: true);
+      }
       final window = await WebviewWindow.create(
         configuration: CreateConfiguration(
           title: 'QNDXX 在线客服',
@@ -58,9 +65,20 @@ class QndxxCrispService {
         ),
       );
       _desktopWindow = window;
-      await window.launch(
-        'https://go.crisp.chat/chat/embed/?website_id=$websiteId',
+      unawaited(
+        window.onClose.then((_) {
+          if (identical(_desktopWindow, window)) _desktopWindow = null;
+        }),
       );
+      try {
+        await window.launch(
+          'https://go.crisp.chat/chat/embed/?website_id=$websiteId',
+        );
+      } catch (_) {
+        _desktopWindow = null;
+        await window.close();
+        rethrow;
+      }
       return;
     }
 
