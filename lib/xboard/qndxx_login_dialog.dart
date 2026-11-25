@@ -91,7 +91,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         FilledButton(
           onPressed: _busy ? null : _loginAndImport,
           child: _busy
-              ? const ActivityIndicator()
+              ? const Text('登录中…')
               : const Text('登录并导入订阅'),
         ),
       ],
