@@ -352,15 +352,15 @@ class QndxxXboardService {
 
   bool _looksLikeClash(String content) {
     final normalized = content.trimLeft();
-    return normalized.contains('\\nproxies:') ||
+    return normalized.contains('\nproxies:') ||
         normalized.startsWith('proxies:') ||
-        normalized.contains('\\nproxy-groups:') ||
+        normalized.contains('\nproxy-groups:') ||
         normalized.startsWith('proxy-groups:') ||
-        normalized.contains('\\nproxy-providers:') ||
+        normalized.contains('\nproxy-providers:') ||
         normalized.startsWith('proxy-providers:') ||
-        normalized.contains('\\nport:') ||
+        normalized.contains('\nport:') ||
         normalized.startsWith('port:') ||
-        normalized.contains('\\nrules:') ||
+        normalized.contains('\nrules:') ||
         normalized.startsWith('rules:');
   }
 
