@@ -19,6 +19,7 @@ import 'package:fl_clash/providers/mitm.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
+import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/foundation.dart' show compute, listEquals;
 import 'package:flutter/services.dart';
