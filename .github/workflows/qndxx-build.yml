@@ -173,6 +173,10 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - name: Install Linux test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev
       - run: flutter pub get
       - name: Commit resolved dependency lockfile
         if: github.ref == 'refs/heads/qndxx/qndxx'
