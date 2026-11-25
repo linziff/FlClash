@@ -68,6 +68,7 @@ dev_dependencies:
   args: ^2.7.0
   freezed: ^4.0.1
   riverpod_generator: ^4.0.9
+  flutter_launcher_icons: ^0.14.4
 
   drift_dev: ^2.35.1
   test: ^1.32.0
@@ -98,3 +99,15 @@ flutter:
     - family: Twemoji
       fonts:
         - asset: assets/fonts/Twemoji.Mozilla.ttf
+
+flutter_launcher_icons:
+  android: true
+  ios: false
+  image_path: assets/images/QNDXXLG.png
+  windows:
+    generate: true
+    image_path: assets/images/QNDXXLG.png
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: assets/images/QNDXXLG.png
