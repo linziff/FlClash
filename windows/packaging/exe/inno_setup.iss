@@ -154,7 +154,7 @@ begin
   DelTree(ExpandConstant('{userappdata}\QNDXX\QNDXX'), True, True, True);
   DelTree(ExpandConstant('{localappdata}\com.follow\clash'), True, True, True);
   RemoveDir(ExpandConstant('{userappdata}\QNDXX'));
-  RemoveDir(ExpandConstant('{localappdata}\com.follow'));
+  RemoveDir(ExpandConstant('{localappdata}\QNDXX'));
 end;
 
 procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
