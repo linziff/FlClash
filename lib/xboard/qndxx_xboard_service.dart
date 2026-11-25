@@ -46,6 +46,7 @@ class QndxxXboardService {
   static const _tokenKey = 'qndxx.xboard.token';
   static const _panelKey = 'qndxx.xboard.panel';
   static const _emailKey = 'qndxx.xboard.email';
+  static const _profileIdKey = 'qndxx.xboard.profile_id';
 
   final Dio _dio = Dio(BaseOptions(
     connectTimeout: const Duration(seconds: 15),
@@ -158,6 +159,16 @@ class QndxxXboardService {
     throw StateError('所有 QNDXX 面板登录均失败：$lastError');
   }
 
+  Future<int?> get boundProfileId async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_profileIdKey);
+  }
+
+  Future<void> bindProfile(int profileId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_profileIdKey, profileId);
+  }
+
   Future<void> restoreSession() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString(_tokenKey);
@@ -180,6 +191,7 @@ class QndxxXboardService {
     await prefs.remove(_tokenKey);
     await prefs.remove(_panelKey);
     await prefs.remove(_emailKey);
+    await prefs.remove(_profileIdKey);
     _token = null;
     _panelUrl = null;
     _email = null;
