@@ -137,10 +137,14 @@ class QndxxXboardService {
         final body = _map(_decode(response.data));
         final data = _map(body['data']);
         final token = (data['token'] ?? data['auth_data'])?.toString().trim();
+        final status = body['status'];
+        final rejected = status == false ||
+            status == 0 ||
+            status == 'error' ||
+            status == 'failed' ||
+            body['success'] == false;
         if (response.statusCode != 200 ||
-            (body['status'] != null &&
-                body['status'] != 1 &&
-                body['status'] != true) ||
+            rejected ||
             token == null ||
             token.isEmpty) {
           throw StateError(_message(body) ?? '登录失败：面板没有返回有效 Token');
