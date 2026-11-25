@@ -72,9 +72,11 @@ jobs:
       matrix:
         include:
           - arch: x64
+            output_arch: x64
             runner: windows-2022
             channel: stable
           - arch: arm64
+            output_arch: arm64
             runner: windows-11-arm
             channel: master
     steps:
@@ -96,7 +98,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: QNDXX-Windows-${{ matrix.arch }}
-          path: build/windows/x64/runner/Release/
+          path: build/windows/${{ matrix.output_arch }}/runner/Release/
           if-no-files-found: error
 
   macos:
