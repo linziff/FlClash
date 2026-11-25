@@ -45,7 +45,7 @@ class QndxxCrispService {
 
       await _desktopWindow?.close();
       final window = await WebviewWindow.create(
-        configuration: const CreateConfiguration(
+        configuration: CreateConfiguration(
           title: 'QNDXX 在线客服',
           windowWidth: 440,
           windowHeight: 760,
