@@ -34,6 +34,28 @@ class QndxxConfigService {
   Map<String, dynamic> get remoteConfig => Map.unmodifiable(_remote);
   String? get fastestPanelUrl => _fastestPanel;
   DateTime? get lastRefresh => _lastRefresh;
+  String get panelType => _remote['panelType']?.toString() ?? 'xboard';
+
+  List<String> get proxyUrls => _stringUrls(_remote['proxy']);
+  List<String> get websocketUrls => _stringUrls(_remote['ws']);
+  List<String> get updateUrls => _stringUrls(_remote['update']);
+
+  List<Map<String, dynamic>> get onlineSupport => _mapList(_remote['onlineSupport']);
+  List<Map<String, dynamic>> get subscriptionUrls =>
+      _mapList((_remote['subscription'] as Map?)?['urls']);
+
+  List<String> _stringUrls(dynamic source) => _mapList(source)
+      .map((item) => item['url']?.toString() ?? '')
+      .where((url) => url.isNotEmpty)
+      .toList(growable: false);
+
+  List<Map<String, dynamic>> _mapList(dynamic source) {
+    if (source is! List) return const [];
+    return source
+        .whereType<Map>()
+        .map((item) => Map<String, dynamic>.from(item))
+        .toList(growable: false);
+  }
 
   List<String> get panelUrls {
     final panels = _remote['panels'];
@@ -64,20 +86,48 @@ class QndxxConfigService {
   }
 
   Future<bool> refresh() async {
-    try {
-      final response = await _dio.get<Object?>(remoteConfigUrl);
-      final body = response.data;
-      final decoded = body is String ? jsonDecode(body) : body;
-      if (decoded is! Map) {
-        throw const FormatException('QNDXX remote config must be a JSON object');
+    final remoteSettings = _local['remote_config'];
+    final settings = remoteSettings is Map ? remoteSettings : const {};
+    final sources = (settings['sources'] is List
+            ? (settings['sources'] as List).whereType<Map>().toList()
+            : <Map>[])
+        ..sort((a, b) =>
+            (int.tryParse('\${b['priority'] ?? 0}') ?? 0).compareTo(
+              int.tryParse('\${a['priority'] ?? 0}') ?? 0,
+            ));
+    final retries = int.tryParse('\${settings['max_retries'] ?? 3}') ?? 3;
+    final candidates = sources.isEmpty
+        ? <String>[remoteConfigUrl]
+        : sources
+            .map((source) => source['url']?.toString() ?? '')
+            .where((url) => url.startsWith('https://') || url.startsWith('http://'))
+            .toList(growable: false);
+
+    for (final url in candidates) {
+      for (var attempt = 0; attempt <= retries; attempt++) {
+        try {
+          final response = await _dio.get<Object?>(url);
+          final body = response.data;
+          final decoded = body is String ? jsonDecode(body) : body;
+          if (decoded is! Map) {
+            throw const FormatException(
+              'QNDXX remote config must be a JSON object',
+            );
+          }
+          _remote = Map<String, dynamic>.from(decoded);
+          _lastRefresh = DateTime.now();
+          await racePanelDomains();
+          return true;
+        } catch (_) {
+          if (attempt < retries) {
+            final delaySeconds =
+                int.tryParse('\${settings['retry_delay_seconds'] ?? 2}') ?? 2;
+            await Future<void>.delayed(Duration(seconds: delaySeconds));
+          }
+        }
       }
-      _remote = Map<String, dynamic>.from(decoded);
-      _lastRefresh = DateTime.now();
-      await racePanelDomains();
-      return true;
-    } catch (_) {
-      return false;
     }
+    return false;
   }
 
   /// Probes configured panel endpoints concurrently and keeps the first
