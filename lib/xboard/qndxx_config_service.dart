@@ -39,6 +39,13 @@ class QndxxConfigService {
       (_local['subscription'] as Map?)?['decrypt_key']?.toString() ?? '';
   bool get preferEncrypt =>
       (_local['subscription'] as Map?)?['prefer_encrypt'] == true;
+  String get subscriptionUserAgent {
+    final security = _local['security'] as Map?;
+    final agents = security?['user_agents'] as Map?;
+    return agents?['subscription']?.toString() ??
+        agents?['api_encrypted']?.toString() ??
+        'QNDXX/6.6.6';
+  }
   String get panelType => _remote['panelType']?.toString() ?? 'xboard';
 
   List<String> get proxyUrls => _stringUrls(_remote['proxy']);
