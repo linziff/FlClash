@@ -1,7 +1,7 @@
 package com.follow.clash
 
 import android.content.Intent
-import im.crisp.client.Crisp
+import im.crisp.client.external.Crisp
 import im.crisp.client.external.ChatActivity
 import io.flutter.plugin.common.MethodChannel
 
