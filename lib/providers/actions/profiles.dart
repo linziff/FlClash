@@ -202,6 +202,18 @@ class ProfilesAction extends _$ProfilesAction {
         ref
             .read(setupActionProvider.notifier)
             .applyProfileDebounce(silence: true);
+      } else {
+        final label = ref
+            .read(profilesProvider.notifier)
+            .labeled(newProfile)
+            .realLabel;
+        unawaited(
+          ref.read(clashProvidersActionProvider.notifier).applyIfReferenced(
+            ProviderKind.proxy,
+            {label},
+            force: true,
+          ),
+        );
       }
     } finally {
       if (operation != null) {
