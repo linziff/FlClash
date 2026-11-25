@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:crisp_chat/crisp_chat.dart';
+import 'package:flutter/services.dart';
 import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -17,6 +17,8 @@ class QndxxCrispService {
 
   Webview? _desktopWindow;
 
+  static const _androidChannel = MethodChannel('qndxx/crisp');
+
   String get _websiteId => QndxxConfigService.instance.crispWebsiteId;
 
   Future<void> open() async {
@@ -26,12 +28,9 @@ class QndxxCrispService {
     }
 
     if (Platform.isAndroid) {
-      await FlutterCrispChat.openCrispChat(
-        config: CrispConfig(
-          websiteID: websiteId,
-          sessionSegment: 'qndxx_app',
-          enableNotifications: false,
-        ),
+      await _androidChannel.invokeMethod<void>(
+        'openChat',
+        {'websiteId': websiteId},
       );
       return;
     }
@@ -59,8 +58,11 @@ class QndxxCrispService {
           title: 'QNDXX 在线客服',
           windowWidth: 440,
           windowHeight: 760,
-          userDataFolderWindows: Platform.isWindows
-              ? p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2')
+          windows: Platform.isWindows
+              ? WindowsWebviewOptions(
+                  userDataFolder:
+                      p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2'),
+                )
               : null,
         ),
       );
