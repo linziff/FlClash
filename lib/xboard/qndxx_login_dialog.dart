@@ -43,7 +43,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     setState(() => _busy = true);
     try {
       final service = QndxxXboardService.instance;
-      final account = await service.login(email: email, password: password);
+      await service.login(email: email, password: password);
       final subscription = await service.downloadSubscription();
       final action = ref.read(profilesActionProvider.notifier);
 
