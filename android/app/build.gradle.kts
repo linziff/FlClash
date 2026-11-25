@@ -34,7 +34,7 @@ android {
 
     defaultConfig {
         applicationId = "qndxx.app"
-        minSdk = flutter.minSdkVersion
+        minSdk = maxOf(flutter.minSdkVersion, 23)
         targetSdk = libs.versions.targetSdk.get().toInt()
         multiDexEnabled = true
         versionCode = flutter.versionCode
