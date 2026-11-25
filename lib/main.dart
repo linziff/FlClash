@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/enum/enum.dart';
+import 'package:desktop_webview_window/desktop_webview_window.dart';
 import 'package:fl_clash/pages/error.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -17,10 +18,13 @@ import 'common/common.dart';
 import 'common/preferences_store.dart';
 import 'common/window.dart';
 
-void main() {
+void main(List<String> args) {
   runZonedGuarded(
     () async {
       WidgetsFlutterBinding.ensureInitialized();
+      if (Platform.isWindows || Platform.isMacOS) {
+        if (runWebViewTitleBarWidget(args)) return;
+      }
       if (Platform.isWindows || Platform.isLinux) {
         SharedPreferencesStorePlatform.instance = AtomicFilePreferencesStore(
           appPath.sharedPreferencesPath,
