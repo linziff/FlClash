@@ -61,7 +61,7 @@ class QndxxCrispService {
           windows: WindowsWebviewOptions(
             userDataFolder: Platform.isWindows
                 ? p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2')
-                : null,
+                : supportDirectory.path,
           ),
         ),
       );
