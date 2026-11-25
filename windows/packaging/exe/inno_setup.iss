@@ -151,9 +151,9 @@ end;
 // windows/runner/Runner.rc.
 procedure RemoveUserData;
 begin
-  DelTree(ExpandConstant('{userappdata}\com.follow\clash'), True, True, True);
+  DelTree(ExpandConstant('{userappdata}\QNDXX\QNDXX'), True, True, True);
   DelTree(ExpandConstant('{localappdata}\com.follow\clash'), True, True, True);
-  RemoveDir(ExpandConstant('{userappdata}\com.follow'));
+  RemoveDir(ExpandConstant('{userappdata}\QNDXX'));
   RemoveDir(ExpandConstant('{localappdata}\com.follow'));
 end;
 
