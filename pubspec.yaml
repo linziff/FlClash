@@ -29,6 +29,8 @@ dependencies:
   collection: ^1.19.1
   package_info_plus: ^10.2.2
   url_launcher: ^6.3.3
+  crisp_chat: ^3.0.0
+  desktop_webview_window: ^0.3.0
   freezed_annotation: ^3.1.0
   image_picker: ^1.2.4
   ffi: ^2.2.0
@@ -77,7 +79,6 @@ flutter:
   generate: true
   assets:
     - assets/data/
-    - assets/config/xboard.config.yaml
     - assets/config/xboard.config.yaml
     - assets/fonts/
     - assets/images/
