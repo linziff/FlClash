@@ -53,6 +53,10 @@ jobs:
         run: curl -fsSL --retry 3 https://curl.se/ca/cacert.pem -o core/Clash.Meta/component/ca/ca-certificates.crt
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Prepare QNDXX logo and native icons
+        run: |
+          dart run tool/prepare_qndxx_assets.dart
+          dart run flutter_launcher_icons
       - name: Build split APKs (armeabi-v7a, arm64-v8a, x86_64)
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
@@ -100,6 +104,10 @@ jobs:
           workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Prepare QNDXX logo and native icons
+        run: |
+          dart run tool/prepare_qndxx_assets.dart
+          dart run flutter_launcher_icons
       - name: Build Windows
         run: dart tool/package.dart windows --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --tag v6.6.6 --env pre --verbose
       - uses: actions/upload-artifact@v4
@@ -136,6 +144,10 @@ jobs:
           workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
+      - name: Prepare QNDXX logo and native icons
+        run: |
+          dart run tool/prepare_qndxx_assets.dart
+          dart run flutter_launcher_icons
       - name: Setup Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
