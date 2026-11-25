@@ -109,10 +109,10 @@ jobs:
           workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
-      - name: Prepare QNDXX logo and native icons
-        run: |
-          dart run tool/prepare_qndxx_assets.dart
-          dart run flutter_launcher_icons
+      - name: Download QNDXX logo
+        run: dart tool/prepare_qndxx_assets.dart
+      - name: Generate native app icons
+        run: flutter pub run flutter_launcher_icons
       - name: Build Windows
         run: dart tool/package.dart windows --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --tag v6.6.6 --env pre --verbose
       - uses: actions/upload-artifact@v4
@@ -149,10 +149,10 @@ jobs:
           workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
-      - name: Prepare QNDXX logo and native icons
-        run: |
-          dart run tool/prepare_qndxx_assets.dart
-          dart run flutter_launcher_icons
+      - name: Download QNDXX logo
+        run: dart tool/prepare_qndxx_assets.dart
+      - name: Generate native app icons
+        run: flutter pub run flutter_launcher_icons
       - name: Setup Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
