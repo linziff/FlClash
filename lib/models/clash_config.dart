@@ -29,6 +29,7 @@ const baselineDns = Dns(
   enable: true,
   enhancedMode: DnsMode.fakeIp,
   nameserver: ['https://doh.pub/dns-query', 'https://dns.alidns.com/dns-query'],
+  ipv6: true,
 );
 const defaultGeoXUrl = {
   GeoResource.MMDB:
@@ -1237,7 +1238,7 @@ abstract class Dns with _$Dns {
     @Default(true) @JsonKey(name: 'use-hosts') bool useHosts,
     @Default(true) @JsonKey(name: 'use-system-hosts') bool useSystemHosts,
     @Default(false) @JsonKey(name: 'respect-rules') bool respectRules,
-    @Default(false) bool ipv6,
+    @Default(true) bool ipv6,
     @Default(100) @JsonKey(name: 'ipv6-timeout') int ipv6Timeout,
     @Default(DnsCacheAlgorithm.lru)
     @JsonKey(name: 'cache-algorithm')
