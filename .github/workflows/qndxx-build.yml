@@ -45,6 +45,9 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: plugins/rust_api/rust
       - uses: gradle/actions/setup-gradle@v4
       - name: Fetch CA certificates
         run: curl -fsSL --retry 3 https://curl.se/ca/cacert.pem -o core/Clash.Meta/component/ca/ca-certificates.crt
@@ -87,6 +90,16 @@ jobs:
           channel: ${{ matrix.channel }}
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - name: Setup Rust on Windows ARM64
+        if: matrix.arch == 'arm64'
+        shell: pwsh
+        run: |
+          Invoke-WebRequest -Uri 'https://win.rustup.rs/aarch64' -OutFile rustup-init.exe
+          .\\rustup-init.exe -y --default-toolchain stable
+          Add-Content $env:GITHUB_PATH "$env:USERPROFILE\\.cargo\\bin"
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
       - name: Build Windows
@@ -121,6 +134,9 @@ jobs:
           channel: stable
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: plugins/rust_api/rust
       - name: Resolve dependencies
         run: flutter pub get
       - name: Setup Xcode
@@ -149,3 +165,4 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter analyze --no-fatal-infos
+      - run: dart run tool/test.dart -- --reporter expanded
