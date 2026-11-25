@@ -110,6 +110,14 @@ class QndxxConfigService {
               'QNDXX remote config must be a JSON object',
             );
           }
+          final panels = decoded['panels'];
+          if (panels is! Map ||
+              (panels[provider] is! List &&
+                  panels[provider.toLowerCase()] is! List)) {
+            throw const FormatException(
+              'QNDXX remote config must define panels.QNDXX',
+            );
+          }
           _remote = Map<String, dynamic>.from(decoded);
           _lastRefresh = DateTime.now();
           await racePanelDomains();
