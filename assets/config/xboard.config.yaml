@@ -19,10 +19,13 @@ xboard:
     logo_url: https://img.toufq.com/IMG/QNDXXLG.png
   subscription:
     prefer_encrypt: true
+    # 填入与你的 XBoard 面板一致的解密密钥；加密订阅端点需要此值。
     decrypt_key: ""
   security:
+    # 如后端反代配置了响应混淆前缀，请填写完全一致的前缀。
     obfuscation_prefix: ""
     user_agents:
+      # 必须与面板/Caddy 端的 API 认证 User-Agent 保持一致。
       api_encrypted: "QNDXX/6.6.6"
       domain_racing_test: "QNDXX/6.6.6 (Domain Racing Test)"
   log:
