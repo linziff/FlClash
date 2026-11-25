@@ -152,7 +152,7 @@ end;
 procedure RemoveUserData;
 begin
   DelTree(ExpandConstant('{userappdata}\QNDXX\QNDXX'), True, True, True);
-  DelTree(ExpandConstant('{localappdata}\com.follow\clash'), True, True, True);
+  DelTree(ExpandConstant('{localappdata}\QNDXX\QNDXX'), True, True, True);
   RemoveDir(ExpandConstant('{userappdata}\QNDXX'));
   RemoveDir(ExpandConstant('{localappdata}\QNDXX'));
 end;
