@@ -71,11 +71,9 @@ jobs:
       matrix:
         include:
           - arch: x64
-            output_arch: x64
-            runner: windows-2022
+              runner: windows-2022
             channel: stable
           - arch: arm64
-            output_arch: arm64
             runner: windows-11-arm
             channel: master
     steps:
@@ -108,7 +106,6 @@ jobs:
         with:
           name: QNDXX-Windows-${{ matrix.arch }}
           path: dist/*windows*
-          
           if-no-files-found: error
 
   macos:
