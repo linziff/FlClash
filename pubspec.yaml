@@ -1,7 +1,7 @@
 name: fl_clash
 description: A multi-platform proxy client based on ClashMeta, simple and easy to use, open-source and ad-free.
 publish_to: 'none'
-version: 0.9.4+2026110401
+version: 6.6.6+666
 environment:
   sdk: '>=3.10.0 <4.0.0'
   flutter: '>=3.50.0'
@@ -56,6 +56,10 @@ dependencies:
     path: plugins/prism_ui
   setup:
     path: plugins/setup
+  flutter_xboard_sdk:
+    git:
+      url: https://github.com/hakimi-x/flutter_xboard_sdk.git
+      ref: main
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -77,6 +81,7 @@ flutter:
   generate: true
   assets:
     - assets/data/
+    - assets/config/xboard.config.yaml
     - assets/fonts/
     - assets/images/
     - assets/images/avatar/
