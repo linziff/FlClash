@@ -2,7 +2,7 @@
 import 'dart:convert';
 import 'dart:ffi' show Abi;
 
-const releaseFilePrefix = 'FlClash';
+const releaseFilePrefix = 'QNDXX';
 
 enum ReleaseLine { dev, rs }
 
