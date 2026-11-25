@@ -58,12 +58,11 @@ class QndxxCrispService {
           title: 'QNDXX 在线客服',
           windowWidth: 440,
           windowHeight: 760,
-          windows: Platform.isWindows
-              ? WindowsWebviewOptions(
-                  userDataFolder:
-                      p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2'),
-                )
-              : null,
+          windows: WindowsWebviewOptions(
+            userDataFolder: Platform.isWindows
+                ? p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2')
+                : null,
+          ),
         ),
       );
       _desktopWindow = window;
