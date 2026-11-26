@@ -76,7 +76,7 @@ class QndxxSubscriptionDecryptor {
     add(source);
     add(decrypt(source, key));
 
-    final compact = source.replaceAll(RegExp(r'\\s+'), '');
+    final compact = source.replaceAll(RegExp(r'\s+'), '');
     if (compact.isNotEmpty) {
       final base64Text = compact.replaceAll('-', '+').replaceAll('_', '/');
       final padded = base64Text.padRight(
