@@ -56,7 +56,14 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
 
   Future<void> _sendCode() async {
     if (_busy) return;
-    if (!RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(_fullEmail)) {
+      await dialogs.showAlert(
+        title: '邮箱格式错误',
+        message: const TextSpan(text: '请填写有效邮箱地址，并确认所选邮箱后缀。'),
+      );
+      return;
+    }
+    setState(() => _busy = true);
     try {
       final sent = await QndxxXboardService.instance.sendEmailVerifyCode(
         _fullEmail,
@@ -80,7 +87,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     final email = _fullEmail;
     final password = _password.text;
     final code = _code.text.trim();
-    if (!RegExp(r'^[^@\\s]+@[^@\\s]+\\.[^@\\s]+
+    if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(email) ||
+        password.isEmpty ||
+        code.isEmpty) {
       await dialogs.showAlert(
         title: '注册账号',
         message: const TextSpan(text: '请填写有效邮箱、密码和邮箱验证码'),
