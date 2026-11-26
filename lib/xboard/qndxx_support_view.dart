@@ -21,7 +21,7 @@ class QndxxSupportView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      title: 'QNDXX 客服中心',
+      title: '客服中心',
       body: ListView(
         padding: EdgeInsets.only(
           left: 16,
