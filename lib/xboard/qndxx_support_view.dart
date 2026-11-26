@@ -29,10 +29,14 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
   Widget build(BuildContext context) {
     return Scaffold(
       title: '在线客服',
+      backgroundColor: context.colorScheme.surface,
       body: Padding(
         // Keep the embedded page above the floating Android glass dock and
         // the system gesture area instead of painting behind navigation.
-        padding: EdgeInsets.only(bottom: context.bottomInset),
+        padding: EdgeInsets.only(
+          top: context.contentTopPadding,
+          bottom: context.bottomInset,
+        ),
         child: Stack(
           fit: StackFit.expand,
           children: [

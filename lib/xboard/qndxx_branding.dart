@@ -65,6 +65,8 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     return Scaffold(
+      title: '青年大学习',
+      backgroundColor: colors.surface,
       body: ColoredBox(
         color: colors.surface,
         child: SafeArea(

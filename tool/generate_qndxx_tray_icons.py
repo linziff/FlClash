@@ -32,27 +32,14 @@ def make_app_icon(size: int = 1024) -> Image.Image:
         logo = logo.resize((size, size), Image.Resampling.LANCZOS)
         logo = logo.filter(ImageFilter.UnsharpMask(radius=1.2, percent=115, threshold=3))
 
+    # Keep the app mark on a genuinely transparent canvas. The former
+    # blue-gradient rounded square was baked into the Windows taskbar icon.
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    pixels = image.load()
-    for y in range(size):
-        for x in range(size):
-            t = (x + y) / (2 * size)
-            pixels[x, y] = (
-                int(8 + 25 * t),
-                int(73 + 88 * t),
-                int(210 + 35 * t),
-                255,
-            )
-    mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, size - 1, size - 1), radius=int(size * 0.22), fill=255
-    )
-    image.putalpha(mask)
 
-    # Preserve the complete logo and transparency; resize once from the
-    # original source with a high-quality filter before producing native icons.
+    # Preserve the complete logo and its alpha channel without adding a
+    # background. The native launcher generators consume this same PNG.
     logo = ImageOps.contain(
-        logo, (int(size * 0.78), int(size * 0.78)),
+        logo, (int(size * 0.92), int(size * 0.92)),
         method=Image.Resampling.LANCZOS,
     )
     image.alpha_composite(

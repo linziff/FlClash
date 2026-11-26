@@ -269,7 +269,13 @@ class ApplicationState extends ConsumerState<Application> {
           minTextScale: minTextScale,
           maxTextScale: maxTextScale,
           liquidGlass: switch (themeProps.liquidGlass) {
-            LiquidGlassMode.none => null,
+            // QNDXX's Android dock and the shop/support bars use glass as
+            // part of the branded layout, even when the upstream default is
+            // the non-glass mode on these platforms.
+            LiquidGlassMode.none =>
+              (system.isAndroid || system.isWindows)
+                  ? LiquidGlassQuality.standard
+                  : null,
             LiquidGlassMode.ultra => LiquidGlassQuality.ultra,
             LiquidGlassMode.standard => LiquidGlassQuality.standard,
           },
