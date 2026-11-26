@@ -50,13 +50,14 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
       }
       final nodeNotices = notices.where(_hasNodeTag).toList();
       if (nodeNotices.isNotEmpty) {
-        final nodeNotice = nodeNotices.first;
-        final key = _noticeKey(nodeNotice);
-        if (_shownNodeAnnouncements.add(key)) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) _showNotice(nodeNotice);
-          });
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) async {
+          for (final nodeNotice in nodeNotices) {
+            if (!mounted) break;
+            if (_shownNodeAnnouncements.add(_noticeKey(nodeNotice))) {
+              await _showNotice(nodeNotice);
+            }
+          }
+        });
       }
     } catch (_) {
       // Announcements are optional; the dashboard remains usable offline.
