@@ -33,9 +33,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
         // Scaffold already reserves the page title/header area. Adding the
         // global contentTopPadding here a second time created a mismatched
         // dark strip above Crisp on desktop and mobile.
-        padding: EdgeInsets.only(
-          bottom: context.bottomInset + 8,
-        ),
+        padding: EdgeInsets.only(bottom: context.bottomInset + 8),
         child: Stack(
           fit: StackFit.expand,
           children: [
