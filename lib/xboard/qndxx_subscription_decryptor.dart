@@ -28,9 +28,7 @@ class QndxxSubscriptionDecryptor {
   }
 
   static bool looksLikeClash(String content) {
-    final normalized = content
-        .replaceFirst('\uFEFF', '')
-        .trimLeft();
+    final normalized = content.replaceFirst('\uFEFF', '').trimLeft();
     // A valid Mihomo profile does not have to contain proxies/rules (for
     // example, a DNS-only or TUN-only profile). Accept its standard root keys.
     const keys = [
@@ -51,9 +49,7 @@ class QndxxSubscriptionDecryptor {
       'mode:',
     ];
     return keys.any(
-      (key) =>
-          normalized.startsWith(key) ||
-          normalized.contains('\n$key'),
+      (key) => normalized.startsWith(key) || normalized.contains('\n$key'),
     );
   }
 

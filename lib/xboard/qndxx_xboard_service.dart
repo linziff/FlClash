@@ -757,9 +757,7 @@ class QndxxXboardService {
           config.decryptKey,
         ).where(_looksLikeClash).toList(growable: false);
         if (validContents.isEmpty) {
-          lastError = StateError(
-            '订阅响应既不是 Mihomo YAML，也无法从 Base64/加密内容还原为有效配置',
-          );
+          lastError = StateError('订阅响应既不是 Mihomo YAML，也无法从 Base64/加密内容还原为有效配置');
           continue;
         }
         final content = validContents.first;

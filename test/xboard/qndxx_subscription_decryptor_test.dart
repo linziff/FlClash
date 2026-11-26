@@ -40,17 +40,12 @@ void main() {
       );
 
       expect(candidates, contains(yaml));
-      expect(
-        candidates.any(QndxxSubscriptionDecryptor.looksLikeClash),
-        isTrue,
-      );
+      expect(candidates.any(QndxxSubscriptionDecryptor.looksLikeClash), isTrue);
     });
 
     test('decodes URL-safe Base64 with whitespace and missing padding', () {
       const yaml = 'proxies:\n  - name: node\n';
-      final encoded = base64Url
-          .encode(utf8.encode(yaml))
-          .replaceAll('=', '');
+      final encoded = base64Url.encode(utf8.encode(yaml)).replaceAll('=', '');
       final wrapped = '${encoded.substring(0, 8)}\n${encoded.substring(8)}';
       final candidates = QndxxSubscriptionDecryptor.decodeCandidates(
         wrapped,
