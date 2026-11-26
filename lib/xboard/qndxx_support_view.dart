@@ -30,10 +30,11 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
       title: '在线客服',
       backgroundColor: context.colorScheme.surface,
       body: Padding(
-        // Scaffold already reserves the page title/header area. Adding the
-        // global contentTopPadding here a second time created a mismatched
-        // dark strip above Crisp on desktop and mobile.
-        padding: EdgeInsets.only(bottom: context.bottomInset + 8),
+        // HomeShell's BottomInsetScope already keeps every tab's body above
+        // the floating navigation dock. Do not add that inset again here:
+        // the extra reservation made Crisp end noticeably higher than the
+        // dashboard and shop and reduced its usable chat area.
+        padding: const EdgeInsets.only(bottom: 8),
         child: Stack(
           fit: StackFit.expand,
           children: [
