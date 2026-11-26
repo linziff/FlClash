@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/views/dashboard/widgets/card.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show Icons;
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../xboard/qndxx_xboard_service.dart';
@@ -47,8 +48,9 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
           if (mounted) setState(() => _index = (_index + 1) % _notices.length);
         });
       }
-      final nodeNotice = notices.where(_hasNodeTag).firstOrNull;
-      if (nodeNotice != null) {
+      final nodeNotices = notices.where(_hasNodeTag).toList();
+      if (nodeNotices.isNotEmpty) {
+        final nodeNotice = nodeNotices.first;
         final key = _noticeKey(nodeNotice);
         if (_shownNodeAnnouncements.add(key)) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
