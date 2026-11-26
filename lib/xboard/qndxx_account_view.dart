@@ -11,6 +11,7 @@ import 'package:intl/intl.dart';
 
 import 'qndxx_config_service.dart';
 import 'qndxx_login_dialog.dart';
+import 'qndxx_crisp_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxAccountView extends ConsumerStatefulWidget {
@@ -58,9 +59,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     try {
       await QndxxConfigService.instance.initialize(refreshRemote: true);
       await _service.restoreSession();
-      try {
-        await _remoteStatus.startIfEnabled();
-      } catch (_) {}
       final account = await _service.getAccountInfo();
       final subscription = await _service.getSubscriptionInfo().catchError(
         (_) => <String, dynamic>{},
