@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:fl_clash/widgets/widgets.dart';
+import 'package:flutter/widgets.dart';
 
 import 'qndxx_config_service.dart';
-import 'package:flutter/widgets.dart';
 
 const qndxxLogoUrl = 'https://img.toufq.com/IMG/QNDXXLG.png';
 
@@ -11,15 +11,6 @@ class QndxxBrandLogo extends StatelessWidget {
   const QndxxBrandLogo({super.key, this.size = 76});
 
   final double size;
-
-  Future<void> _loadRemoteWebsite() async {
-    try {
-      await QndxxConfigService.instance.initialize(refreshRemote: true);
-      if (mounted) setState(() {});
-    } catch (_) {
-      // Keep the bundled website text if remote configuration is unavailable.
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +52,15 @@ class QndxxStartupSplash extends StatefulWidget {
 
 class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
   bool _visible = false;
+
+  Future<void> _loadRemoteWebsite() async {
+    try {
+      await QndxxConfigService.instance.initialize(refreshRemote: true);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Keep the bundled website text if remote configuration is unavailable.
+    }
+  }
 
   @override
   void initState() {
