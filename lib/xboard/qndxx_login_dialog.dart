@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
@@ -7,6 +8,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'qndxx_auth_dialogs.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxLoginDialog extends ConsumerStatefulWidget {
@@ -119,6 +121,31 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
             autofillHints: const [AutofillHints.password],
             decoration: const InputDecoration(hintText: '密码'),
             onFieldSubmitted: (_) => _loginAndImport(),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () => unawaited(
+                        dialogs.showCommonDialog<void>(
+                          child: const QndxxForgotPasswordDialog(),
+                        ),
+                      ),
+                child: const Text('忘记密码'),
+              ),
+              TextButton(
+                onPressed: _busy
+                    ? null
+                    : () => unawaited(
+                        dialogs.showCommonDialog<void>(
+                          child: const QndxxRegisterDialog(),
+                        ),
+                      ),
+                child: const Text('注册账号'),
+              ),
+            ],
           ),
         ],
       ),
