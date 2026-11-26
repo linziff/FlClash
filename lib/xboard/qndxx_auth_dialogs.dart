@@ -191,7 +191,13 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                       for (final domain in _emailDomains)
                         DropdownMenuItem<String>(
                           value: domain,
-                          child: Text('@$domain', maxLines: 1),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.alternate_email_rounded, size: 15),
+                              const SizedBox(width: 4),
+                              Expanded(child: Text('@$domain', maxLines: 1)),
+                            ],
+                          ),
                         ),
                     ],
                   ),
