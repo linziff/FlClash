@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'qndxx_auth_dialogs.dart';
+import 'qndxx_remote_status_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxLoginDialog extends ConsumerStatefulWidget {
@@ -46,6 +47,9 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     try {
       final service = QndxxXboardService.instance;
       final account = await service.login(email: email, password: password);
+      try {
+        await QndxxRemoteStatusService.instance.startIfEnabled();
+      } catch (_) {}
       final subscription = await service.downloadSubscription();
       final action = ref.read(profilesActionProvider.notifier);
       final boundId = await service.boundProfileId;
