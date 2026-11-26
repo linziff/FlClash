@@ -17,6 +17,18 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   final _code = TextEditingController();
   final _invite = TextEditingController();
   bool _busy = false;
+  String _emailDomain = 'qq.com';
+  static const _emailDomains = [
+    'qq.com', '163.com', '126.com', 'yeah.net', 'gmail.com',
+    'yahoo.com', 'sina.com', 'outlook.com', 'foxmail.com', 'mail.ru',
+    'bk.ru', 'gzpuye.com', 'ne01-e.com',
+  ];
+
+  String get _fullEmail {
+    final value = _email.text.trim();
+    final localPart = value.contains('@') ? value.split('@').first : value;
+    return '$localPart@$_emailDomain';
+  }
 
   @override
   void dispose() {
@@ -32,7 +44,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     setState(() => _busy = true);
     try {
       final sent = await QndxxXboardService.instance.sendEmailVerifyCode(
-        _email.text.trim(),
+        _fullEmail,
       );
       dialogs.showBanner(
         sent ? '验证码已发送' : '面板未能发送验证码',
@@ -50,13 +62,13 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
 
   Future<void> _register() async {
     if (_busy) return;
-    final email = _email.text.trim();
+    final email = _fullEmail;
     final password = _password.text;
     final code = _code.text.trim();
-    if (email.isEmpty || password.isEmpty) {
+    if (email.startsWith('@') || password.isEmpty || code.isEmpty) {
       await dialogs.showAlert(
         title: '注册账号',
-        message: const TextSpan(text: '邮箱和密码不能为空'),
+        message: const TextSpan(text: '请填写邮箱前缀、密码和邮箱验证码'),
       );
       return;
     }
@@ -65,7 +77,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
       final success = await QndxxXboardService.instance.register(
         email: email,
         password: password,
-        emailCode: code.isEmpty ? null : code,
+        emailCode: code,
         inviteCode: _invite.text.trim().isEmpty ? null : _invite.text.trim(),
       );
       if (!mounted) return;
@@ -108,10 +120,29 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
         mainAxisSize: MainAxisSize.min,
         spacing: 12,
         children: [
-          TextFormField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: '邮箱'),
+          Row(
+            spacing: 8,
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _email,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: const InputDecoration(hintText: '邮箱账号'),
+                ),
+              ),
+              DropdownButton<String>(
+                value: _emailDomain,
+                items: [
+                  for (final domain in _emailDomains)
+                    DropdownMenuItem(value: domain, child: Text(domain)),
+                ],
+                onChanged: _busy
+                    ? null
+                    : (value) {
+                        if (value != null) setState(() => _emailDomain = value);
+                      },
+              ),
+            ],
           ),
           TextFormField(
             controller: _password,
@@ -124,7 +155,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _code,
-                  decoration: const InputDecoration(hintText: '邮箱验证码（如需要）'),
+                  decoration: const InputDecoration(hintText: '邮箱验证码（必填）'),
                 ),
               ),
               TextButton(
