@@ -144,7 +144,11 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    // The first-launch login is mandatory: prevent system back, swipe-back,
+    // and route-pop actions from dismissing it before authentication.
+    return PopScope<void>(
+      canPop: false,
+      child: Scaffold(
       title: '登录账号',
       body: SafeArea(
         child: Center(
@@ -233,6 +237,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
             ),
           ),
         ),
+      ),
       ),
     );
   }
