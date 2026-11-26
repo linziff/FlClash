@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'qndxx_config_service.dart';
 import 'qndxx_crisp_service.dart';
 import 'qndxx_login_dialog.dart';
+import 'qndxx_remote_status_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxAccountView extends ConsumerStatefulWidget {
@@ -19,6 +20,7 @@ class QndxxAccountView extends ConsumerStatefulWidget {
 
 class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   final _service = QndxxXboardService.instance;
+  final _remoteStatus = QndxxRemoteStatusService.instance;
   bool _loading = false;
   bool _signedIn = false;
   Map<String, dynamic> _account = const {};
@@ -35,7 +37,31 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   @override
   void initState() {
     super.initState();
+    _remoteStatus.addListener(_onRemoteStatusChanged);
     unawaited(_load());
+  }
+
+  @override
+  void dispose() {
+    _remoteStatus.removeListener(_onRemoteStatusChanged);
+    super.dispose();
+  }
+
+  void _onRemoteStatusChanged() {
+    if (!mounted) return;
+    setState(() {});
+  }
+
+  Future<void> _toggleRemoteStatus() async {
+    try {
+      await _remoteStatus.setEnabled(!_remoteStatus.isEnabled);
+    } catch (error) {
+      if (!mounted) return;
+      await dialogs.showAlert(
+        title: '远程状态连接失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
   }
 
   Future<void> _load() async {
@@ -47,6 +73,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     try {
       await QndxxConfigService.instance.initialize(refreshRemote: true);
       await _service.restoreSession();
+      try {
+        await _remoteStatus.startIfEnabled();
+      } catch (_) {}
       final account = await _service.getAccountInfo();
       final subscription = await _service.getSubscriptionInfo().catchError(
         (_) => <String, dynamic>{},
@@ -505,6 +534,25 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       ],
                     ),
                   ),
+              ],
+            ),
+            generateSection(
+              title: '远程设备状态',
+              items: [
+                ListItem(
+                  title: const Text('WebSocket 状态上报'),
+                  subtitle: Text(
+                    _remoteStatus.isConnected
+                        ? '已安全连接；仅发送随机设备 ID 和心跳'
+                        : _remoteStatus.isEnabled
+                            ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
+                            : '默认关闭；启用后仅发送随机设备 ID 和心跳',
+                  ),
+                  trailing: TextButton(
+                    onPressed: _toggleRemoteStatus,
+                    child: Text(_remoteStatus.isEnabled ? '停用' : '启用'),
+                  ),
+                ),
               ],
             ),
             generateSection(
