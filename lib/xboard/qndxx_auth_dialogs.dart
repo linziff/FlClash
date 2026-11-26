@@ -2,7 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart' hide PopupMenuItem;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show Icon, Icons, DropdownButton, DropdownMenuItem;
+    show Icon, Icons, MenuAnchor, MenuItemButton, OutlinedButton;
 
 import 'qndxx_xboard_service.dart';
 
@@ -167,45 +167,53 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                 ),
               ),
               SizedBox(
-                // Keep the longest supported suffix readable on narrow
-                // Android dialogs and Windows desktop layouts.
+                // Use MenuAnchor rather than DropdownButton: the suffix menu
+                // is presented in an overlay and remains selectable inside
+                // the custom auth dialog on Windows and Android.
                 width: 156,
-                child: Container(
-                  height: 56,
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: context.colorScheme.outline),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: DropdownButton<String>(
-                    value: _emailDomain,
-                    isExpanded: true,
-                    underline: const SizedBox.shrink(),
-                    icon: const Icon(Icons.arrow_drop_down_rounded),
-                    onChanged: _busy
-                        ? null
-                        : (value) {
-                            if (value != null) {
-                              setState(() => _emailDomain = value);
-                            }
-                          },
-                    items: [
-                      for (final domain in _emailDomains)
-                        DropdownMenuItem<String>(
-                          value: domain,
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.alternate_email_rounded,
-                                size: 15,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(child: Text('@$domain', maxLines: 1)),
-                            ],
-                          ),
+                child: MenuAnchor(
+                  menuChildren: [
+                    for (final domain in _emailDomains)
+                      MenuItemButton(
+                        leadingIcon: const Icon(
+                          Icons.alternate_email_rounded,
+                          size: 18,
                         ),
-                    ],
-                  ),
+                        onPressed: _busy
+                            ? null
+                            : () => setState(() => _emailDomain = domain),
+                        child: Text('@$domain'),
+                      ),
+                  ],
+                  builder: (context, controller, child) {
+                    return OutlinedButton(
+                      onPressed: _busy
+                          ? null
+                          : () => controller.isOpen
+                              ? controller.close()
+                              : controller.open(),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(56),
+                        padding: const EdgeInsets.symmetric(horizontal: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              '@$_emailDomain',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.left,
+                            ),
+                          ),
+                          const Icon(Icons.arrow_drop_down_rounded),
+                        ],
+                      ),
+                    );
+                  },
                 ),
               ),
             ],
