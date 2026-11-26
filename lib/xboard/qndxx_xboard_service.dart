@@ -204,10 +204,16 @@ class QndxxXboardService {
       current.dispose();
     }
     if (!current.isInitialized) {
+      final config = QndxxConfigService.instance;
       await current.initialize(
         _panelUrl!,
-        panelType: QndxxConfigService.instance.panelType,
-        userAgent: QndxxConfigService.instance.apiUserAgent,
+        panelType: config.panelType,
+        httpConfig: HttpConfig.production(
+          userAgent: config.apiUserAgent,
+          obfuscationPrefix: config.obfuscationPrefix.isEmpty
+              ? null
+              : config.obfuscationPrefix,
+        ),
         enableLogging: false,
       );
       await current.saveToken(_token!);
