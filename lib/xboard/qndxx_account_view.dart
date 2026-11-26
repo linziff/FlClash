@@ -401,14 +401,14 @@ class _PlanPeriodDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final periods = <(String, String, dynamic)>[
-      ('onetime', '一次性', plan['onetime_price']),
-      ('month', '月付', plan['month_price']),
-      ('quarter', '季付', plan['quarter_price']),
-      ('half_year', '半年付', plan['half_year_price']),
-      ('year', '年付', plan['year_price']),
-      ('two_year', '两年付', plan['two_year_price']),
-      ('three_year', '三年付', plan['three_year_price']),
-    ].where((item) => item.$3 != null && (item.$3 as num) > 0).toList();
+      ('onetime_price', '一次性', plan['onetime_price']),
+      ('month_price', '月付', plan['month_price']),
+      ('quarter_price', '季付', plan['quarter_price']),
+      ('half_year_price', '半年付', plan['half_year_price']),
+      ('year_price', '年付', plan['year_price']),
+      ('two_year_price', '两年付', plan['two_year_price']),
+      ('three_year_price', '三年付', plan['three_year_price']),
+    ] .where((item) => (num.tryParse(item.$3?.toString() ?? '') ?? 0) > 0).toList();
     return AlertDialog(
       title: '选择套餐周期',
       actions: [
