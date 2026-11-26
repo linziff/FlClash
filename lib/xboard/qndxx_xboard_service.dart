@@ -220,7 +220,10 @@ class QndxxXboardService {
   bool _responseSucceeded(Map<String, dynamic> body) {
     final status = body['status'];
     if (status == false || status == 0 || status == 'error') return false;
-    if (body['success'] == true || status == true || status == 1) return true;
+    if (body['success'] == true ||
+        status == true ||
+        status == 1 ||
+        status == 'success') return true;
     final data = body['data'];
     if (data is bool) return data;
     return data != null;
