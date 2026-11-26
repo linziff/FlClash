@@ -47,6 +47,8 @@ class QndxxXboardService {
 
   static final QndxxXboardService instance = QndxxXboardService._();
 
+  static final ValueNotifier<int> sessionRevision = ValueNotifier<int>(0);
+
   static const _tokenKey = 'qndxx.xboard.token';
   static const _panelKey = 'qndxx.xboard.panel';
   static const _emailKey = 'qndxx.xboard.email';
