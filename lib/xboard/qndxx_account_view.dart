@@ -78,9 +78,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           .initialize(refreshRemote: false)
           .timeout(const Duration(seconds: 12));
       await _service.restoreSession().timeout(const Duration(seconds: 8));
-      final account = await _service
-          .getAccountInfo()
-          .timeout(const Duration(seconds: 18));
+      final account = await _service.getAccountInfo().timeout(
+        const Duration(seconds: 18),
+      );
       late final Map<String, dynamic> subscription;
       late final List<Map<String, dynamic>> plans;
       late final List<Map<String, dynamic>> orders;
@@ -106,7 +106,10 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         invite = results[1] as Map<String, dynamic>;
         final rawCodes = invite['codes'];
         inviteCodes = rawCodes is List
-            ? rawCodes.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList(growable: false)
+            ? rawCodes
+                  .whereType<Map>()
+                  .map((item) => Map<String, dynamic>.from(item))
+                  .toList(growable: false)
             : const [];
         commissions = results[2] as List<Map<String, dynamic>>;
         plans = const [];
@@ -689,8 +692,10 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline_rounded,
-                        color: context.colorScheme.onErrorContainer),
+                    Icon(
+                      Icons.info_outline_rounded,
+                      color: context.colorScheme.onErrorContainer,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(

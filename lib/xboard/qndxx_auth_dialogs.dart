@@ -118,7 +118,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     return AlertDialog(
       title: Row(
         children: [
-          Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
+          Icon(
+            Icons.person_add_alt_1_rounded,
+            color: context.colorScheme.primary,
+          ),
           const SizedBox(width: 10),
           const Text('注册账号'),
         ],
