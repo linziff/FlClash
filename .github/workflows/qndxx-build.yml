@@ -63,7 +63,7 @@ jobs:
         run: flutter pub run flutter_launcher_icons
       - name: Remove legacy PNG launcher icons
         shell: bash
-        run: find android/app/src/main/res -type f -path '*/mipmap-*/*' -name 'ic_launcher.png' -delete
+        run: find android/app/src/main/res -type f -path '*/mipmap-*/*' -name 'ic_launcher*.png' -delete
       - name: Build split APKs (armeabi-v7a, arm64-v8a, x86_64)
         env:
           ANDROID_NDK_HOME: ${{ steps.ndk.outputs.ndk-path }}
