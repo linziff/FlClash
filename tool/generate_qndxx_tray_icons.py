@@ -37,6 +37,8 @@ def make_app_icon(size: int = 1024) -> Image.Image:
     draw = ImageDraw.Draw(image)
     font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
     if not Path(font_path).exists():
+        font_path = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+    if not Path(font_path).exists():
         font_path = "C:/Windows/Fonts/arialbd.ttf"
     try:
         font = ImageFont.truetype(font_path, int(size * 0.38))
