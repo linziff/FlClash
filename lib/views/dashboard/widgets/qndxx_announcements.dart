@@ -62,6 +62,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   List<Map<String, dynamic>> _notices = const [];
   Timer? _timer;
   int _index = 0;
+  bool _reloadPending = false;
 
   @override
   void initState() {
@@ -71,7 +72,12 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   }
 
   void _handleSessionChanged() {
-    if (mounted) unawaited(_load());
+    if (!mounted) return;
+    if (_loading) {
+      _reloadPending = true;
+      return;
+    }
+    unawaited(_load());
   }
 
   @override
