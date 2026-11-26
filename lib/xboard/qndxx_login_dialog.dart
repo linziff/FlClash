@@ -97,9 +97,11 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     try {
       final service = QndxxXboardService.instance;
       final account = await service.login(email: email, password: password);
-      try {
-        await QndxxRemoteStatusService.instance.startIfEnabled();
-      } catch (_) {}
+      // Remote status is independent of subscription import; start it
+      // without making the user wait for its network handshake.
+      unawaited(
+        QndxxRemoteStatusService.instance.startIfEnabled().catchError((_) {}),
+      );
       final subscription = await service.downloadSubscription();
       final action = ref.read(profilesActionProvider.notifier);
       final boundId = await service.boundProfileId;
@@ -110,7 +112,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
       final normalizedSubscription = await _normalizeSubscription(
         subscription.bytes,
       );
-      final profile = await (existingProfile ?? Profile.normal(label: 'QNDXX'))
+      final profile = await (existingProfile ?? Profile.normal(label: '青年大学习'))
           .saveFile(
             normalizedSubscription,
             validate: (path, ageSecretKey) async {
