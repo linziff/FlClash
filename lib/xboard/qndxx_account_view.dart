@@ -178,6 +178,55 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
+  Future<void> _showOrder(Map<String, dynamic> order) async {
+    final tradeNo = order['trade_no']?.toString() ?? '';
+    if (tradeNo.isEmpty) return;
+    try {
+      final detail = await _service.getOrder(tradeNo);
+      if (detail == null) return;
+      await dialogs.showAlert(
+        title: '订单详情',
+        message: TextSpan(
+          text: '订单号：$tradeNo\\n金额：${_value(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
+        ),
+      );
+    } catch (error) {
+      await dialogs.showAlert(
+        title: '读取订单失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
+  }
+
+  Future<void> _cancelOrder(Map<String, dynamic> order) async {
+    final tradeNo = order['trade_no']?.toString() ?? '';
+    if (tradeNo.isEmpty) return;
+    final accepted = await dialogs.showMessage(
+      title: '取消订单',
+      message: TextSpan(text: '确定取消订单 $tradeNo 吗？'),
+      confirmText: '取消订单',
+      destructive: true,
+    );
+    if (accepted != true) return;
+    try {
+      final success = await _service.cancelOrder(tradeNo);
+      if (success) {
+        dialogs.showBanner('订单已取消', level: BannerLevel.success);
+        await _load();
+      } else {
+        await dialogs.showAlert(
+          title: '取消订单失败',
+          message: const TextSpan(text: '面板未确认取消操作'),
+        );
+      }
+    } catch (error) {
+      await dialogs.showAlert(
+        title: '取消订单失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
+  }
+
   Future<void> _createTicket() async {
     final ticket = await dialogs.showCommonDialog<Map<String, Object?>>(
       child: const _CreateTicketDialog(),
@@ -326,6 +375,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     subtitle: Text(
                       '金额：${_value(order['total_amount'])} · 状态：${_value(order['status'])}',
                     ),
+                    onTap: () => _showOrder(order),
+                    trailing: (order['status']?.toString() == '0')
+                        ? TextButton(
+                            onPressed: () => _cancelOrder(order),
+                            child: const Text('取消'),
+                          )
+                        : null,
                   ),
               ],
             ),
