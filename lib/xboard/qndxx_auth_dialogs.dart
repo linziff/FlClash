@@ -130,16 +130,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
-        children: [
-          Icon(
-            Icons.person_add_alt_1_rounded,
-            color: context.colorScheme.primary,
-          ),
-          const SizedBox(width: 10),
-          const Text('注册账号'),
-        ],
-      ),
+      title: '注册账号',
       hasFields: true,
       actions: [
         TextButton(
@@ -155,6 +146,13 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
         mainAxisSize: MainAxisSize.min,
         spacing: 12,
         children: [
+          Row(
+            children: [
+              Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text('注册账号', style: TextStyle(fontWeight: FontWeight.w700)),
+            ],
+          ),
           Row(
             spacing: 8,
             children: [
@@ -335,13 +333,7 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: Row(
-        children: [
-          Icon(Icons.lock_reset_rounded, color: context.colorScheme.primary),
-          const SizedBox(width: 10),
-          const Text('找回密码'),
-        ],
-      ),
+      title: '找回密码',
       hasFields: true,
       actions: [
         TextButton(
@@ -357,6 +349,13 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
         mainAxisSize: MainAxisSize.min,
         spacing: 12,
         children: [
+          Row(
+            children: [
+              Icon(Icons.lock_reset_rounded, color: context.colorScheme.primary),
+              const SizedBox(width: 8),
+              const Text('找回密码', style: TextStyle(fontWeight: FontWeight.w700)),
+            ],
+          ),
           TextFormField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
