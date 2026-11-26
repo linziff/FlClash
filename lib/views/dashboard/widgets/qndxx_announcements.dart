@@ -206,8 +206,40 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final title = notice['title']?.toString().trim();
     final content = notice['content']?.toString() ?? '';
+    final colors = context.colorScheme;
     return AlertDialog(
-      title: title?.isNotEmpty == true ? title! : '平台公告',
+      title: Row(
+        children: [
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: SizedBox(
+              width: 38,
+              height: 38,
+              child: Icon(
+                Icons.campaign_rounded,
+                color: colors.onPrimaryContainer,
+                size: 21,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              title?.isNotEmpty == true ? title! : '平台公告',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                color: colors.onSurface,
+                fontSize: 17,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+          ),
+        ],
+      ),
       actions: [
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
@@ -220,6 +252,34 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
           child: MarkdownBody(
             data: content.isEmpty ? '暂无公告内容' : content,
             selectable: true,
+            styleSheet: MarkdownStyleSheet(
+              p: TextStyle(
+                color: colors.onSurfaceVariant,
+                height: 1.6,
+                fontSize: 14,
+              ),
+              h1: TextStyle(
+                color: colors.onSurface,
+                fontSize: 21,
+                fontWeight: FontWeight.w800,
+              ),
+              h2: TextStyle(
+                color: colors.onSurface,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+              h3: TextStyle(
+                color: colors.onSurface,
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+              ),
+              listBullet: TextStyle(color: colors.primary),
+              blockquoteDecoration: BoxDecoration(
+                color: colors.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              blockquotePadding: const EdgeInsets.all(12),
+            ),
           ),
         ),
       ),
