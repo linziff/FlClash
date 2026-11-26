@@ -55,8 +55,8 @@ class QndxxCrispService {
       final window = await WebviewWindow.create(
         configuration: CreateConfiguration(
           title: 'QNDXX 在线客服',
-          windowWidth: 440,
-          windowHeight: 760,
+          windowWidth: 1280,
+          windowHeight: 900,
           windows: WindowsWebviewOptions(
             userDataFolder: Platform.isWindows
                 ? p.join(supportDirectory.path, 'QNDXX', 'CrispWebView2')
