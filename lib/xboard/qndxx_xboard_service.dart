@@ -626,6 +626,73 @@ class QndxxXboardService {
     throw StateError('获取订阅失败：${_safeError(lastError)}');
   }
 
+  Future<bool> updateAccountInfo(Map<String, dynamic> data) async {
+    return (await _ensureSdk()).user.updateUserInfo(data);
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    return (await _ensureSdk()).user.changePassword(oldPassword, newPassword);
+  }
+
+  Future<bool> resetAccountSecurity() async {
+    return (await _ensureSdk()).user.resetSecurity();
+  }
+
+  Future<bool> register({
+    required String email,
+    required String password,
+    String? emailCode,
+    String? inviteCode,
+  }) async {
+    return (await _ensureSdk()).auth.register(
+      email,
+      password,
+      emailCode: emailCode,
+      inviteCode: inviteCode,
+    );
+  }
+
+  Future<bool> sendEmailVerifyCode(String email) async {
+    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
+  }
+
+  Future<bool> forgotPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
+  }
+
+  Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
+    final model = await (await _ensureSdk()).order.getOrder(tradeNo);
+    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<Map<String, dynamic>?> checkCoupon(
+    String code,
+    int planId,
+  ) async {
+    final model = await (await _ensureSdk()).order.checkCoupon(code, planId);
+    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<bool> withdrawCommission({
+    required double amount,
+    required String method,
+    required Map<String, dynamic> params,
+  }) async {
+    return (await _ensureSdk()).invite.withdrawCommission(
+      amount: amount,
+      method: method,
+      params: params,
+    );
+  }
+
+  Future<bool> transferCommissionToBalance(double amount) async {
+    return (await _ensureSdk()).invite.transferCommissionToBalance(amount);
+  }
+
   void dispose() {
     _dio.close(force: true);
   }
