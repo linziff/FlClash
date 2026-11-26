@@ -169,7 +169,10 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         final status = order['status']?.toString();
         final tradeNo = order['trade_no']?.toString() ?? '';
         if (status == '0' && tradeNo.isNotEmpty) {
-          await _service.cancelOrder(tradeNo);
+          final cancelled = await _service.cancelOrder(tradeNo);
+          if (!cancelled) {
+            throw StateError('旧的未支付订单 $tradeNo 取消失败，请先到订单记录中处理');
+          }
         }
       }
       final planId = int.tryParse('${plan['id']}');
