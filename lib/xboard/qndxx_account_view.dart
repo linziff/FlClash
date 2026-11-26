@@ -88,9 +88,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           _service.getOrders().catchError(
             (_) => <List<Map<String, dynamic>>>[],
           ),
-          _service.getNotices().catchError(
-            (_) => <List<Map<String, dynamic>>>[],
-          ),
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
         orders = results[1] as List<Map<String, dynamic>>;
