@@ -271,7 +271,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         title: '订单详情',
         message: TextSpan(
           text:
-              '订单号：$tradeNo\\n金额：${_value(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
+              '订单号：$tradeNo\\n金额：${_formatPrice(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
         ),
       );
     } catch (error) {
@@ -505,7 +505,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 items: [
                   ListItem(
                     title: const Text('可用佣金'),
-                    subtitle: Text(_value(_account['balance'], '面板暂未提供余额数据')),
+                    subtitle: Text(_account['balance'] == null ? '面板暂未提供余额数据' : _formatPrice(_account['balance'])),
                   ),
                   ListItem(
                     title: const Text('可划转佣金'),
@@ -573,7 +573,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ListItem(
                       title: Text('订单：${_value(commission['trade_no'])}'),
                       subtitle: Text(
-                        '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
+                        '订单金额：${_formatPrice(commission['order_amount'])} · 佣金：${_formatPrice(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
                       ),
                     ),
                 ],
