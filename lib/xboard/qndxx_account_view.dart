@@ -5,6 +5,7 @@ import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'qndxx_config_service.dart';
 import 'qndxx_crisp_service.dart';
 import 'qndxx_login_dialog.dart';
 import 'qndxx_xboard_service.dart';
@@ -42,6 +43,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       _error = null;
     });
     try {
+      await QndxxConfigService.instance.initialize(refreshRemote: true);
       await _service.restoreSession();
       final account = await _service.getAccountInfo();
       final subscription = await _service.getSubscriptionInfo().catchError(
