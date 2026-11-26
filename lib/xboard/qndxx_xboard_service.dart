@@ -202,16 +202,28 @@ class QndxxXboardService {
     }
   }
 
-  Future<XBoardSDK> _ensureSdk() async {
-    if (_token == null || _panelUrl == null) await restoreSession();
+  Future<XBoardSDK> _ensurePublicSdk() async {
+    final config = QndxxConfigService.instance;
+    if (config.localConfig.isEmpty) {
+      await config.initialize(refreshRemote: true);
+    } else if (config.remoteConfig.isEmpty) {
+      await config.refresh();
+    }
+    final candidates = config.rankedPanelUrls.isNotEmpty
+        ? config.rankedPanelUrls
+        : config.panelUrls;
+    final baseUrl = _panelUrl ?? config.fastestPanelUrl ??
+        (candidates.isNotEmpty ? candidates.first : null);
+    if (baseUrl == null || baseUrl.isEmpty) {
+      throw StateError('远程配置没有可用的 QNDXX 面板地址');
+    }
     final current = _sdk ?? XBoardSDK.instance;
-    if (current.isInitialized && current.baseUrl != _panelUrl) {
+    if (current.isInitialized && current.baseUrl != baseUrl) {
       current.dispose();
     }
     if (!current.isInitialized) {
-      final config = QndxxConfigService.instance;
       await current.initialize(
-        _panelUrl!,
+        baseUrl,
         panelType: config.panelType,
         httpConfig: HttpConfig.production(
           userAgent: config.apiUserAgent,
@@ -222,8 +234,14 @@ class QndxxXboardService {
         enableLogging: false,
       );
     }
-    await current.saveToken(_token!);
     _sdk = current;
+    return current;
+  }
+
+  Future<XBoardSDK> _ensureSdk() async {
+    if (_token == null || _panelUrl == null) await restoreSession();
+    final current = await _ensurePublicSdk();
+    await current.saveToken(_token!);
     return current;
   }
 
