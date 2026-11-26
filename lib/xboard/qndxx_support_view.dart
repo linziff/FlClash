@@ -1,3 +1,4 @@
+import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show CircularProgressIndicator;
@@ -28,9 +29,13 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
   Widget build(BuildContext context) {
     return Scaffold(
       title: '在线客服',
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
+      body: Padding(
+        // Keep the embedded page above the floating Android glass dock and
+        // the system gesture area instead of painting behind navigation.
+        padding: EdgeInsets.only(bottom: context.bottomInset),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
           InAppWebView(
             initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
             initialSettings: InAppWebViewSettings(
@@ -89,7 +94,8 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
                 ),
               ),
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
