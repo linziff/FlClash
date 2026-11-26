@@ -24,6 +24,7 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private lateinit var messenger: BinaryMessenger
     private lateinit var channel: MethodChannel
     private lateinit var coreChannel: MethodChannel
+    private lateinit var serviceChannelName: String
     private lateinit var scope: CoroutineScope
     private val gson = Gson()
     private var commandRevision = 0
@@ -36,12 +37,16 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
                 .onFailure { error -> GlobalState.log("Unable to load the Core: $error") }
         }
         messenger = binding.binaryMessenger
-        channel = MethodChannel(messenger, SERVICE_CHANNEL)
+        // The Kotlin namespace remains com.follow.clash, but the installed
+        // applicationId is qndxx.app. Use the runtime application ID for
+        // Flutter channels instead of Components.PACKAGE_NAME (a class namespace).
+        serviceChannelName = "${binding.applicationContext.packageName}/service"
+        channel = MethodChannel(messenger, serviceChannelName)
         channel.setMethodCallHandler(this)
         // Serial: watchRoute keeps the latest intent by the order calls reach the Core.
         coreChannel = MethodChannel(
             messenger,
-            CORE_CHANNEL,
+            "${binding.applicationContext.packageName}/core",
             StandardMethodCodec.INSTANCE,
             messenger.makeBackgroundTaskQueue(),
         )
@@ -147,12 +152,8 @@ class ServicePlugin : FlutterPlugin, MethodChannel.MethodCallHandler {
     private fun sendEvent(value: ByteArray) {
         val message = StandardMethodCodec.INSTANCE.encodeMethodCall(MethodCall("event", value))
         scope.launch(Dispatchers.Main) {
-            messenger.send(SERVICE_CHANNEL, message)
+            messenger.send(serviceChannelName, message)
         }
     }
 
-    private companion object {
-        val SERVICE_CHANNEL = "${Components.PACKAGE_NAME}/service"
-        val CORE_CHANNEL = "${Components.PACKAGE_NAME}/core"
-    }
 }
