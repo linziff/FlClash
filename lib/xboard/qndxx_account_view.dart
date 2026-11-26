@@ -1011,7 +1011,7 @@ class _PlanPeriodDialog extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          for (final (period, label, price) in periods)
+          for (final (period, label, price, icon) in periods)
             GestureDetector(
               onTap: () => Navigator.of(context).pop(period),
               child: Container(
@@ -1039,7 +1039,7 @@ class _PlanPeriodDialog extends StatelessWidget {
                         borderRadius: BorderRadius.circular(13),
                       ),
                       child: Icon(
-                        item.$4,
+                        icon,
                         color: context.colorScheme.onPrimaryContainer,
                       ),
                     ),
