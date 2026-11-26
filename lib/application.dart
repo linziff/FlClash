@@ -13,6 +13,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:dio/dio.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
@@ -121,8 +122,11 @@ class ApplicationState extends ConsumerState<Application> {
         globalState.navigatorKey.currentContext == null) {
       return;
     }
-    await dialogs.showCommonDialog<void>(
-      child: const QndxxLoginDialog(),
+    await Navigator.of(globalState.navigatorKey.currentContext!).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => const QndxxLoginDialog(),
+      ),
     );
   }
 
