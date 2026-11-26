@@ -43,7 +43,7 @@ class AppTray implements TrayPort {
     return isWindows ? 'ico' : 'png';
   }
 
-  bool _isTemplate(bool monochrome) => isMacOS && monochrome;
+  bool _isTemplate(bool monochrome) => false;
 
   String _trayIconDir(bool monochrome) {
     if (isWindows) {
@@ -62,7 +62,7 @@ class AppTray implements TrayPort {
   }) {
     final status = switch ((
       safeMode,
-      _isTemplate(monochrome) || !isStart,
+      !isStart,
       tunEnable,
     )) {
       (true, _, _) => 4,
@@ -158,18 +158,12 @@ class AppTray implements TrayPort {
         detail: shortcut(HotAction.start),
         onSelected: commonAction.toggleRunning,
       ),
-      if (isMacOS) ...[
+      if (isMacOS)
         TrayMenuCheckbox(
           label: appLocalizations.speedStatistics,
           checked: trayState.showTrayTitle,
           onSelected: commonAction.updateSpeedStatistics,
         ),
-        TrayMenuCheckbox(
-          label: appLocalizations.monochromeIcon,
-          checked: trayState.monochromeTrayIcon,
-          onSelected: commonAction.updateMonochromeTrayIcon,
-        ),
-      ],
       const TrayMenuSeparator(),
       for (final mode in Mode.values)
         TrayMenuCheckbox(
