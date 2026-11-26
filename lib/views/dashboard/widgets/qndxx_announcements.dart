@@ -88,17 +88,17 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
     }
     if (normalizedTags.any((item) =>
         RegExp(
-          r'(^|[,，;；|/\\s])(节点|节点公告|节点线路|node)($|[,，;；|/\\s])',
+          r'(^|[,，;；|/\s])(节点|节点公告|节点线路|node)($|[,，;；|/\s])',
           caseSensitive: false,
         ).hasMatch(item.trim()))) {
       return true;
     }
     final title = notice['title']?.toString() ?? '';
     final content = notice['content']?.toString() ?? '';
-    final taggedText = '$title\\n$content';
-    return RegExp(r'^[\\s【\\[]*(节点|节点公告)[】\\]]', multiLine: true)
+    final taggedText = '$title\n$content';
+    return RegExp(r'^[\s【\[]*(节点|节点公告)[】\]]', multiLine: true)
             .hasMatch(taggedText) ||
-        RegExp(r'(^|\\s)#节点($|\\s)').hasMatch(taggedText);
+        RegExp(r'(^|\s)#节点($|\s)').hasMatch(taggedText);
   }
 
   Future<void> _showNotice(Map<String, dynamic> notice) async {
@@ -208,7 +208,16 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
     final content = notice['content']?.toString() ?? '';
     final colors = context.colorScheme;
     return AlertDialog(
-      title: Row(
+      title: title?.isNotEmpty == true ? title! : '平台公告',
+      actions: [
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('我知道了'),
+        ),
+      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           DecoratedBox(
             decoration: BoxDecoration(
@@ -225,64 +234,47 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              title?.isNotEmpty == true ? title! : '平台公告',
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                color: colors.onSurface,
-                fontSize: 17,
-                fontWeight: FontWeight.w800,
+          const SizedBox(height: 12),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 520, maxHeight: 440),
+            child: SingleChildScrollView(
+              child: MarkdownBody(
+                data: content.isEmpty ? '暂无公告内容' : content,
+                selectable: true,
+                styleSheet: MarkdownStyleSheet(
+                  p: TextStyle(
+                    color: colors.onSurfaceVariant,
+                    height: 1.6,
+                    fontSize: 14,
+                  ),
+                  h1: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 21,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  h2: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  h3: TextStyle(
+                    color: colors.onSurface,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                  listBullet: TextStyle(color: colors.primary),
+                  blockquoteDecoration: BoxDecoration(
+                    color: colors.surfaceContainerHighest,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  blockquotePadding: const EdgeInsets.all(12),
+                ),
               ),
             ),
           ),
         ],
       ),
-      actions: [
-        FilledButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('我知道了'),
-        ),
-      ],
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 520, maxHeight: 440),
-        child: SingleChildScrollView(
-          child: MarkdownBody(
-            data: content.isEmpty ? '暂无公告内容' : content,
-            selectable: true,
-            styleSheet: MarkdownStyleSheet(
-              p: TextStyle(
-                color: colors.onSurfaceVariant,
-                height: 1.6,
-                fontSize: 14,
-              ),
-              h1: TextStyle(
-                color: colors.onSurface,
-                fontSize: 21,
-                fontWeight: FontWeight.w800,
-              ),
-              h2: TextStyle(
-                color: colors.onSurface,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
-              h3: TextStyle(
-                color: colors.onSurface,
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-              ),
-              listBullet: TextStyle(color: colors.primary),
-              blockquoteDecoration: BoxDecoration(
-                color: colors.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              blockquotePadding: const EdgeInsets.all(12),
-            ),
-          ),
-        ),
-      ),
+
     );
   }
 }
