@@ -95,81 +95,97 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return Scaffold(
       title: '登录账号',
-      hasFields: true,
-      actions: [
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('取消'),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _loginAndImport,
-          child: _busy ? const Text('登录中…') : const Text('登录并导入订阅'),
-        ),
-      ],
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        spacing: 12,
-        children: [
-          const Center(child: QndxxBrandLogo(size: 68)),
-          Text(
-            '欢迎使用青年大学习',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: context.colorScheme.onSurface,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),
+              children: [
+                const Center(child: QndxxBrandLogo(size: 84)),
+                const SizedBox(height: 20),
+                Text(
+                  '欢迎使用青年大学习',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                    color: context.colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '登录账号后即可同步订阅并管理你的服务。',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: context.colorScheme.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 28),
+                TextFormField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autofillHints: const [AutofillHints.username],
+                  decoration: const InputDecoration(
+                    hintText: '邮箱',
+                    prefixIcon: Icon(Icons.email_outlined),
+                  ),
+                ),
+                const SizedBox(height: 14),
+                TextFormField(
+                  controller: _passwordController,
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.password],
+                  decoration: const InputDecoration(
+                    hintText: '密码',
+                    prefixIcon: Icon(Icons.lock_outline),
+                  ),
+                  onFieldSubmitted: (_) => _loginAndImport(),
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: _busy
+                          ? null
+                          : () => unawaited(
+                              dialogs.showCommonDialog<void>(
+                                child: const QndxxForgotPasswordDialog(),
+                              ),
+                            ),
+                      child: const Text('忘记密码'),
+                    ),
+                    TextButton(
+                      onPressed: _busy
+                          ? null
+                          : () => unawaited(
+                              dialogs.showCommonDialog<void>(
+                                child: const QndxxRegisterDialog(),
+                              ),
+                            ),
+                      child: const Text('注册账号'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 18),
+                FilledButton(
+                  onPressed: _busy ? null : _loginAndImport,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: _busy
+                        ? const Text('登录中…')
+                        : const Text('登录并导入订阅'),
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
           ),
-          Text(
-            '登录账号后即可同步订阅并管理你的服务。系统会自动选择响应最快的可用面板。',
-            style: TextStyle(
-              fontSize: 14,
-              color: context.colorScheme.onSurface,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          TextFormField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            autofillHints: const [AutofillHints.username],
-            decoration: const InputDecoration(hintText: '邮箱'),
-          ),
-          TextFormField(
-            controller: _passwordController,
-            obscureText: true,
-            autofillHints: const [AutofillHints.password],
-            decoration: const InputDecoration(hintText: '密码'),
-            onFieldSubmitted: (_) => _loginAndImport(),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              TextButton(
-                onPressed: _busy
-                    ? null
-                    : () => unawaited(
-                        dialogs.showCommonDialog<void>(
-                          child: const QndxxForgotPasswordDialog(),
-                        ),
-                      ),
-                child: const Text('忘记密码'),
-              ),
-              TextButton(
-                onPressed: _busy
-                    ? null
-                    : () => unawaited(
-                        dialogs.showCommonDialog<void>(
-                          child: const QndxxRegisterDialog(),
-                        ),
-                      ),
-                child: const Text('注册账号'),
-              ),
-            ],
-          ),
-        ],
+        ),
       ),
     );
   }
