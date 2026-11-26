@@ -40,6 +40,15 @@ class QndxxConfigService {
   String? get fastestPanelUrl => _fastestPanel;
   DateTime? get lastRefresh => _lastRefresh;
   List<String> get rankedPanelUrls => List.unmodifiable(_rankedPanels);
+  String _safeUserAgent(dynamic value, String fallback) {
+    final candidate = value?.toString().trim() ?? '';
+    if (candidate.isEmpty ||
+        candidate.codeUnits.any((unit) => unit < 0x20 || unit > 0x7e)) {
+      return fallback;
+    }
+    return candidate;
+  }
+
   Map? get _remoteSubscription => _remote['subscription'] as Map?;
   Map? get _remoteSecurity => _remote['security'] as Map?;
   Map? get _remoteUserAgents => _remoteSecurity?['user_agents'] as Map?;
@@ -59,18 +68,19 @@ class QndxxConfigService {
       '';
   String get apiUserAgent {
     final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    return (_remoteUserAgents?['api_encrypted'] ??
-                localAgents?['api_encrypted'])
-            ?.toString() ??
-        'QNDXX/6.6.6';
+    return _safeUserAgent(
+      _remoteUserAgents?['api_encrypted'] ?? localAgents?['api_encrypted'],
+      'QNDXX/6.6.6',
+    );
   }
 
   String get domainRacingUserAgent {
     final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    return (_remoteUserAgents?['domain_racing_test'] ??
-                localAgents?['domain_racing_test'])
-            ?.toString() ??
-        'QNDXX/6.6.6 (Domain Racing Test)';
+    return _safeUserAgent(
+      _remoteUserAgents?['domain_racing_test'] ??
+          localAgents?['domain_racing_test'],
+      'QNDXX/6.6.6 (Domain Racing Test)',
+    );
   }
 
   String get crispWebsiteId =>
@@ -79,12 +89,13 @@ class QndxxConfigService {
       '92f20590-a75f-4b50-a521-6d5fc7a356dd';
   String get subscriptionUserAgent {
     final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    return (_remoteUserAgents?['subscription'] ??
-                _remoteUserAgents?['api_encrypted'] ??
-                localAgents?['subscription'] ??
-                localAgents?['api_encrypted'])
-            ?.toString() ??
-        'QNDXX/6.6.6';
+    return _safeUserAgent(
+      _remoteUserAgents?['subscription'] ??
+          _remoteUserAgents?['api_encrypted'] ??
+          localAgents?['subscription'] ??
+          localAgents?['api_encrypted'],
+      'QNDXX/6.6.6',
+    );
   }
 
   String get panelType => _remote['panelType']?.toString() ?? 'xboard';
