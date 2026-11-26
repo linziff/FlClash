@@ -18,7 +18,9 @@ import 'qndxx_subscription_decryptor.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxLoginDialog extends ConsumerStatefulWidget {
-  const QndxxLoginDialog({super.key});
+  const QndxxLoginDialog({super.key, this.mandatory = false});
+
+  final bool mandatory;
 
   @override
   ConsumerState<QndxxLoginDialog> createState() => _QndxxLoginDialogState();
@@ -131,8 +133,9 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         'QNDXX 登录成功：${account.email}，订阅已导入',
         level: BannerLevel.success,
       );
-      _authenticated = true;
-      Navigator.of(context).pop();
+      setState(() => _authenticated = true);
+      if (widget.mandatory) await WidgetsBinding.instance.endOfFrame;
+      if (mounted) Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
       await dialogs.showAlert(
@@ -149,7 +152,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     // The first-launch login is mandatory: prevent system back, swipe-back,
     // and route-pop actions from dismissing it before authentication.
     return PopScope<void>(
-      canPop: _authenticated,
+      canPop: !widget.mandatory || _authenticated,
       child: Scaffold(
         title: '登录账号',
         body: SafeArea(
