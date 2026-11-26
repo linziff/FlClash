@@ -44,6 +44,33 @@ abstract final class AppGlyphs {
     ], role: GlyphRole.detail),
   ]);
 
+  static const customerService = Glyph([
+    GlyphArc(12, 12, 8.2, math.pi, math.pi, role: GlyphRole.line),
+    GlyphPolyline([
+      GlyphVertex(3.8, 12),
+      GlyphVertex(3.8, 16.2, 1.8),
+      GlyphVertex(7.2, 16.2, 1.8),
+      GlyphVertex(7.2, 12),
+    ], closed: true),
+    GlyphPolyline([
+      GlyphVertex(16.8, 12),
+      GlyphVertex(16.8, 16.2, 1.8),
+      GlyphVertex(20.2, 16.2, 1.8),
+      GlyphVertex(20.2, 12),
+    ], closed: true),
+    GlyphPolyline([
+      GlyphVertex(20.2, 15.8),
+      GlyphVertex(20.2, 18),
+      GlyphVertex(16.2, 20),
+      GlyphVertex(13.8, 20),
+    ], role: GlyphRole.line),
+  ]);
+
+  static const account = Glyph([
+    GlyphCircle(12, 8, 3.6),
+    GlyphArc(12, 20, 7.2, math.pi, math.pi, role: GlyphRole.line),
+  ]);
+
   static const requests = Glyph([
     GlyphCircle(12, 12, 8.8),
     GlyphPolyline([
