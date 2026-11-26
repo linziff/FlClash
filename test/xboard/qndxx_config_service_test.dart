@@ -29,7 +29,9 @@ void main() {
 
   test('uses QNDXX authentication and domain-racing user agents', () {
     expect(config.apiUserAgent, 'QNDXX/6.6.6');
-    expect(config.subscriptionUserAgent, 'QNDXX/6.6.6');
+    // Orange-compatible subscription responses require the original
+    // FlClash User-Agent; this is intentionally different from API traffic.
+    expect(config.subscriptionUserAgent, 'FlClash');
     expect(config.domainRacingUserAgent, 'QNDXX/6.6.6 (Domain Racing Test)');
   });
 
@@ -48,14 +50,14 @@ void main() {
 
   test('keeps HTTP User-Agent ASCII while preserving QNDXX branding', () {
     final userAgent = qndxxUserAgent('6.6.6', platform: 'windows');
-    expect(userAgent, 'QNDXX/v6.6.6 clash-verge Platform/windows');
+    expect(userAgent, 'QNDXX/v6.6.6 clash-ver Platform/windows');
     expect(userAgent.codeUnits.every((unit) => unit < 128), isTrue);
   });
 
   test('decrypts Orange-compatible Base64/XOR/Base64 subscriptions', () {
     const key = 'qndxx-test-key';
     final yaml =
-        'proxies:\n  - name: test-node\n' + 'rules:\n  - MATCH,DIRECT\n';
+        'proxies:\\n  - name: test-node\\n' + 'rules:\\n  - MATCH,DIRECT\\n';
     final stage = base64.encode(utf8.encode(yaml));
     final stageBytes = utf8.encode(stage);
     final keyBytes = utf8.encode(key);
@@ -71,7 +73,7 @@ void main() {
 
   test('supports an additional Base64 layer used by some XBoard panels', () {
     const key = 'qndxx-test-key';
-    const yaml = 'proxies:\n  - name: test-node\n';
+    const yaml = 'proxies:\\n  - name: test-node\\n';
     final doubleEncoded = base64.encode(
       utf8.encode(base64.encode(utf8.encode(yaml))),
     );
