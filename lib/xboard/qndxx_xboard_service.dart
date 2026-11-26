@@ -8,6 +8,7 @@ import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'qndxx_config_service.dart';
+import 'qndxx_subscription_decryptor.dart';
 
 class QndxxAccount {
   const QndxxAccount({
@@ -514,41 +515,11 @@ class QndxxXboardService {
     return unique.values.toList(growable: false);
   }
 
-  String? _decrypt(String encrypted, String key) {
-    if (key.isEmpty) return null;
-    try {
-      final decoded = base64.decode(encrypted.trim());
-      final keyBytes = utf8.encode(key);
-      if (keyBytes.isEmpty) return null;
-      final xored = Uint8List(decoded.length);
-      for (var i = 0; i < decoded.length; i++) {
-        xored[i] = decoded[i] ^ keyBytes[i % keyBytes.length];
-      }
-      final stage = utf8.decode(xored);
-      final plain = utf8.decode(base64.decode(stage));
-      try {
-        return utf8.decode(base64.decode(plain));
-      } catch (_) {
-        return plain;
-      }
-    } catch (_) {
-      return null;
-    }
-  }
+  String? _decrypt(String encrypted, String key) =>
+      QndxxSubscriptionDecryptor.decrypt(encrypted, key);
 
-  bool _looksLikeClash(String content) {
-    final normalized = content.trimLeft();
-    return normalized.contains('\nproxies:') ||
-        normalized.startsWith('proxies:') ||
-        normalized.contains('\nproxy-groups:') ||
-        normalized.startsWith('proxy-groups:') ||
-        normalized.contains('\nproxy-providers:') ||
-        normalized.startsWith('proxy-providers:') ||
-        normalized.contains('\nport:') ||
-        normalized.startsWith('port:') ||
-        normalized.contains('\nrules:') ||
-        normalized.startsWith('rules:');
-  }
+  bool _looksLikeClash(String content) =>
+      QndxxSubscriptionDecryptor.looksLikeClash(content);
 
   Future<QndxxSubscription> _downloadSubscriptionCandidate(
     _SubscriptionCandidate candidate,
