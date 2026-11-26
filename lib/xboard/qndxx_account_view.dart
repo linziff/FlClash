@@ -10,9 +10,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
 
 import 'qndxx_config_service.dart';
-import 'qndxx_crisp_service.dart';
 import 'qndxx_login_dialog.dart';
-import 'qndxx_remote_status_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxAccountView extends ConsumerStatefulWidget {
@@ -28,7 +26,6 @@ enum QndxxAccountViewMode { shop, account }
 
 class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   final _service = QndxxXboardService.instance;
-  final _remoteStatus = QndxxRemoteStatusService.instance;
   bool _loading = false;
   bool _signedIn = false;
   Map<String, dynamic> _account = const {};
@@ -39,37 +36,17 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   List<Map<String, dynamic>> _plans = const [];
   List<Map<String, dynamic>> _orders = const [];
   List<Map<String, dynamic>> _notices = const [];
-  List<Map<String, dynamic>> _tickets = const [];
   String? _error;
 
   @override
   void initState() {
     super.initState();
-    _remoteStatus.addListener(_onRemoteStatusChanged);
     unawaited(_load());
   }
 
   @override
   void dispose() {
-    _remoteStatus.removeListener(_onRemoteStatusChanged);
     super.dispose();
-  }
-
-  void _onRemoteStatusChanged() {
-    if (!mounted) return;
-    setState(() {});
-  }
-
-  Future<void> _toggleRemoteStatus() async {
-    try {
-      await _remoteStatus.setEnabled(!_remoteStatus.isEnabled);
-    } catch (error) {
-      if (!mounted) return;
-      await dialogs.showAlert(
-        title: '远程状态连接失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
   }
 
   Future<void> _load() async {
@@ -106,9 +83,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       final commissions = await _service.getCommissionDetails().catchError(
         (_) => <Map<String, dynamic>>[],
       );
-      final tickets = await _service.getTickets().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
       if (!mounted) return;
       setState(() {
         _signedIn = true;
@@ -120,7 +94,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         _invite = invite;
         _inviteCodes = inviteCodes;
         _commissions = commissions;
-        _tickets = tickets;
       });
     } catch (error) {
       if (!mounted) return;
@@ -177,7 +150,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       destructive: true,
     );
     if (accepted != true) return;
-    await _remoteStatus.setEnabled(false);
     await _service.logout();
     if (!mounted) return;
     setState(() {
@@ -185,17 +157,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       _account = const {};
       _subscription = const {};
     });
-  }
-
-  Future<void> _openSupport() async {
-    try {
-      await QndxxCrispService.instance.open();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '在线客服暂不可用',
-        message: TextSpan(text: error.toString()),
-      );
-    }
   }
 
   Future<void> _purchasePlan(Map<String, dynamic> plan) async {
@@ -316,88 +277,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
-  Future<void> _createTicket() async {
-    final ticket = await dialogs.showCommonDialog<Map<String, Object?>>(
-      child: const _CreateTicketDialog(),
-    );
-    if (ticket == null) return;
-    try {
-      await _service.createTicket(
-        ticket['subject']! as String,
-        ticket['message']! as String,
-        ticket['level']! as int,
-      );
-      dialogs.showBanner('工单已提交', level: BannerLevel.success);
-      await _load();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '提交工单失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
-  Future<void> _showTicket(Map<String, dynamic> ticket) async {
-    final id = int.tryParse('${ticket['id']}');
-    if (id == null) return;
-    try {
-      final detail = await _service.getTicket(id);
-      final messages = detail['messages'] is List
-          ? (detail['messages'] as List).map((e) => e.toString()).join('\n\n')
-          : '';
-      await dialogs.showAlert(
-        title: _value(detail['subject'], '工单详情'),
-        message: TextSpan(text: '${_value(detail['status'])}\n\n$messages'),
-      );
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '读取工单失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
-  Future<void> _replyTicket(Map<String, dynamic> ticket) async {
-    final id = int.tryParse('${ticket['id']}');
-    if (id == null) return;
-    final message = await dialogs.showCommonDialog<String>(
-      child: const _QndxxMessageDialog(title: '回复工单'),
-    );
-    if (message == null || message.trim().isEmpty) return;
-    try {
-      await _service.replyTicket(id, message.trim());
-      dialogs.showBanner('回复已发送', level: BannerLevel.success);
-      await _load();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '发送回复失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
-  Future<void> _closeTicket(Map<String, dynamic> ticket) async {
-    final id = int.tryParse('${ticket['id']}');
-    if (id == null) return;
-    final accepted = await dialogs.showMessage(
-      title: '关闭工单',
-      message: const TextSpan(text: '确定关闭这个客服工单吗？'),
-      confirmText: '关闭工单',
-      destructive: true,
-    );
-    if (accepted != true) return;
-    try {
-      await _service.closeTicket(id);
-      dialogs.showBanner('工单已关闭', level: BannerLevel.success);
-      await _load();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '关闭工单失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
   Future<void> _generateInvite() async {
     try {
       final code = await _service.generateInviteCode();
@@ -436,7 +315,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               child: const Text('登录账号'),
             ),
             const SizedBox(height: 8),
-            TextButton(onPressed: _openSupport, child: const Text('在线客服')),
           ] else ...[
             if (widget.mode == QndxxAccountViewMode.account) ...[
               generateSection(
