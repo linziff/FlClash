@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
@@ -168,6 +169,7 @@ class QndxxXboardService {
 
         final userResponse = await _authorizedGet('/api/v1/user/info');
         final userBody = _map(_decode(userResponse.data));
+        sessionRevision.value++;
         return QndxxAccount(
           email: _email!,
           panelUrl: baseUrl,
@@ -526,6 +528,7 @@ class QndxxXboardService {
       // Local logout must still succeed when the panel is unreachable.
     }
     await _clearLocalSession();
+    sessionRevision.value++;
   }
 
   Future<Response<Object?>> _authorizedGet(String path) async {
