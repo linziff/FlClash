@@ -2,7 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart' hide PopupMenuItem;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show Icons, DropdownButton, DropdownMenuItem;
+    show Icon, Icons, DropdownButton, DropdownMenuItem;
 
 import 'qndxx_xboard_service.dart';
 
