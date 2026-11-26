@@ -69,28 +69,36 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
           .toString();
 
   bool _hasNodeTag(Map<String, dynamic> notice) {
-    final tagValues = [
-      notice['tag'],
-      notice['tags'],
-      notice['type'],
-      notice['category'],
-      notice['label'],
-    ];
-    for (final value in tagValues) {
-      final values = value is Iterable
-          ? value.map((item) => item.toString())
-          : [value?.toString() ?? ''];
-      if (values.any((item) =>
-          RegExp(r'(^|[,，;；|/\s])节点($|[,，;；|/\s])').hasMatch(item))) {
-        return true;
+    final normalizedTags = <String>[];
+    void collectTags(dynamic value) {
+      if (value is Map) {
+        normalizedTags.addAll(value.keys.map((item) => item.toString()));
+        normalizedTags.addAll(value.values.map((item) => item.toString()));
+      } else if (value is Iterable) {
+        for (final item in value) {
+          collectTags(item);
+        }
+      } else if (value != null) {
+        normalizedTags.add(value.toString());
       }
+    }
+
+    for (final key in ['tag', 'tags', 'type', 'category', 'label']) {
+      collectTags(notice[key]);
+    }
+    if (normalizedTags.any((item) =>
+        RegExp(
+          r'(^|[,，;；|/\\s])(节点|节点公告|节点线路|node)($|[,，;；|/\\s])',
+          caseSensitive: false,
+        ).hasMatch(item.trim()))) {
+      return true;
     }
     final title = notice['title']?.toString() ?? '';
     final content = notice['content']?.toString() ?? '';
-    final taggedText = '$title\n$content';
-    return RegExp(r'^[\s【\[]*(节点|节点公告)[】\]]', multiLine: true)
+    final taggedText = '$title\\n$content';
+    return RegExp(r'^[\\s【\\[]*(节点|节点公告)[】\\]]', multiLine: true)
             .hasMatch(taggedText) ||
-        RegExp(r'(^|\s)#节点($|\s)').hasMatch(taggedText);
+        RegExp(r'(^|\\s)#节点($|\\s)').hasMatch(taggedText);
   }
 
   Future<void> _showNotice(Map<String, dynamic> notice) async {
