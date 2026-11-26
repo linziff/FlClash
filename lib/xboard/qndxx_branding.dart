@@ -82,16 +82,10 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: colors.primaryContainer,
-                          borderRadius: BorderRadius.circular(30),
-                        ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(18),
-                          child: QndxxBrandLogo(size: 112),
-                        ),
-                      ),
+                      // Keep the source logo's transparent edges visible.
+                      // A colored tile behind it made the splash look like
+                      // a second, mismatched app icon.
+                      const QndxxBrandLogo(size: 132),
                       const SizedBox(height: 28),
                       Text(
                         '青年大学习',
