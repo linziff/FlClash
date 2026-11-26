@@ -167,7 +167,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                 ),
               ),
               SizedBox(
-                width: 132,
+                // Keep the longest supported suffix readable on narrow
+                // Android dialogs and Windows desktop layouts.
+                width: 156,
                 child: Container(
                   height: 56,
                   padding: const EdgeInsets.symmetric(horizontal: 8),
