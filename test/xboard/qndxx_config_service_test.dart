@@ -50,7 +50,7 @@ void main() {
 
   test('keeps HTTP User-Agent ASCII while preserving QNDXX branding', () {
     final userAgent = qndxxUserAgent('6.6.6', platform: 'windows');
-    expect(userAgent, 'QNDXX/v6.6.6 clash-ver Platform/windows');
+    expect(userAgent, 'QNDXX/v6.6.6 clash-verge Platform/windows');
     expect(userAgent.codeUnits.every((unit) => unit < 128), isTrue);
   });
 
