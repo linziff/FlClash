@@ -22,10 +22,11 @@ class QndxxAccount {
 }
 
 class _SubscriptionCandidate {
-  const _SubscriptionCandidate(this.url, this.method);
+  const _SubscriptionCandidate(this.url, this.method, this.isEncrypted);
 
   final String url;
   final String method;
+  final bool isEncrypted;
 }
 
 class QndxxSubscription {
@@ -493,12 +494,18 @@ class QndxxXboardService {
           _SubscriptionCandidate(
             uri.replace(queryParameters: query).toString(),
             endpoint['method']?.toString().toUpperCase() ?? 'GET',
+            endpoint['isEncrypt'] == true || entry.key.toLowerCase() == 'v2',
           ),
         );
       }
     }
     if (subscribeUrl.isNotEmpty) {
-      candidates.add(_SubscriptionCandidate(subscribeUrl, 'GET'));
+      final path = Uri.tryParse(subscribeUrl)?.path.toLowerCase() ?? '';
+      candidates.add(_SubscriptionCandidate(
+        subscribeUrl,
+        'GET',
+        path.contains('encrypt'),
+      ));
     }
     final unique = <String, _SubscriptionCandidate>{};
     for (final candidate in candidates) {
@@ -543,6 +550,110 @@ class QndxxXboardService {
         normalized.startsWith('rules:');
   }
 
+  Future<QndxxSubscription> _downloadSubscriptionCandidate(
+    _SubscriptionCandidate candidate,
+    String token,
+    QndxxConfigService config,
+    CancelToken cancelToken,
+  ) async {
+    Object? lastError;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        final options = Options(
+          responseType: ResponseType.plain,
+          cancelToken: cancelToken,
+          headers: {
+            'User-Agent': config.subscriptionUserAgent,
+            'Accept': '*/*',
+          },
+        );
+        final result = candidate.method == 'POST'
+            ? await _dio.post<Object?>(
+                candidate.url,
+                data: {'token': token},
+                options: options,
+              )
+            : await _dio.get<Object?>(candidate.url, options: options);
+        var text = result.data?.toString() ?? '';
+        final prefix = config.obfuscationPrefix;
+        if (prefix.isNotEmpty && text.startsWith(prefix)) {
+          text = text.substring(prefix.length);
+        }
+        if (text.isEmpty) throw StateError('订阅响应为空');
+        try {
+          final json = _map(jsonDecode(text));
+          if (json['data'] is String) text = json['data'] as String;
+        } catch (_) {
+          // Plain-text subscription bodies are expected for many panels.
+        }
+        final decrypted = _decrypt(text, config.decryptKey);
+        final content = decrypted != null && _looksLikeClash(decrypted)
+            ? decrypted
+            : text;
+        if (!_looksLikeClash(content)) {
+          throw StateError('订阅响应不是有效的 Clash YAML，且解密未成功');
+        }
+        return QndxxSubscription(
+          bytes: Uint8List.fromList(utf8.encode(content)),
+          sourceUrl: candidate.url,
+          userInfo: result.headers.value('subscription-userinfo'),
+        );
+      } catch (error) {
+        if (CancelToken.isCancel(error)) rethrow;
+        lastError = error;
+        if (attempt < 2) {
+          await Future<void>.delayed(Duration(seconds: attempt + 1));
+        }
+      }
+    }
+    throw StateError('订阅源失败：${_safeError(lastError)}');
+  }
+
+  Future<QndxxSubscription> _raceSubscriptionCandidates(
+    List<_SubscriptionCandidate> candidates,
+    String token,
+    QndxxConfigService config,
+  ) async {
+    if (candidates.isEmpty) throw StateError('没有可用的订阅地址');
+    if (candidates.length == 1) {
+      return _downloadSubscriptionCandidate(
+        candidates.single,
+        token,
+        config,
+        CancelToken(),
+      );
+    }
+    final completer = Completer<QndxxSubscription>();
+    final cancelTokens = List.generate(candidates.length, (_) => CancelToken());
+    var remaining = candidates.length;
+    Object? lastError;
+    for (var index = 0; index < candidates.length; index++) {
+      _downloadSubscriptionCandidate(
+        candidates[index],
+        token,
+        config,
+        cancelTokens[index],
+      ).then((result) {
+        if (completer.isCompleted) return;
+        completer.complete(result);
+        for (var other = 0; other < cancelTokens.length; other++) {
+          if (other != index) {
+            cancelTokens[other].cancel('another subscription endpoint won');
+          }
+        }
+      }).catchError((Object error) {
+        lastError = error;
+        remaining--;
+        if (remaining == 0 && !completer.isCompleted) {
+          completer.completeError(
+            StateError('所有订阅地址均失败：${_safeError(lastError)}'),
+          );
+        }
+      });
+    }
+    return completer.future;
+  }
+
   Future<QndxxSubscription> downloadSubscription() async {
     if (_token == null || _panelUrl == null) await restoreSession();
     final response = await _authorizedGet('/api/v1/user/getSubscribe');
@@ -565,73 +676,22 @@ class QndxxXboardService {
       token,
       config.preferEncrypt,
     );
-    Object? lastError;
-    for (final candidate in candidates) {
-      final url = candidate.url;
-      try {
-        Response<Object?>? result;
-        Object? requestError;
-        for (var attempt = 0; attempt < 3; attempt++) {
-          try {
-            final options = Options(
-              responseType: ResponseType.plain,
-              headers: {
-                'User-Agent': config.subscriptionUserAgent,
-                'Accept': '*/*',
-              },
-            );
-            result = candidate.method == 'POST'
-                ? await _dio.post<Object?>(
-                    url,
-                    data: {'token': token},
-                    options: options,
-                  )
-                : await _dio.get<Object?>(url, options: options);
-            break;
-          } catch (error) {
-            requestError = error;
-            if (attempt < 2) {
-              await Future<void>.delayed(Duration(seconds: attempt + 1));
-            }
-          }
-        }
-        if (result == null) {
-          lastError = requestError ?? StateError('订阅请求失败');
-          continue;
-        }
-        var text = result.data?.toString() ?? '';
-        final obfuscationPrefix = config.obfuscationPrefix;
-        if (obfuscationPrefix.isNotEmpty &&
-            text.startsWith(obfuscationPrefix)) {
-          text = text.substring(obfuscationPrefix.length);
-        }
-        if (text.isEmpty) continue;
-        try {
-          final json = _map(jsonDecode(text));
-          if (json['data'] is String) {
-            text = json['data'] as String;
-          }
-        } catch (_) {
-          // Plain-text subscription bodies are expected for many panels.
-        }
-        final decrypted = _decrypt(text, config.decryptKey);
-        final content = decrypted != null && _looksLikeClash(decrypted)
-            ? decrypted
-            : text;
-        if (!_looksLikeClash(content)) {
-          lastError = StateError('订阅响应不是有效的 Clash YAML，且解密未成功');
-          continue;
-        }
-        return QndxxSubscription(
-          bytes: Uint8List.fromList(utf8.encode(content)),
-          sourceUrl: url,
-          userInfo: result.headers.value('subscription-userinfo'),
-        );
-      } catch (error) {
-        lastError = error;
-      }
+    final preferred = candidates
+        .where((item) => item.isEncrypted == config.preferEncrypt)
+        .toList(growable: false);
+    final fallback = candidates
+        .where((item) => item.isEncrypted != config.preferEncrypt)
+        .toList(growable: false);
+    try {
+      return await _raceSubscriptionCandidates(
+        preferred.isEmpty ? candidates : preferred,
+        token,
+        config,
+      );
+    } catch (error) {
+      if (fallback.isEmpty || preferred.isEmpty) rethrow;
+      return _raceSubscriptionCandidates(fallback, token, config);
     }
-    throw StateError('获取订阅失败：${_safeError(lastError)}');
   }
 
   Future<Map<String, dynamic>> checkForUpdates() async {
