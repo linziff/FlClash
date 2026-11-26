@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:ui' show ImageFilter;
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart' hide Card, Divider, FilledButton;
@@ -15,7 +16,8 @@ import 'package:flutter/material.dart'
         RoundedRectangleBorder,
         BorderSide,
         Divider,
-        Clip;
+        Clip,
+        BackdropFilter;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -69,7 +71,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       _error = null;
     });
     try {
-      await QndxxConfigService.instance.initialize(refreshRemote: true);
+      // Existing sessions already have a panel URL. Do not block this page on
+      // remote-config retries; config refresh runs independently at startup.
+      await QndxxConfigService.instance.initialize(refreshRemote: false);
       await _service.restoreSession();
       final account = await _service.getAccountInfo();
       late final Map<String, dynamic> subscription;
@@ -166,6 +170,78 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     return date == null
         ? value.toString()
         : DateFormat('yyyy-MM-dd HH:mm').format(date.toLocal());
+  }
+
+  Widget _buildShopHero(BuildContext context) {
+    final colors = context.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 18),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+          child: Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primaryContainer.withValues(alpha: 0.82),
+                  colors.surfaceContainerHigh.withValues(alpha: 0.72),
+                ],
+              ),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.55),
+              ),
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 54,
+                  height: 54,
+                  decoration: BoxDecoration(
+                    color: colors.primary.withValues(alpha: 0.13),
+                    borderRadius: BorderRadius.circular(17),
+                  ),
+                  child: Icon(
+                    Icons.storefront_rounded,
+                    color: colors.primary,
+                    size: 29,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'QNDXX 商店',
+                        style: TextStyle(
+                          color: colors.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      Text(
+                        '选择适合你的套餐，畅享稳定连接',
+                        style: TextStyle(
+                          color: colors.onSurfaceVariant,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.auto_awesome_rounded, color: colors.primary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildPlansSection(BuildContext context) {
@@ -546,6 +622,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           bottom: 24 + context.bottomInset,
         ),
         children: [
+          if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
           if (!_signedIn) ...[
             const Text('登录后即可查看套餐、订单和账户服务。'),
             if (_error != null) ...[
@@ -911,14 +988,121 @@ class _PlanPeriodDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final (period, label, price) in periods)
-            ListItem(
-              title: Text(label),
-              subtitle: Text(
-                '¥${((num.tryParse(price.toString()) ?? 0) / 100).toStringAsFixed(2)}',
-              ),
+            GestureDetector(
               onTap: () => Navigator.of(context).pop(period),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 9),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLow,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: context.colorScheme.outlineVariant.withValues(alpha: 0.65),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(13),
+                      ),
+                      child: Icon(
+                        Icons.calendar_month_rounded,
+                        color: context.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        label,
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    Text(
+                      '¥${((num.tryParse(price.toString()) ?? 0) / 100).toStringAsFixed(2)}',
+                      style: TextStyle(
+                        color: context.colorScheme.primary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(Icons.chevron_right_rounded, color: context.colorScheme.onSurfaceVariant),
+                  ],
+                ),
+              ),
             ),
         ],
+      ),
+    );
+  }
+}
+
+class _PaymentMethodOption extends StatelessWidget {
+  const _PaymentMethodOption({required this.method, required this.onTap});
+
+  final Map<String, dynamic> method;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final name = method['name']?.toString() ?? '支付方式';
+    final keyword = '${name.toLowerCase()} ${method['id'] ?? ''}'.toLowerCase();
+    final icon = keyword.contains('alipay') || name.contains('支付宝')
+        ? Icons.account_balance_wallet_rounded
+        : keyword.contains('wechat') || name.contains('微信')
+        ? Icons.chat_rounded
+        : keyword.contains('qq') || name.contains('qq')
+        ? Icons.forum_rounded
+        : Icons.credit_card_rounded;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+        decoration: BoxDecoration(
+          color: context.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: context.colorScheme.outlineVariant.withValues(alpha: 0.65),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: context.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(icon, color: context.colorScheme.onPrimaryContainer),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  if ((method['description']?.toString() ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(
+                      method['description'].toString(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: context.colorScheme.onSurfaceVariant),
+          ],
+        ),
       ),
     );
   }
@@ -943,9 +1127,8 @@ class _PaymentMethodDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           for (final method in methods)
-            ListItem(
-              title: Text(method['name']?.toString() ?? '支付方式'),
-              subtitle: Text(method['description']?.toString() ?? ''),
+            _PaymentMethodOption(
+              method: method,
               onTap: () => Navigator.of(context).pop(method['id']?.toString()),
             ),
         ],
