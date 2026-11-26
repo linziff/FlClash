@@ -55,7 +55,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     final code = _code.text.trim();
     if (email.isEmpty || password.isEmpty) {
       await dialogs.showAlert(
-        title: '注册 QNDXX 账号',
+        title: '注册账号',
         message: const TextSpan(text: '邮箱和密码不能为空'),
       );
       return;
@@ -92,7 +92,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: '注册 QNDXX 账号',
+      title: '注册账号',
       hasFields: true,
       actions: [
         TextButton(
@@ -228,7 +228,7 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: '找回 QNDXX 密码',
+      title: '找回密码',
       hasFields: true,
       actions: [
         TextButton(
