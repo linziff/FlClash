@@ -237,7 +237,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             ),
           ),
         ),
-      ),
     );
   }
 
