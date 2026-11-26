@@ -1,6 +1,7 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
-import 'package:flutter/material.dart' show DropdownButton, DropdownMenuItem;
+import 'package:flutter/widgets.dart';
+import 'package:material_ui/material_ui.dart' show DropdownButton, DropdownMenuItem;
 
 import 'qndxx_xboard_service.dart';
 
