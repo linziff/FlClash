@@ -143,6 +143,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       destructive: true,
     );
     if (accepted != true) return;
+    await _remoteStatus.setEnabled(false);
     await _service.logout();
     if (!mounted) return;
     setState(() {
