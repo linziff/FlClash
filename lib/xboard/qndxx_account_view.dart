@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton, Card, Container, RoundedRectangleBorder, BorderSide, Divider, Clip, MarkdownStyleSheet;
+import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton, Card, Container, RoundedRectangleBorder, BorderSide, Divider, Clip;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
