@@ -473,7 +473,15 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 items: [
                   ListItem(
                     title: const Text('邀请统计'),
-                    subtitle: Text(_value(_invite['stat'])),
+                    subtitle: Text(() {
+                      final stat = _invite['stat'];
+                      if (stat is List && stat.isNotEmpty) {
+                        final invited = stat[0];
+                        final total = stat.length > 1 ? (num.tryParse(stat[1].toString()) ?? 0) / 100 : 0;
+                        return '已邀请：$invited 人 · 累计佣金：¥${total.toStringAsFixed(2)}';
+                      }
+                      return _value(stat);
+                    }()),
                   ),
                   ListItem(
                     title: const Text('生成邀请码'),
@@ -506,7 +514,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ListItem(
                       title: Text('订单：${_value(commission['trade_no'])}'),
                       subtitle: Text(
-                        '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])}',
+                        '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
                       ),
                     ),
                 ],
