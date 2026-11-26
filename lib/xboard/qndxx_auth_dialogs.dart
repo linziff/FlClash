@@ -79,13 +79,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     final code = _code.text.trim();
     if (email.startsWith('@') || password.isEmpty || code.isEmpty) {
       await dialogs.showAlert(
-        title: Row(
-        children: [
-          Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
-          const SizedBox(width: 10),
-          const Text('注册账号'),
-        ],
-      ),
+        title: '注册账号',
         message: const TextSpan(text: '请填写邮箱前缀、密码和邮箱验证码'),
       );
       return;
@@ -122,7 +116,13 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: '注册账号',
+      title: Row(
+        children: [
+          Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
+          const SizedBox(width: 10),
+          const Text('注册账号'),
+        ],
+      ),
       hasFields: true,
       actions: [
         TextButton(
