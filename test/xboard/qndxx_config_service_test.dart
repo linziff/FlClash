@@ -1,5 +1,6 @@
 import 'package:fl_clash/xboard/qndxx_config_service.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -7,6 +8,7 @@ void main() {
   final config = QndxxConfigService.instance;
 
   setUp(() async {
+    SharedPreferences.setMockInitialValues({});
     await config.initialize(refreshRemote: false);
   });
 
