@@ -45,6 +45,11 @@ class AboutView extends ConsumerWidget {
           confirmText: '下载更新',
         );
         if (accepted == true) await dialogs.openUrl(updateUrl);
+      } else if (remoteUpdate['hasUpdate'] == true) {
+        await dialogs.showAlert(
+          title: '发现 QNDXX 新版本 $latest',
+          message: const TextSpan(text: '更新服务器没有提供可用的下载地址，请联系管理员'),
+        );
       } else {
         await dialogs.showAlert(
           title: '检查更新',
