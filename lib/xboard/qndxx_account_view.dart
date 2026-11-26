@@ -244,16 +244,14 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               Text(_error!, style: TextStyle(color: context.colorScheme.error)),
             ],
             const SizedBox(height: 16),
-            TonalButton(
-              size: TonalButtonSize.bar,
-              label: 'XBoard 登录',
+            FilledButton(
               onPressed: _loading ? null : _login,
+              child: const Text('XBoard 登录'),
             ),
             const SizedBox(height: 8),
-            TonalButton(
-              size: TonalButtonSize.bar,
-              label: '在线客服',
+            TextButton(
               onPressed: _openSupport,
+              child: const Text('在线客服'),
             ),
           ] else ...[
             generateSection(
