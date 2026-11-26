@@ -97,7 +97,8 @@ class QndxxRemoteStatusService extends ChangeNotifier {
           _subscription = candidate.stream.listen(
             _handleMessage,
             onDone: _handleDisconnect,
-            onError: (_) => _handleDisconnect(),
+            onError: (Object error, [StackTrace? stackTrace]) =>
+                _handleDisconnect(),
             cancelOnError: true,
           );
           _connected = true;
@@ -116,9 +117,18 @@ class QndxxRemoteStatusService extends ChangeNotifier {
         }
       }
       throw StateError('所有 WSS 状态服务器连接失败：$lastError');
+    } catch (error) {
+      _scheduleReconnect();
+      rethrow;
     } finally {
       _connecting = false;
     }
+  }
+
+  void _scheduleReconnect() {
+    if (!_enabled || _disposed) return;
+    _reconnect?.cancel();
+    _reconnect = Timer(const Duration(seconds: 5), start);
   }
 
   void _handleMessage(dynamic message) {
@@ -163,10 +173,7 @@ class QndxxRemoteStatusService extends ChangeNotifier {
     _subscription = null;
     _channel = null;
     notifyListeners();
-    if (_enabled && !_disposed) {
-      _reconnect?.cancel();
-      _reconnect = Timer(const Duration(seconds: 5), start);
-    }
+    _scheduleReconnect();
   }
 
   Future<void> stop() async {
