@@ -174,6 +174,15 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     );
     if (period == null) return;
     try {
+      // Cancel previous unpaid orders before creating a new purchase.
+      final pendingOrders = await _service.getOrders();
+      for (final order in pendingOrders) {
+        final status = order['status']?.toString();
+        final tradeNo = order['trade_no']?.toString() ?? '';
+        if (status == '0' && tradeNo.isNotEmpty) {
+          await _service.cancelOrder(tradeNo);
+        }
+      }
       final planId = int.tryParse('${plan['id']}');
       if (planId == null) throw const FormatException('套餐 ID 无效');
       final tradeNo = await _service.createOrder(planId, period);
@@ -382,7 +391,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         ),
         children: [
           if (!_signedIn) ...[
-            const Text('登录账号后即可管理订阅、套餐、订单、公告、邀请和工单。'),
+            const Text('登录后即可查看套餐、订单和账户服务。'),
             if (_error != null) ...[
               const SizedBox(height: 8),
               Text(_error!, style: TextStyle(color: context.colorScheme.error)),
@@ -404,14 +413,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     subtitle: Text(
                       _value(_account['email'] ?? _account['username']),
                     ),
-                  ),
-                  ListItem(
-                    title: const Text('用户 ID'),
-                    subtitle: Text(_value(_account['id'])),
-                  ),
-                  ListItem(
-                    title: const Text('面板'),
-                    subtitle: Text(_value(_account['panelUrl'])),
                   ),
                   ListItem(
                     title: const Text('套餐'),
@@ -577,10 +578,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 title: '账户操作',
                 items: [
                   ListItem(title: const Text('刷新账户数据'), onTap: _load),
-                  ListItem(
-                    title: const Text('在线客服 Crisp'),
-                    onTap: _openSupport,
-                  ),
                   ListItem(title: const Text('退出登录'), onTap: _logout),
                 ],
               ),
