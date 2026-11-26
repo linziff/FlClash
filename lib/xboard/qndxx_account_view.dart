@@ -4,7 +4,18 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton, Card, Container, RoundedRectangleBorder, BorderSide, Divider, Clip;
+import 'package:flutter/material.dart'
+    show
+        Icons,
+        Icon,
+        IconData,
+        FilledButton,
+        Card,
+        Container,
+        RoundedRectangleBorder,
+        BorderSide,
+        Divider,
+        Clip;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -186,10 +197,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               const Spacer(),
               Text(
                 '${_plans.length} 款可选',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: colors.onSurfaceVariant,
-                ),
+                style: TextStyle(fontSize: 12, color: colors.onSurfaceVariant),
               ),
             ],
           ),
@@ -210,7 +218,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             margin: const EdgeInsets.only(bottom: 12),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.55)),
+              side: BorderSide(
+                color: colors.outlineVariant.withValues(alpha: 0.55),
+              ),
             ),
             clipBehavior: Clip.antiAlias,
             child: Padding(
@@ -247,7 +257,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      Icon(Icons.verified_rounded, color: colors.primary, size: 19),
+                      Icon(
+                        Icons.verified_rounded,
+                        color: colors.primary,
+                        size: 19,
+                      ),
                     ],
                   ),
                   if ((plan['content'] ??
@@ -259,10 +273,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       true) ...[
                     const SizedBox(height: 14),
                     MarkdownBody(
-                      data: (plan['content'] ??
-                              plan['description'] ??
-                              plan['plan_content'])
-                          .toString(),
+                      data:
+                          (plan['content'] ??
+                                  plan['description'] ??
+                                  plan['plan_content'])
+                              .toString(),
                       styleSheet: MarkdownStyleSheet(
                         p: TextStyle(
                           height: 1.5,
@@ -294,7 +309,10 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  Divider(height: 1, color: colors.outlineVariant.withValues(alpha: 0.6)),
+                  Divider(
+                    height: 1,
+                    color: colors.outlineVariant.withValues(alpha: 0.6),
+                  ),
                   const SizedBox(height: 14),
                   Row(
                     children: [
