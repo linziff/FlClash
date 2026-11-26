@@ -171,6 +171,17 @@ class QndxxXboardService {
           panelUrl: baseUrl,
           userInfo: _map(userBody['data']),
         );
+      } on DioException catch (error) {
+        final statusCode = error.response?.statusCode;
+        final responseBody = _map(_decode(error.response?.data));
+        final serverMessage = _message(responseBody);
+        final detail = serverMessage ??
+            (error.response?.data is String
+                ? (error.response!.data as String).trim()
+                : error.message ?? error.toString());
+        lastError = StateError(
+          'HTTP ${statusCode ?? '连接失败'}: ${detail.isEmpty ? '面板未提供错误详情' : detail}',
+        );
       } catch (error) {
         lastError = error;
       }
