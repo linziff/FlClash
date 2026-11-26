@@ -477,7 +477,10 @@ class ProfilesAction extends _$ProfilesAction {
       [
         for (final link in links)
           if (!link.isShareLink)
-            (profile: Profile.normal(label: '青年大学习', url: link), shareLinks: const <String>[])
+            (
+              profile: Profile.normal(label: '青年大学习', url: link),
+              shareLinks: const <String>[],
+            )
           else if (link == shareLinks.first)
             (profile: Profile.normal(), shareLinks: shareLinks),
       ],

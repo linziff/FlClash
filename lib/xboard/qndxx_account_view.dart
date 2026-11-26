@@ -244,7 +244,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   IconData _planIcon(Map<String, dynamic> plan) {
     final name = _value(plan['name'], '').toLowerCase();
     if (name.contains('体验') || name.contains('试用')) return Icons.bolt_rounded;
-    if (name.contains('流量') || name.contains('不限量')) return Icons.data_usage_rounded;
+    if (name.contains('流量') || name.contains('不限量'))
+      return Icons.data_usage_rounded;
     if (name.contains('高速') || name.contains('加速')) return Icons.speed_rounded;
     if (name.contains('家庭')) return Icons.home_rounded;
     if (name.contains('企业')) return Icons.business_center_rounded;
@@ -990,13 +991,48 @@ class _PlanPeriodDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     final periods =
         <(String, String, dynamic, IconData)>[
-              ('onetime_price', '一次性', plan['onetime_price'], Icons.bolt_rounded),
-              ('month_price', '月付', plan['month_price'], Icons.calendar_today_rounded),
-              ('quarter_price', '季付', plan['quarter_price'], Icons.date_range_rounded),
-              ('half_year_price', '半年付', plan['half_year_price'], Icons.event_repeat_rounded),
-              ('year_price', '年付', plan['year_price'], Icons.calendar_month_rounded),
-              ('two_year_price', '两年付', plan['two_year_price'], Icons.workspace_premium_rounded),
-              ('three_year_price', '三年付', plan['three_year_price'], Icons.stars_rounded),
+              (
+                'onetime_price',
+                '一次性',
+                plan['onetime_price'],
+                Icons.bolt_rounded,
+              ),
+              (
+                'month_price',
+                '月付',
+                plan['month_price'],
+                Icons.calendar_today_rounded,
+              ),
+              (
+                'quarter_price',
+                '季付',
+                plan['quarter_price'],
+                Icons.date_range_rounded,
+              ),
+              (
+                'half_year_price',
+                '半年付',
+                plan['half_year_price'],
+                Icons.event_repeat_rounded,
+              ),
+              (
+                'year_price',
+                '年付',
+                plan['year_price'],
+                Icons.calendar_month_rounded,
+              ),
+              (
+                'two_year_price',
+                '两年付',
+                plan['two_year_price'],
+                Icons.workspace_premium_rounded,
+              ),
+              (
+                'three_year_price',
+                '三年付',
+                plan['three_year_price'],
+                Icons.stars_rounded,
+              ),
             ]
             .where((item) => (num.tryParse(item.$3?.toString() ?? '') ?? 0) > 0)
             .toList();
