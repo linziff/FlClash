@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton;
+import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton, Card, Container, RoundedRectangleBorder, BorderSide, Divider, Clip, MarkdownStyleSheet;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -158,40 +158,122 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   }
 
   Widget _buildPlansSection(BuildContext context) {
-    return generateSection(
-      title: '精选套餐',
-      items: [
-        if (_plans.isEmpty) const ListItem(title: Text('当前面板没有返回可购买套餐')),
-        for (final plan in _plans)
-          ListItem(
-            title: Text(
-              _value(plan['name'], '未命名套餐'),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: context.colorScheme.onSurface,
+    final colors = context.colorScheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(4, 8, 4, 14),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 20,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(4),
+                ),
               ),
+              const SizedBox(width: 9),
+              Text(
+                '精选套餐',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                  color: colors.onSurface,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '${_plans.length} 款可选',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (_plans.isEmpty)
+          Card(
+            color: colors.surfaceContainerLow,
+            elevation: 0,
+            child: const Padding(
+              padding: EdgeInsets.all(20),
+              child: Center(child: Text('当前面板没有返回可购买套餐')),
             ),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: 8),
+          ),
+        for (final plan in _plans)
+          Card(
+            color: colors.surfaceContainerLow,
+            elevation: 0,
+            margin: const EdgeInsets.only(bottom: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+              side: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.55)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: Icon(
+                          Icons.workspace_premium_rounded,
+                          color: colors.onPrimaryContainer,
+                          size: 22,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _value(plan['name'], '未命名套餐'),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 17,
+                            fontWeight: FontWeight.w800,
+                            color: colors.onSurface,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Icon(Icons.verified_rounded, color: colors.primary, size: 19),
+                    ],
+                  ),
                   if ((plan['content'] ??
                               plan['description'] ??
                               plan['plan_content'])
                           ?.toString()
                           .trim()
                           .isNotEmpty ==
-                      true)
+                      true) ...[
+                    const SizedBox(height: 14),
                     MarkdownBody(
-                      data:
-                          (plan['content'] ??
-                                  plan['description'] ??
-                                  plan['plan_content'])
-                              .toString(),
+                      data: (plan['content'] ??
+                              plan['description'] ??
+                              plan['plan_content'])
+                          .toString(),
+                      styleSheet: MarkdownStyleSheet(
+                        p: TextStyle(
+                          height: 1.5,
+                          fontSize: 13,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        listBullet: TextStyle(color: colors.primary),
+                      ),
                     ),
-                  const SizedBox(height: 10),
+                  ],
+                  const SizedBox(height: 14),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -211,14 +293,22 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                         ),
                     ],
                   ),
-                  const SizedBox(height: 12),
-                  _PlanPriceRow(plan: plan),
+                  const SizedBox(height: 16),
+                  Divider(height: 1, color: colors.outlineVariant.withValues(alpha: 0.6)),
+                  const SizedBox(height: 14),
+                  Row(
+                    children: [
+                      Expanded(child: _PlanPriceRow(plan: plan)),
+                      const SizedBox(width: 12),
+                      FilledButton.icon(
+                        onPressed: () => _purchasePlan(plan),
+                        icon: const Icon(Icons.shopping_bag_outlined, size: 17),
+                        label: const Text('立即选购'),
+                      ),
+                    ],
+                  ),
                 ],
               ),
-            ),
-            trailing: FilledButton(
-              onPressed: () => _purchasePlan(plan),
-              child: const Text('选购'),
             ),
           ),
       ],
