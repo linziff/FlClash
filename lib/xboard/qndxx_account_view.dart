@@ -136,6 +136,30 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     return value.toString();
   }
 
+  String _orderStatusLabel(dynamic value) {
+    final raw = value?.toString().trim().toLowerCase() ?? '';
+    switch (raw) {
+      case '0':
+      case 'pending':
+      case 'unpaid':
+        return '待支付';
+      case '1':
+      case 'processing':
+      case 'confirming':
+        return '处理中';
+      case '2':
+      case 'cancelled':
+      case 'canceled':
+        return '已取消';
+      case '3':
+      case 'completed':
+      case 'paid':
+        return '已完成';
+      default:
+        return raw.isEmpty ? '未知' : '未知状态（$raw）';
+    }
+  }
+
   String _formatPrice(dynamic value) {
     final amount = num.tryParse(value?.toString() ?? '');
     if (amount == null || amount < 0) return _value(value);
@@ -529,7 +553,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         title: '订单详情',
         message: TextSpan(
           text:
-              '订单号：$tradeNo\\n金额：${_formatPrice(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
+              '订单号：$tradeNo\\n金额：${_formatPrice(detail['total_amount'])}\\n状态：${_orderStatusLabel(detail['status'])}\\n周期：${_value(detail['period'])}',
         ),
       );
     } catch (error) {
@@ -713,7 +737,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                         ],
                       ),
                       subtitle: Text(
-                        '金额：${_formatPrice(order['total_amount'])} · 状态：${_value(order['status'])}',
+                        '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
                       ),
                       onTap: () => _showOrder(order),
                       trailing: (order['status']?.toString() == '0')
