@@ -105,11 +105,11 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: false
-  image_path: assets/images/QNDXXLG.png
+  image_path: assets/images/qndxx_app_icon.png
   windows:
     generate: true
-    image_path: assets/images/QNDXXLG.png
+    image_path: assets/images/qndxx_app_icon.png
     icon_size: 256
   macos:
     generate: true
-    image_path: assets/images/QNDXXLG.png
+    image_path: assets/images/qndxx_app_icon.png
