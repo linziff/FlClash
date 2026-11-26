@@ -39,9 +39,14 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            InAppWebView(
-              initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
-              initialSettings: InAppWebViewSettings(
+            ColoredBox(
+              // Keep the Windows WebView surface fully opaque; transparent
+              // composition can blend the Crisp page with the app's glass dock.
+              color: context.colorScheme.surface,
+              child: InAppWebView(
+                initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
+                initialSettings: InAppWebViewSettings(
+                transparentBackground: false,
                 javaScriptEnabled: true,
                 domStorageEnabled: true,
                 thirdPartyCookiesEnabled: true,
@@ -69,6 +74,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
                   _error = error.description;
                 });
               },
+              ),
             ),
             if (_loading) const Center(child: CircularProgressIndicator()),
             if (_error != null)
