@@ -10,6 +10,7 @@ import 'package:shared_preferences_platform_interface/shared_preferences_platfor
 
 import 'application.dart';
 import 'xboard/qndxx_config_service.dart';
+import 'xboard/qndxx_remote_status_service.dart';
 
 import 'bootstrap.dart';
 import 'common/app_data.dart';
@@ -48,7 +49,7 @@ void main() {
             child: const Application(),
           ),
         );
-        unawaited(QndxxConfigService.instance.refresh());
+        unawaited(_refreshQndxxServices());
       } catch (e, s) {
         runApp(
           InitErrorApp(
@@ -67,6 +68,13 @@ void main() {
       );
     },
   );
+}
+
+Future<void> _refreshQndxxServices() async {
+  await QndxxConfigService.instance.refresh();
+  try {
+    await QndxxRemoteStatusService.instance.startIfEnabled();
+  } catch (_) {}
 }
 
 Future<void> _exitAfterInitFailure() async {
