@@ -277,7 +277,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   double _availableCommission() {
     final stat = _invite['stat'];
-    final raw = stat is Map ? stat['available_commission'] : null;
+    final raw = stat is List && stat.length > 4
+        ? stat[4]
+        : stat is Map
+        ? (stat['available_commission'] ?? stat['availableCommission'])
+        : null;
     final cents = num.tryParse(raw?.toString() ?? '') ?? 0;
     return cents / 100;
   }
