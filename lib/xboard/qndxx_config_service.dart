@@ -60,7 +60,8 @@ class QndxxConfigService {
       '';
   bool get preferEncrypt =>
       (_remoteSubscription?['prefer_encrypt'] ??
-          (_local['subscription'] as Map?)?['prefer_encrypt']) == true;
+          (_local['subscription'] as Map?)?['prefer_encrypt']) ==
+      true;
   String get obfuscationPrefix =>
       (_remoteSecurity?['obfuscation_prefix'] ??
               (_local['security'] as Map?)?['obfuscation_prefix'])
@@ -186,8 +187,13 @@ class QndxxConfigService {
               int.tryParse('${a['priority'] ?? 0}') ?? 0,
             ),
           );
-    final retries = (int.tryParse('${settings['max_retries'] ?? 3}') ?? 3).clamp(0, 5);
-    final timeoutSeconds = (int.tryParse('${settings['timeout_seconds'] ?? 15}') ?? 15).clamp(3, 60);
+    final retries = (int.tryParse('${settings['max_retries'] ?? 3}') ?? 3)
+        .clamp(0, 5);
+    final timeoutSeconds =
+        (int.tryParse('${settings['timeout_seconds'] ?? 15}') ?? 15).clamp(
+          3,
+          60,
+        );
     final candidates = sources.isEmpty
         ? <String>[remoteConfigUrl]
         : sources
@@ -201,7 +207,14 @@ class QndxxConfigService {
     for (final url in candidates) {
       for (var attempt = 0; attempt <= retries; attempt++) {
         try {
-          final response = await _dio.get<Object?>(url, options: Options(connectTimeout: Duration(seconds: timeoutSeconds), receiveTimeout: Duration(seconds: timeoutSeconds), sendTimeout: Duration(seconds: timeoutSeconds)));
+          final response = await _dio.get<Object?>(
+            url,
+            options: Options(
+              connectTimeout: Duration(seconds: timeoutSeconds),
+              receiveTimeout: Duration(seconds: timeoutSeconds),
+              sendTimeout: Duration(seconds: timeoutSeconds),
+            ),
+          );
           final body = response.data;
           final decoded = body is String ? jsonDecode(body) : body;
           if (decoded is! Map) {
@@ -266,7 +279,8 @@ class QndxxConfigService {
           responseType: ResponseType.plain,
           followRedirects: true,
           headers: {'User-Agent': domainRacingUserAgent},
-          validateStatus: (status) => status != null && status >= 200 && status < 400,
+          validateStatus: (status) =>
+              status != null && status >= 200 && status < 400,
           receiveTimeout: const Duration(seconds: 5),
           sendTimeout: const Duration(seconds: 5),
         ),

@@ -54,7 +54,9 @@ class AboutView extends ConsumerWidget {
         await dialogs.showAlert(
           title: '检查更新',
           message: TextSpan(
-            text: latest.isEmpty ? '更新服务器没有返回版本信息' : '当前已是最新版本：${remoteUpdate['currentVersion']}',
+            text: latest.isEmpty
+                ? '更新服务器没有返回版本信息'
+                : '当前已是最新版本：${remoteUpdate['currentVersion']}',
           ),
         );
       }

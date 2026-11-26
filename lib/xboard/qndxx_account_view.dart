@@ -187,7 +187,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       );
       if (method == null) return;
       final result = await _service.checkoutOrder(tradeNo, method);
-      final url = result['url']?.toString() ??
+      final url =
+          result['url']?.toString() ??
           (result['data'] is Map
               ? (result['data'] as Map)['url']?.toString()
               : null);
@@ -217,7 +218,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       await dialogs.showAlert(
         title: '订单详情',
         message: TextSpan(
-          text: '订单号：$tradeNo\\n金额：${_value(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
+          text:
+              '订单号：$tradeNo\\n金额：${_value(detail['total_amount'])}\\n状态：${_value(detail['status'])}\\n周期：${_value(detail['period'])}',
         ),
       );
     } catch (error) {
@@ -288,9 +290,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           : '';
       await dialogs.showAlert(
         title: _value(detail['subject'], '工单详情'),
-        message: TextSpan(
-          text: '${_value(detail['status'])}\n\n$messages',
-        ),
+        message: TextSpan(text: '${_value(detail['status'])}\n\n$messages'),
       );
     } catch (error) {
       await dialogs.showAlert(
@@ -379,17 +379,16 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               child: const Text('XBoard 登录'),
             ),
             const SizedBox(height: 8),
-            TextButton(
-              onPressed: _openSupport,
-              child: const Text('在线客服'),
-            ),
+            TextButton(onPressed: _openSupport, child: const Text('在线客服')),
           ] else ...[
             generateSection(
               title: '账号信息',
               items: [
                 ListItem(
                   title: const Text('邮箱'),
-                  subtitle: Text(_value(_account['email'] ?? _account['username'])),
+                  subtitle: Text(
+                    _value(_account['email'] ?? _account['username']),
+                  ),
                 ),
                 ListItem(
                   title: const Text('用户 ID'),
@@ -401,11 +400,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 ),
                 ListItem(
                   title: const Text('套餐'),
-                  subtitle: Text(_value(
-                    (_subscription['plan'] is Map)
-                        ? (_subscription['plan'] as Map)['name']
-                        : null,
-                  )),
+                  subtitle: Text(
+                    _value(
+                      (_subscription['plan'] is Map)
+                          ? (_subscription['plan'] as Map)['name']
+                          : null,
+                    ),
+                  ),
                 ),
                 ListItem(
                   title: const Text('到期时间'),
@@ -438,8 +439,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             generateSection(
               title: '订单记录',
               items: [
-                if (_orders.isEmpty)
-                  const ListItem(title: Text('暂无订单')),
+                if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
                 for (final order in _orders)
                   ListItem(
                     title: Text(_value(order['trade_no'], '订单')),
@@ -459,8 +459,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             generateSection(
               title: '公告',
               items: [
-                if (_notices.isEmpty)
-                  const ListItem(title: Text('暂无公告')),
+                if (_notices.isEmpty) const ListItem(title: Text('暂无公告')),
                 for (final notice in _notices)
                   ListItem(
                     title: Text(_value(notice['title'], '公告')),
@@ -482,8 +481,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     child: const Text('生成'),
                   ),
                 ),
-                if (_inviteCodes.isEmpty)
-                  const ListItem(title: Text('暂无邀请码')),
+                if (_inviteCodes.isEmpty) const ListItem(title: Text('暂无邀请码')),
                 for (final code in _inviteCodes)
                   ListItem(
                     title: Text(_value(code['code'], '邀请码')),
@@ -512,8 +510,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     child: const Text('新建'),
                   ),
                 ),
-                if (_tickets.isEmpty)
-                  const ListItem(title: Text('暂无工单')),
+                if (_tickets.isEmpty) const ListItem(title: Text('暂无工单')),
                 for (final ticket in _tickets)
                   ListItem(
                     title: Text(_value(ticket['subject'], '工单')),
@@ -546,8 +543,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     _remoteStatus.isConnected
                         ? '已安全连接；仅发送随机设备 ID 和心跳'
                         : _remoteStatus.isEnabled
-                            ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
-                            : '默认关闭；启用后仅发送随机设备 ID 和心跳',
+                        ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
+                        : '默认关闭；启用后仅发送随机设备 ID 和心跳',
                   ),
                   trailing: TextButton(
                     onPressed: _toggleRemoteStatus,
@@ -559,18 +556,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             generateSection(
               title: '账户操作',
               items: [
-                ListItem(
-                  title: const Text('刷新账户数据'),
-                  onTap: _load,
-                ),
-                ListItem(
-                  title: const Text('在线客服 Crisp'),
-                  onTap: _openSupport,
-                ),
-                ListItem(
-                  title: const Text('退出登录'),
-                  onTap: _logout,
-                ),
+                ListItem(title: const Text('刷新账户数据'), onTap: _load),
+                ListItem(title: const Text('在线客服 Crisp'), onTap: _openSupport),
+                ListItem(title: const Text('退出登录'), onTap: _logout),
               ],
             ),
           ],
@@ -587,15 +575,18 @@ class _PlanPeriodDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final periods = <(String, String, dynamic)>[
-      ('onetime_price', '一次性', plan['onetime_price']),
-      ('month_price', '月付', plan['month_price']),
-      ('quarter_price', '季付', plan['quarter_price']),
-      ('half_year_price', '半年付', plan['half_year_price']),
-      ('year_price', '年付', plan['year_price']),
-      ('two_year_price', '两年付', plan['two_year_price']),
-      ('three_year_price', '三年付', plan['three_year_price']),
-    ] .where((item) => (num.tryParse(item.$3?.toString() ?? '') ?? 0) > 0).toList();
+    final periods =
+        <(String, String, dynamic)>[
+              ('onetime_price', '一次性', plan['onetime_price']),
+              ('month_price', '月付', plan['month_price']),
+              ('quarter_price', '季付', plan['quarter_price']),
+              ('half_year_price', '半年付', plan['half_year_price']),
+              ('year_price', '年付', plan['year_price']),
+              ('two_year_price', '两年付', plan['two_year_price']),
+              ('three_year_price', '三年付', plan['three_year_price']),
+            ]
+            .where((item) => (num.tryParse(item.$3?.toString() ?? '') ?? 0) > 0)
+            .toList();
     return AlertDialog(
       title: '选择套餐周期',
       actions: [
@@ -641,9 +632,7 @@ class _PaymentMethodDialog extends StatelessWidget {
             ListItem(
               title: Text(method['name']?.toString() ?? '支付方式'),
               subtitle: Text(method['description']?.toString() ?? ''),
-              onTap: () => Navigator.of(context).pop(
-                method['id']?.toString(),
-              ),
+              onTap: () => Navigator.of(context).pop(method['id']?.toString()),
             ),
         ],
       ),
@@ -683,11 +672,9 @@ class _CreateTicketDialogState extends State<_CreateTicketDialog> {
             final subject = _subject.text.trim();
             final message = _message.text.trim();
             if (subject.isEmpty || message.isEmpty) return;
-            Navigator.of(context).pop({
-              'subject': subject,
-              'message': message,
-              'level': 1,
-            });
+            Navigator.of(
+              context,
+            ).pop({'subject': subject, 'message': message, 'level': 1});
           },
           child: const Text('提交'),
         ),
@@ -711,7 +698,6 @@ class _CreateTicketDialogState extends State<_CreateTicketDialog> {
     );
   }
 }
-
 
 class _QndxxMessageDialog extends StatefulWidget {
   const _QndxxMessageDialog({required this.title});

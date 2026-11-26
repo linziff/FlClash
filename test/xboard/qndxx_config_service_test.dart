@@ -54,8 +54,8 @@ void main() {
 
   test('decrypts Orange-compatible Base64/XOR/Base64 subscriptions', () {
     const key = 'qndxx-test-key';
-    final yaml = 'proxies:\n  - name: test-node\n' +
-        'rules:\n  - MATCH,DIRECT\n';
+    final yaml =
+        'proxies:\n  - name: test-node\n' + 'rules:\n  - MATCH,DIRECT\n';
     final stage = base64.encode(utf8.encode(yaml));
     final stageBytes = utf8.encode(stage);
     final keyBytes = utf8.encode(key);

@@ -223,7 +223,8 @@ class QndxxXboardService {
     if (body['success'] == true ||
         status == true ||
         status == 1 ||
-        status == 'success') return true;
+        status == 'success')
+      return true;
     final data = body['data'];
     if (data is bool) return data;
     return data != null;
@@ -281,9 +282,9 @@ class QndxxXboardService {
   }
 
   Future<List<Map<String, dynamic>>> getPlans() async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/plan/fetch')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/plan/fetch')).data),
+    );
     return _list(body['data']);
   }
 
@@ -309,9 +310,9 @@ class QndxxXboardService {
     int page = 1,
     int pageSize = 10,
   }) async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/order/fetch')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/order/fetch')).data),
+    );
     return _list(body['data']);
   }
 
@@ -323,12 +324,12 @@ class QndxxXboardService {
     final data = <String, dynamic>{
       'plan_id': planId,
       'period': period,
-      if (couponCode != null && couponCode.isNotEmpty) 'coupon_code': couponCode,
+      if (couponCode != null && couponCode.isNotEmpty)
+        'coupon_code': couponCode,
     };
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/order/save',
-      data,
-    )).data));
+    final body = _map(
+      _decode((await _authorizedPost('/api/v1/user/order/save', data)).data),
+    );
     final value = body['data'];
     if (value is String && value.isNotEmpty) return value;
     if (value is Map) {
@@ -342,10 +343,14 @@ class QndxxXboardService {
     String tradeNo,
     String method,
   ) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/order/checkout',
-      {'trade_no': tradeNo, 'method': method},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/order/checkout', {
+          'trade_no': tradeNo,
+          'method': method,
+        })).data,
+      ),
+    );
     final value = body['data'];
     if (value is Map) {
       final data = _map(value);
@@ -363,17 +368,24 @@ class QndxxXboardService {
   }
 
   Future<bool> cancelOrder(String tradeNo) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/order/cancel',
-      {'trade_no': tradeNo},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/order/cancel', {
+          'trade_no': tradeNo,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
-  Future<List<Map<String, dynamic>>> getPaymentMethods([String? tradeNo]) async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/order/getPaymentMethod')).data,
-    ));
+  Future<List<Map<String, dynamic>>> getPaymentMethods([
+    String? tradeNo,
+  ]) async {
+    final body = _map(
+      _decode(
+        (await _authorizedGet('/api/v1/user/order/getPaymentMethod')).data,
+      ),
+    );
     return _list(body['data'])
         .where((method) => method['is_available'] != false)
         .toList(growable: false);
@@ -383,9 +395,9 @@ class QndxxXboardService {
     int page = 1,
     int pageSize = 10,
   }) async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/notice/fetch')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/notice/fetch')).data),
+    );
     return _list(body['data']);
   }
 
@@ -399,9 +411,9 @@ class QndxxXboardService {
   }
 
   Future<String> generateInviteCode() async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/invite/save')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/invite/save')).data),
+    );
     final data = body['data'];
     if (data is String && data.isNotEmpty) return data;
     if (data is Map && data['code'] != null) return data['code'].toString();
@@ -418,9 +430,13 @@ class QndxxXboardService {
     int pageSize = 10,
   }) async {
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    final body = _map(_decode((await _authorizedGet(
-      '/api/v1/user/invite/details?current=$page&page_size=$pageSize&t=$timestamp',
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedGet(
+          '/api/v1/user/invite/details?current=$page&page_size=$pageSize&t=$timestamp',
+        )).data,
+      ),
+    );
     return _list(body['data']);
   }
 
@@ -428,41 +444,51 @@ class QndxxXboardService {
     int page = 1,
     int pageSize = 10,
   }) async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/ticket/fetch')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/ticket/fetch')).data),
+    );
     return _list(body['data']);
   }
 
   Future<Map<String, dynamic>> getTicket(int id) async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/ticket/fetch?id=$id')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/ticket/fetch?id=$id')).data),
+    );
     final data = body['data'];
     return data is Map ? _map(data) : body;
   }
 
   Future<bool> createTicket(String subject, String message, int level) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/ticket/withdraw',
-      {'subject': subject, 'message': message, 'level': level},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/ticket/withdraw', {
+          'subject': subject,
+          'message': message,
+          'level': level,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
   Future<bool> replyTicket(int id, String message) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/ticket/reply',
-      {'id': id, 'message': message},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/ticket/reply', {
+          'id': id,
+          'message': message,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
   Future<bool> closeTicket(int id) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/ticket/close',
-      {'id': id},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/ticket/close', {'id': id})).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
@@ -713,17 +739,16 @@ class QndxxXboardService {
   }
 
   Future<bool> updateAccountInfo(Map<String, dynamic> data) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/update',
-      data,
-    )).data));
+    final body = _map(
+      _decode((await _authorizedPost('/api/v1/user/update', data)).data),
+    );
     return _responseSucceeded(body);
   }
 
   Future<bool> resetAccountSecurity() async {
-    final body = _map(_decode(
-      (await _authorizedGet('/api/v1/user/resetSecurity')).data,
-    ));
+    final body = _map(
+      _decode((await _authorizedGet('/api/v1/user/resetSecurity')).data),
+    );
     return _responseSucceeded(body);
   }
 
@@ -737,20 +762,23 @@ class QndxxXboardService {
       'email': email,
       'password': password,
       if (emailCode != null && emailCode.isNotEmpty) 'email_code': emailCode,
-      if (inviteCode != null && inviteCode.isNotEmpty) 'invite_code': inviteCode,
+      if (inviteCode != null && inviteCode.isNotEmpty)
+        'invite_code': inviteCode,
     };
-    final body = _map(_decode((await _publicPost(
-      '/api/v1/passport/auth/register',
-      data,
-    )).data));
+    final body = _map(
+      _decode((await _publicPost('/api/v1/passport/auth/register', data)).data),
+    );
     return _responseSucceeded(body);
   }
 
   Future<bool> sendEmailVerifyCode(String email) async {
-    final body = _map(_decode((await _publicPost(
-      '/api/v1/passport/comm/sendEmailVerify',
-      {'email': email},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _publicPost('/api/v1/passport/comm/sendEmailVerify', {
+          'email': email,
+        })).data,
+      ),
+    );
     return body['data'] == true;
   }
 
@@ -759,29 +787,39 @@ class QndxxXboardService {
     String code,
     String newPassword,
   ) async {
-    final body = _map(_decode((await _publicPost(
-      '/api/v1/passport/auth/forget',
-      {'email': email, 'password': newPassword, 'email_code': code},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _publicPost('/api/v1/passport/auth/forget', {
+          'email': email,
+          'password': newPassword,
+          'email_code': code,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
   Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
-    final body = _map(_decode((await _authorizedGet(
-      '/api/v1/user/order/detail?trade_no=$tradeNo',
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedGet(
+          '/api/v1/user/order/detail?trade_no=$tradeNo',
+        )).data,
+      ),
+    );
     final data = body['data'];
     return data is Map ? _map(data) : null;
   }
 
-  Future<Map<String, dynamic>?> checkCoupon(
-    String code,
-    int planId,
-  ) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/coupon/check',
-      {'code': code, 'plan_id': planId},
-    )).data));
+  Future<Map<String, dynamic>?> checkCoupon(String code, int planId) async {
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/coupon/check', {
+          'code': code,
+          'plan_id': planId,
+        })).data,
+      ),
+    );
     final data = body['data'];
     return data is Map ? _map(data) : null;
   }
@@ -791,18 +829,26 @@ class QndxxXboardService {
     required String method,
     required Map<String, dynamic> params,
   }) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/invite/withdraw',
-      {'amount': amount, 'method': method, ...params},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/invite/withdraw', {
+          'amount': amount,
+          'method': method,
+          ...params,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
   Future<bool> transferCommissionToBalance(double amount) async {
-    final body = _map(_decode((await _authorizedPost(
-      '/api/v1/user/invite/transfer',
-      {'amount': amount},
-    )).data));
+    final body = _map(
+      _decode(
+        (await _authorizedPost('/api/v1/user/invite/transfer', {
+          'amount': amount,
+        })).data,
+      ),
+    );
     return _responseSucceeded(body);
   }
 
@@ -819,14 +865,14 @@ class QndxxXboardService {
     final platform = Platform.isAndroid
         ? 'android'
         : Platform.isWindows
-            ? 'windows'
-            : Platform.isMacOS
-                ? 'macos'
-                : Platform.isIOS
-                    ? 'ios'
-                    : Platform.isLinux
-                        ? 'linux'
-                        : 'unknown';
+        ? 'windows'
+        : Platform.isMacOS
+        ? 'macos'
+        : Platform.isIOS
+        ? 'ios'
+        : Platform.isLinux
+        ? 'linux'
+        : 'unknown';
     Object? lastError;
     for (final baseUrl in urls) {
       final normalized = baseUrl.replaceFirst(RegExp(r'/+$'), '');

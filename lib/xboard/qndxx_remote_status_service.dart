@@ -68,12 +68,14 @@ class QndxxRemoteStatusService extends ChangeNotifier {
     _reconnect?.cancel();
     Object? lastError;
     try {
-      final (token, urls) =
-          await QndxxXboardService.instance.getRemoteStatusCredentials();
+      final (token, urls) = await QndxxXboardService.instance
+          .getRemoteStatusCredentials();
       final nodeId = await _nodeId();
-      final secureUrls = urls.where((value) {
-        return Uri.tryParse(value)?.scheme.toLowerCase() == 'wss';
-      }).toList(growable: false);
+      final secureUrls = urls
+          .where((value) {
+            return Uri.tryParse(value)?.scheme.toLowerCase() == 'wss';
+          })
+          .toList(growable: false);
       if (secureUrls.isEmpty) {
         throw StateError('远程状态服务没有配置 WSS 安全地址');
       }
