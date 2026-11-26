@@ -2,7 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart' hide PopupMenuItem;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show Icons, PopupMenuButton, PopupMenuItem;
+    show Icons, DropdownButton, DropdownMenuItem;
 
 import 'qndxx_xboard_service.dart';
 
@@ -79,7 +79,13 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     final code = _code.text.trim();
     if (email.startsWith('@') || password.isEmpty || code.isEmpty) {
       await dialogs.showAlert(
-        title: '注册账号',
+        title: Row(
+        children: [
+          Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
+          const SizedBox(width: 10),
+          const Text('注册账号'),
+        ],
+      ),
         message: const TextSpan(text: '请填写邮箱前缀、密码和邮箱验证码'),
       );
       return;
@@ -140,49 +146,53 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    hintText: '邮箱账号',
+                    hintText: '邮箱前缀',
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                 ),
               ),
               SizedBox(
                 width: 132,
-                child: PopupMenuButton<String>(
-                  tooltip: '选择邮箱后缀',
-                  initialValue: _emailDomain,
-                  enabled: !_busy,
-                  onSelected: (value) => setState(() => _emailDomain = value),
-                  itemBuilder: (context) => [
-                    for (final domain in _emailDomains)
-                      PopupMenuItem<String>(
-                        value: domain,
-                        child: Text('@$domain'),
-                      ),
-                  ],
-                  child: Container(
-                    height: 56,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: context.colorScheme.outline),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Flexible(
-                          child: Text(
-                            '@$_emailDomain',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                child: Container(
+                  height: 56,
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: context.colorScheme.outline),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButton<String>(
+                    value: _emailDomain,
+                    isExpanded: true,
+                    underline: const SizedBox.shrink(),
+                    icon: const Icon(Icons.arrow_drop_down_rounded),
+                    onChanged: _busy
+                        ? null
+                        : (value) {
+                            if (value != null) {
+                              setState(() => _emailDomain = value);
+                            }
+                          },
+                    items: [
+                      for (final domain in _emailDomains)
+                        DropdownMenuItem<String>(
+                          value: domain,
+                          child: Text('@$domain', maxLines: 1),
                         ),
-                        const Icon(Icons.arrow_drop_down_rounded),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               ),
             ],
+          ),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '注册邮箱：$_fullEmail',
+              style: TextStyle(
+                fontSize: 12,
+                color: context.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ),
           TextFormField(
             controller: _password,
@@ -308,7 +318,13 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: '找回密码',
+      title: Row(
+        children: [
+          Icon(Icons.lock_reset_rounded, color: context.colorScheme.primary),
+          const SizedBox(width: 10),
+          const Text('找回密码'),
+        ],
+      ),
       hasFields: true,
       actions: [
         TextButton(
