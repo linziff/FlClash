@@ -62,7 +62,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     final sideWidth = ref.watch(sideWidthProvider);
     final scale = math.max(1.0, MediaQuery.textScalerOf(context).scale(1));
     final size = Size(viewSize.width - sideWidth, viewSize.height) / scale;
-    final editable = !DashboardDensity.of(size).isDesktop;
+    // Android dashboard layout is fixed; editing remains available on other mobile platforms.
+    final editable = !system.isAndroid && !DashboardDensity.of(size).isDesktop;
     if (!editable) {
       _editing = false;
     }
