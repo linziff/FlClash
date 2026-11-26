@@ -19,6 +19,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:rust_api/rust_api.dart' show NetworkState;
 
 import 'pages/pages.dart';
+import 'xboard/qndxx_login_dialog.dart';
+import 'xboard/qndxx_xboard_service.dart';
 
 Widget buildManagerStack({
   required bool isDesktop,
@@ -72,6 +74,7 @@ class ApplicationState extends ConsumerState<Application> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
       if (globalState.navigatorKey.currentContext != null) {
         await bootstrap.attach();
+        await _ensureQndxxLogin();
       } else {
         exit(0);
       }
@@ -81,6 +84,21 @@ class ApplicationState extends ConsumerState<Application> {
         unawaited(app?.initShortcuts());
       }
     });
+  }
+
+  Future<void> _ensureQndxxLogin() async {
+    final service = QndxxXboardService.instance;
+    try {
+      await service.restoreSession();
+      await service.getAccountInfo();
+      return;
+    } catch (_) {
+      // First launch, or an expired token: prompt for authentication below.
+    }
+    if (!mounted || globalState.navigatorKey.currentContext == null) return;
+    await dialogs.showCommonDialog<void>(
+      child: const QndxxLoginDialog(),
+    );
   }
 
   void _initLink() {
