@@ -53,63 +53,84 @@ class QndxxStartupSplash extends StatefulWidget {
 class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
   bool _visible = false;
 
-  Future<void> _loadRemoteWebsite() async {
-    try {
-      await QndxxConfigService.instance.initialize(refreshRemote: true);
-      if (mounted) setState(() {});
-    } catch (_) {
-      // Keep the bundled website text if remote configuration is unavailable.
-    }
-  }
-
   @override
   void initState() {
     super.initState();
-    unawaited(_loadRemoteWebsite());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _visible = true);
-    });
-    Future<void>.delayed(const Duration(milliseconds: 1800), () {
-      if (mounted) Navigator.of(context).pop();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: 'Hi，欢迎使用',
-      child: AnimatedOpacity(
-        opacity: _visible ? 1 : 0,
-        duration: const Duration(milliseconds: 650),
-        curve: Curves.easeOut,
-        child: AnimatedScale(
-          scale: _visible ? 1 : 0.92,
-          duration: const Duration(milliseconds: 650),
-          curve: Curves.easeOutCubic,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const QndxxBrandLogo(size: 92),
-              const SizedBox(height: 18),
-              Text(
-                '青年大学习',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w700,
-                  color: context.colorScheme.onSurface,
+    final colors = context.colorScheme;
+    return Scaffold(
+      body: ColoredBox(
+        color: colors.surface,
+        child: SafeArea(
+          child: Center(
+            child: AnimatedOpacity(
+              opacity: _visible ? 1 : 0,
+              duration: const Duration(milliseconds: 800),
+              curve: Curves.easeOutCubic,
+              child: AnimatedScale(
+                scale: _visible ? 1 : 0.9,
+                duration: const Duration(milliseconds: 800),
+                curve: Curves.easeOutCubic,
+                child: Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colors.primaryContainer,
+                          borderRadius: BorderRadius.circular(30),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(18),
+                          child: QndxxBrandLogo(size: 112),
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+                      Text(
+                        '青年大学习',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: colors.onSurface,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        '安全、稳定、便捷的网络连接体验',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 30),
+                      const SizedBox(
+                        width: 26,
+                        height: 26,
+                        child: ActivityIndicator(),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        QndxxConfigService.instance.appWebsite,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: colors.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
-                textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              Text(
-                QndxxConfigService.instance.appWebsite,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: context.colorScheme.onSurface,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       ),
