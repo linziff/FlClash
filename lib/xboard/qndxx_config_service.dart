@@ -88,16 +88,9 @@ class QndxxConfigService {
       (_remote['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       (_local['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       '92f20590-a75f-4b50-a521-6d5fc7a356dd';
-  String get subscriptionUserAgent {
-    final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    // Orange/XBoard's subscription endpoint selects the Clash-compatible
-    // response format by this exact User-Agent. Do not reuse api_encrypted:
-    // that value is reserved for the panel/Caddy API authentication layer.
-    return _safeUserAgent(
-      _remoteUserAgents?['subscription'] ?? localAgents?['subscription'],
-      'FlClash',
-    );
-  }
+  // Orange's XBoard subscription endpoint requires this exact UA to
+  // return Clash-compatible subscription content (not a browser/URI list).
+  String get subscriptionUserAgent => 'FlClash';
 
   /// Text shown under the startup welcome message. Remote app.website
   /// takes precedence, with the bundled value retained as an offline fallback.
