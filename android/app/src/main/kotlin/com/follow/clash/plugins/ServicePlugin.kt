@@ -3,7 +3,6 @@ package com.follow.clash.plugins
 import com.follow.clash.ServiceController
 import com.follow.clash.ServiceState
 import com.follow.clash.StartFailure
-import com.follow.clash.common.Components
 import com.follow.clash.common.GlobalState
 import com.follow.clash.core.Core
 import com.follow.clash.models.SharedState
