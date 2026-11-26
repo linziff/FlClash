@@ -752,12 +752,14 @@ class QndxxXboardService {
         } catch (_) {
           // Plain-text subscription bodies are expected for many panels.
         }
-        final decrypted = _decrypt(text, config.decryptKey);
-        final content = decrypted != null && _looksLikeClash(decrypted)
-            ? decrypted
-            : text;
-        if (!_looksLikeClash(content)) {
-          lastError = StateError('订阅响应不是有效的 Clash YAML，且解密未成功');
+        final content = QndxxSubscriptionDecryptor.decodeCandidates(
+          text,
+          config.decryptKey,
+        ).where(_looksLikeClash).firstOrNull;
+        if (content == null) {
+          lastError = StateError(
+            '订阅响应既不是 Mihomo YAML，也无法从 Base64/加密内容还原为有效配置',
+          );
           continue;
         }
         return QndxxSubscription(
