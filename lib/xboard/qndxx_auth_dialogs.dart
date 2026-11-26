@@ -38,8 +38,11 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
 
   String get _fullEmail {
     final value = _email.text.trim();
-    final localPart = value.contains('@') ? value.split('@').first : value;
-    return '$localPart@$_emailDomain';
+    final separator = value.lastIndexOf('@');
+    final localPart = separator < 0 ? value : value.substring(0, separator);
+    final typedDomain = separator < 0 ? '' : value.substring(separator + 1).trim();
+    final domain = typedDomain.isNotEmpty ? typedDomain : _emailDomain;
+    return '$localPart@$domain';
   }
 
   @override
@@ -149,7 +152,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    hintText: '邮箱前缀',
+                    hintText: '邮箱前缀（也可填写完整邮箱）',
                     prefixIcon: Icon(Icons.person_outline_rounded),
                   ),
                 ),
