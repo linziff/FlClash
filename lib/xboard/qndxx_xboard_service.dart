@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 
 import 'qndxx_config_service.dart';
 
@@ -65,6 +66,7 @@ class QndxxXboardService {
   String? _token;
   String? _panelUrl;
   String? _email;
+  XBoardSDK? _sdk;
 
   String _normalizeBaseUrl(String value) {
     final uri = Uri.parse(value.trim());
@@ -195,6 +197,150 @@ class QndxxXboardService {
     }
   }
 
+  Future<XBoardSDK> _ensureSdk() async {
+    if (_token == null || _panelUrl == null) await restoreSession();
+    final current = _sdk ?? XBoardSDK.instance;
+    if (current.isInitialized && current.baseUrl != _panelUrl) {
+      current.dispose();
+    }
+    if (!current.isInitialized) {
+      await current.initialize(
+        _panelUrl!,
+        panelType: QndxxConfigService.instance.panelType,
+        userAgent: QndxxConfigService.instance.apiUserAgent,
+        enableLogging: false,
+      );
+      await current.saveToken(_token!);
+    }
+    _sdk = current;
+    return current;
+  }
+
+  Future<Map<String, dynamic>> getAccountInfo() async {
+    final model = await (await _ensureSdk()).user.getUserInfo();
+    return Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<List<Map<String, dynamic>>> getPlans() async {
+    final models = await (await _ensureSdk()).plan.getPlans();
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<Map<String, dynamic>?> getPlan(int id) async {
+    final model = await (await _ensureSdk()).plan.getPlan(id);
+    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<Map<String, dynamic>> getSubscriptionInfo() async {
+    final model = await (await _ensureSdk()).subscription.getSubscription();
+    return Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<String> getSubscriptionUrl() async {
+    return (await _ensureSdk()).subscription.getSubscribeUrl();
+  }
+
+  Future<List<Map<String, dynamic>>> getOrders({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final models = await (await _ensureSdk()).order.getOrders(
+      page: page,
+      pageSize: pageSize,
+    );
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<String> createOrder(int planId, String period, {String? couponCode}) {
+    return _ensureSdk().then(
+      (sdk) => sdk.order.createOrder(planId, period, couponCode: couponCode),
+    );
+  }
+
+  Future<Map<String, dynamic>> checkoutOrder(
+    String tradeNo,
+    String method,
+  ) async {
+    final model = await (await _ensureSdk()).order.checkoutOrder(tradeNo, method);
+    return Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<bool> cancelOrder(String tradeNo) async {
+    return (await _ensureSdk()).order.cancelOrder(tradeNo);
+  }
+
+  Future<List<Map<String, dynamic>>> getPaymentMethods([String? tradeNo]) async {
+    final sdk = await _ensureSdk();
+    final models = tradeNo == null
+        ? await sdk.payment.getPaymentMethods()
+        : await sdk.order.getPaymentMethods(tradeNo);
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getNotices({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final models = await (await _ensureSdk()).notice.getNotices(
+      page: page,
+      pageSize: pageSize,
+    );
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<Map<String, dynamic>> getInviteInfo() async {
+    final model = await (await _ensureSdk()).invite.getInviteInfo();
+    return Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<List<Map<String, dynamic>>> getInviteCodes() async {
+    final models = await (await _ensureSdk()).invite.getInviteCodes();
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<String> generateInviteCode() async {
+    return (await _ensureSdk()).invite.generateInviteCode();
+  }
+
+  Future<List<Map<String, dynamic>>> getCommissionDetails({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final models = await (await _ensureSdk()).invite.getCommissionDetails(
+      page: page,
+      pageSize: pageSize,
+    );
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<List<Map<String, dynamic>>> getTickets({
+    int page = 1,
+    int pageSize = 10,
+  }) async {
+    final models = await (await _ensureSdk()).ticket.getTickets(
+      page: page,
+      pageSize: pageSize,
+    );
+    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+  }
+
+  Future<Map<String, dynamic>> getTicket(int id) async {
+    final model = await (await _ensureSdk()).ticket.getTicket(id);
+    return Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<bool> createTicket(String subject, String message, int level) async {
+    return (await _ensureSdk()).ticket.createTicket(subject, message, level);
+  }
+
+  Future<bool> replyTicket(int id, String message) async {
+    return (await _ensureSdk()).ticket.replyTicket(id, message);
+  }
+
+  Future<bool> closeTicket(int id) async {
+    return (await _ensureSdk()).ticket.closeTicket(id);
+  }
+
   Future<void> logout() async {
     try {
       if (_token != null && _panelUrl != null) {
@@ -203,6 +349,15 @@ class QndxxXboardService {
     } catch (_) {
       // Local logout must still succeed when the panel is unreachable.
     }
+    try {
+      final sdk = _sdk;
+      if (sdk != null && sdk.isInitialized) {
+        try { await sdk.clearToken(); } finally { sdk.dispose(); }
+      }
+    } catch (_) {
+      _sdk?.dispose();
+    }
+    _sdk = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_panelKey);
