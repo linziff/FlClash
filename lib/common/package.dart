@@ -4,12 +4,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'common.dart';
 
+String qndxxUserAgent(String version, {required String platform}) =>
+    'QNDXX/v$version clash-verge Platform/$platform';
+
 extension PackageInfoExtension on PackageInfo {
-  String get ua => [
-    'QNDXX/v$version',
-    'clash-verge',
-    'Platform/${Platform.operatingSystem}',
-  ].join(' ');
+  String get ua => qndxxUserAgent(version, platform: Platform.operatingSystem);
 }
 
 int compareVersions(String version1, String version2) {
