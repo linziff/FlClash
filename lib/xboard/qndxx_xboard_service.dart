@@ -769,7 +769,9 @@ class QndxxXboardService {
         // used by the login/import flow rather than rejecting it as invalid.
         String? shareLinkContent;
         for (final candidateContent in decodedContents) {
-          if (QndxxSubscriptionDecryptor.looksLikeShareLinks(candidateContent)) {
+          if (QndxxSubscriptionDecryptor.looksLikeShareLinks(
+            candidateContent,
+          )) {
             shareLinkContent = candidateContent;
             break;
           }
@@ -782,9 +784,7 @@ class QndxxXboardService {
           );
         }
 
-        lastError = StateError(
-          '订阅响应既不是 Mihomo YAML，也不是可识别的节点分享链接',
-        );
+        lastError = StateError('订阅响应既不是 Mihomo YAML，也不是可识别的节点分享链接');
       } catch (error) {
         lastError = error;
       }

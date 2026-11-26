@@ -992,12 +992,17 @@ class _PlanPeriodDialog extends StatelessWidget {
               onTap: () => Navigator.of(context).pop(period),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 9),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 13,
+                ),
                 decoration: BoxDecoration(
                   color: context.colorScheme.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: context.colorScheme.outlineVariant.withValues(alpha: 0.65),
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.65,
+                    ),
                   ),
                 ),
                 child: Row(
@@ -1018,7 +1023,10 @@ class _PlanPeriodDialog extends StatelessWidget {
                     Expanded(
                       child: Text(
                         label,
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                     Text(
@@ -1030,7 +1038,10 @@ class _PlanPeriodDialog extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 6),
-                    Icon(Icons.chevron_right_rounded, color: context.colorScheme.onSurfaceVariant),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
                   ],
                 ),
               ),
@@ -1086,7 +1097,10 @@ class _PaymentMethodOption extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                  Text(
+                    name,
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
                   if ((method['description']?.toString() ?? '').isNotEmpty) ...[
                     const SizedBox(height: 3),
                     Text(
@@ -1100,7 +1114,10 @@ class _PaymentMethodOption extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, color: context.colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: context.colorScheme.onSurfaceVariant,
+            ),
           ],
         ),
       ),

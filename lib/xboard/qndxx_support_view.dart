@@ -40,64 +40,64 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
         child: Stack(
           fit: StackFit.expand,
           children: [
-          InAppWebView(
-            initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
-            initialSettings: InAppWebViewSettings(
-              javaScriptEnabled: true,
-              domStorageEnabled: true,
-              thirdPartyCookiesEnabled: true,
-              mediaPlaybackRequiresUserGesture: false,
-              supportZoom: false,
+            InAppWebView(
+              initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
+              initialSettings: InAppWebViewSettings(
+                javaScriptEnabled: true,
+                domStorageEnabled: true,
+                thirdPartyCookiesEnabled: true,
+                mediaPlaybackRequiresUserGesture: false,
+                supportZoom: false,
+              ),
+              onWebViewCreated: (controller) {
+                _controller = controller;
+              },
+              onLoadStart: (controller, url) {
+                if (!mounted) return;
+                setState(() {
+                  _loading = true;
+                  _error = null;
+                });
+              },
+              onLoadStop: (controller, url) {
+                if (!mounted) return;
+                setState(() => _loading = false);
+              },
+              onReceivedError: (controller, request, error) {
+                if (!mounted || request.isForMainFrame != true) return;
+                setState(() {
+                  _loading = false;
+                  _error = error.description;
+                });
+              },
             ),
-            onWebViewCreated: (controller) {
-              _controller = controller;
-            },
-            onLoadStart: (controller, url) {
-              if (!mounted) return;
-              setState(() {
-                _loading = true;
-                _error = null;
-              });
-            },
-            onLoadStop: (controller, url) {
-              if (!mounted) return;
-              setState(() => _loading = false);
-            },
-            onReceivedError: (controller, request, error) {
-              if (!mounted || request.isForMainFrame != true) return;
-              setState(() {
-                _loading = false;
-                _error = error.description;
-              });
-            },
-          ),
-          if (_loading) const Center(child: CircularProgressIndicator()),
-          if (_error != null)
-            ColoredBox(
-              color: const Color(0xFFF5F5F5),
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(_error!, textAlign: TextAlign.center),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: () {
-                          setState(() {
-                            _loading = true;
-                            _error = null;
-                          });
-                          _controller?.reload();
-                        },
-                        child: const Text('重新加载客服'),
-                      ),
-                    ],
+            if (_loading) const Center(child: CircularProgressIndicator()),
+            if (_error != null)
+              ColoredBox(
+                color: const Color(0xFFF5F5F5),
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(_error!, textAlign: TextAlign.center),
+                        const SizedBox(height: 16),
+                        FilledButton(
+                          onPressed: () {
+                            setState(() {
+                              _loading = true;
+                              _error = null;
+                            });
+                            _controller?.reload();
+                          },
+                          child: const Text('重新加载客服'),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

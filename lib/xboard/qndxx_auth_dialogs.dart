@@ -184,9 +184,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                 child: TextFormField(
                   controller: _code,
                   decoration: const InputDecoration(
-                      hintText: '邮箱验证码（必填）',
-                      prefixIcon: Icon(Icons.mark_email_unread_outlined),
-                    ),
+                    hintText: '邮箱验证码（必填）',
+                    prefixIcon: Icon(Icons.mark_email_unread_outlined),
+                  ),
                 ),
               ),
               TextButton(

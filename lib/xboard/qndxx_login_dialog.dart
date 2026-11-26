@@ -49,9 +49,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty && !line.startsWith('#'))
         .toList(growable: false);
-    final decoded = await ref
-        .read(coreHandlerProvider)
-        .decodeShareLinks(lines);
+    final decoded = await ref.read(coreHandlerProvider).decodeShareLinks(lines);
     final proxiesByName = <String, Map<String, dynamic>>{};
     for (final proxy in decoded.expand((items) => items)) {
       final name = proxy['name']?.toString().trim() ?? '';
