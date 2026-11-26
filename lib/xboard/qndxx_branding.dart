@@ -90,7 +90,7 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
               ),
               const SizedBox(height: 8),
               Text(
-                '正在为你准备安全、稳定的连接体验',
+                '官网发布页：toufq.com',
                 style: TextStyle(
                   fontSize: 14,
                   color: context.colorScheme.onSurface,
