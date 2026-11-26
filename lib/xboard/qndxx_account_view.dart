@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:ui' show ImageFilter;
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart' hide Card, Divider, FilledButton;
@@ -16,8 +15,7 @@ import 'package:flutter/material.dart'
         RoundedRectangleBorder,
         BorderSide,
         Divider,
-        Clip,
-        BackdropFilter;
+        Clip;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -178,9 +176,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       padding: const EdgeInsets.only(bottom: 18),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-          child: Container(
+        child: Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -217,7 +213,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'QNDXX 商店',
+                        '青年大学习 商店',
                         style: TextStyle(
                           color: colors.onSurface,
                           fontSize: 20,
@@ -613,7 +609,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   Widget build(BuildContext context) {
     return Scaffold(
       title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
-      isLoading: _loading,
       body: ListView(
         padding: EdgeInsets.only(
           left: 16,
@@ -622,6 +617,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           bottom: 24 + context.bottomInset,
         ),
         children: [
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: LinearProgressIndicator(),
+            ),
           if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
           if (!_signedIn) ...[
             const Text('登录后即可查看套餐、订单和账户服务。'),
