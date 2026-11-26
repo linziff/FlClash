@@ -243,7 +243,16 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                     onPressed: _busy ? null : _loginAndImport,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      child: _busy ? const Text('登录中…') : const Text('登录并导入订阅'),
+                      child: _busy
+                          ? const Text('登录中…')
+                          : const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.login_rounded, size: 18),
+                                SizedBox(width: 8),
+                                Text('登录并导入订阅'),
+                              ],
+                            ),
                     ),
                   ),
                 ],
