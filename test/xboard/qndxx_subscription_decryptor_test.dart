@@ -39,7 +39,7 @@ void main() {
         '',
       );
 
-      expect(candidates, contains(yaml));
+      expect(candidates, contains(yaml.trim()));
       expect(candidates.any(QndxxSubscriptionDecryptor.looksLikeClash), isTrue);
     });
 
@@ -55,7 +55,7 @@ void main() {
       expect(
         candidates.any(
           (candidate) =>
-              candidate == yaml &&
+              candidate == yaml.trim() &&
               QndxxSubscriptionDecryptor.looksLikeClash(candidate),
         ),
         isTrue,
