@@ -13,6 +13,7 @@ import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/widgets.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -88,14 +89,34 @@ class ApplicationState extends ConsumerState<Application> {
 
   Future<void> _ensureQndxxLogin() async {
     final service = QndxxXboardService.instance;
+    var shouldPrompt = false;
     try {
       await service.restoreSession();
-      await service.getAccountInfo();
-      return;
     } catch (_) {
-      // First launch, or an expired token: prompt for authentication below.
+      shouldPrompt = true;
     }
-    if (!mounted || globalState.navigatorKey.currentContext == null) return;
+
+    if (!shouldPrompt) {
+      try {
+        await service.getAccountInfo();
+        return;
+      } on DioException catch (error) {
+        final status = error.response?.statusCode;
+        if (status != 401 && status != 403) {
+          // Keep a saved session when the panel is temporarily unreachable.
+          return;
+        }
+        shouldPrompt = true;
+      } catch (_) {
+        return;
+      }
+    }
+
+    if (!shouldPrompt ||
+        !mounted ||
+        globalState.navigatorKey.currentContext == null) {
+      return;
+    }
     await dialogs.showCommonDialog<void>(
       child: const QndxxLoginDialog(),
     );
