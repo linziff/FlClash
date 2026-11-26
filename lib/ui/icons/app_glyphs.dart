@@ -98,6 +98,29 @@ abstract final class AppGlyphs {
     GlyphCircle(7.2, 17, 1.1, role: GlyphRole.detail, solid: true),
   ]);
 
+  static const shop = Glyph([
+    GlyphPolyline([
+      GlyphVertex(5, 9),
+      GlyphVertex(19, 9, 2),
+      GlyphVertex(18, 20, 2),
+      GlyphVertex(6, 20, 2),
+    ], closed: true),
+    GlyphPolyline([
+      GlyphVertex(9, 9),
+      GlyphVertex(9, 6, 1.8),
+      GlyphVertex(15, 6, 1.8),
+      GlyphVertex(15, 9),
+    ], role: GlyphRole.line),
+    GlyphPolyline([
+      GlyphVertex(10, 13),
+      GlyphVertex(10, 16),
+    ], role: GlyphRole.detail),
+    GlyphPolyline([
+      GlyphVertex(14, 13),
+      GlyphVertex(14, 16),
+    ], role: GlyphRole.detail),
+  ]);
+
   static const resources = Glyph([
     GlyphBox(3, 3.5, 21, 8.5, 1.8),
     GlyphBox(4.5, 10.8, 19.5, 20.5, 2.2),
