@@ -270,6 +270,47 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
+  Future<void> _replyTicket(Map<String, dynamic> ticket) async {
+    final id = int.tryParse('${ticket['id']}');
+    if (id == null) return;
+    final message = await dialogs.showCommonDialog<String>(
+      child: const _QndxxMessageDialog(title: '回复工单'),
+    );
+    if (message == null || message.trim().isEmpty) return;
+    try {
+      await _service.replyTicket(id, message.trim());
+      dialogs.showBanner('回复已发送', level: BannerLevel.success);
+      await _load();
+    } catch (error) {
+      await dialogs.showAlert(
+        title: '发送回复失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
+  }
+
+  Future<void> _closeTicket(Map<String, dynamic> ticket) async {
+    final id = int.tryParse('${ticket['id']}');
+    if (id == null) return;
+    final accepted = await dialogs.showMessage(
+      title: '关闭工单',
+      message: const TextSpan(text: '确定关闭这个客服工单吗？'),
+      confirmText: '关闭工单',
+      destructive: true,
+    );
+    if (accepted != true) return;
+    try {
+      await _service.closeTicket(id);
+      dialogs.showBanner('工单已关闭', level: BannerLevel.success);
+      await _load();
+    } catch (error) {
+      await dialogs.showAlert(
+        title: '关闭工单失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
+  }
+
   Future<void> _generateInvite() async {
     try {
       final code = await _service.generateInviteCode();
@@ -450,6 +491,19 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       '状态：${_value(ticket['status'])} · 更新时间：${_value(ticket['updated_at'])}',
                     ),
                     onTap: () => _showTicket(ticket),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextButton(
+                          onPressed: () => _replyTicket(ticket),
+                          child: const Text('回复'),
+                        ),
+                        TextButton(
+                          onPressed: () => _closeTicket(ticket),
+                          child: const Text('关闭'),
+                        ),
+                      ],
+                    ),
                   ),
               ],
             ),
@@ -604,6 +658,52 @@ class _CreateTicketDialogState extends State<_CreateTicketDialog> {
             decoration: const InputDecoration(hintText: '请描述你遇到的问题'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+
+class _QndxxMessageDialog extends StatefulWidget {
+  const _QndxxMessageDialog({required this.title});
+
+  final String title;
+
+  @override
+  State<_QndxxMessageDialog> createState() => _QndxxMessageDialogState();
+}
+
+class _QndxxMessageDialogState extends State<_QndxxMessageDialog> {
+  final _controller = TextEditingController();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: widget.title,
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final value = _controller.text.trim();
+            if (value.isNotEmpty) Navigator.of(context).pop(value);
+          },
+          child: const Text('发送'),
+        ),
+      ],
+      child: TextFormField(
+        controller: _controller,
+        minLines: 3,
+        maxLines: 6,
+        decoration: const InputDecoration(hintText: '请输入回复内容'),
       ),
     );
   }
