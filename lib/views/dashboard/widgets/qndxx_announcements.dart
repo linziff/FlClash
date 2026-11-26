@@ -256,7 +256,7 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
     final content = notice['content']?.toString() ?? '';
     final colors = context.colorScheme;
     return AlertDialog(
-      title: title?.isNotEmpty == true ? title! : '平台公告',
+      title: title.isNotEmpty ? title : '平台公告',
       actions: [
         FilledButton(
           onPressed: () => Navigator.of(context).pop(),
