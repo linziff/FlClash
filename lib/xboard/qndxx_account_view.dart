@@ -918,6 +918,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       ),
     ),
   );
+  }
 }
 
 class _PlanFeatureChip extends StatelessWidget {
