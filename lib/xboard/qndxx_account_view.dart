@@ -12,11 +12,15 @@ import 'qndxx_remote_status_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxAccountView extends ConsumerStatefulWidget {
-  const QndxxAccountView({super.key});
+  const QndxxAccountView({super.key, this.mode = QndxxAccountViewMode.account});
+
+  final QndxxAccountViewMode mode;
 
   @override
   ConsumerState<QndxxAccountView> createState() => _QndxxAccountViewState();
 }
+
+enum QndxxAccountViewMode { shop, account }
 
 class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   final _service = QndxxXboardService.instance;
@@ -367,7 +371,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      title: 'QNDXX 账户中心',
+      title: widget.mode == QndxxAccountViewMode.shop ? 'QNDXX 商店' : 'QNDXX 我的',
       isLoading: _loading,
       body: ListView(
         padding: EdgeInsets.only(
@@ -391,6 +395,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             const SizedBox(height: 8),
             TextButton(onPressed: _openSupport, child: const Text('在线客服')),
           ] else ...[
+            if (widget.mode == QndxxAccountViewMode.account) ...[
             generateSection(
               title: '账号信息',
               items: [
@@ -428,6 +433,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 ),
               ],
             ),
+            ],
+            if (widget.mode == QndxxAccountViewMode.shop) ...[
             generateSection(
               title: '可用套餐',
               items: [
@@ -477,6 +484,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   ),
               ],
             ),
+            ],
+            if (widget.mode == QndxxAccountViewMode.account) ...[
             generateSection(
               title: '邀请与佣金',
               items: [
@@ -571,6 +580,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 ListItem(title: const Text('退出登录'), onTap: _logout),
               ],
             ),
+            ],
           ],
         ],
       ),
