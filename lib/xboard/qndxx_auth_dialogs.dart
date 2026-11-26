@@ -335,7 +335,8 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
           TextFormField(
             controller: _password,
             obscureText: true,
-            decoration: const InputDecoration(hintText: '新密码',
+            decoration: const InputDecoration(
+              hintText: '新密码',
               prefixIcon: Icon(Icons.lock_outline_rounded),
             ),
           ),
