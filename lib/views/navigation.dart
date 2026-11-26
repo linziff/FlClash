@@ -31,7 +31,7 @@ class Navigation implements NavigationPort {
         builder: (_) => const QndxxSupportView(),
       ),
       NavigationItem(
-        glyph: AppGlyphs.account,
+        glyph: AppGlyphs.qndxxAccount,
         label: PageLabel.account,
         builder: (_) => const QndxxAccountView(mode: QndxxAccountViewMode.account),
       ),
