@@ -86,8 +86,11 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
       }
     }
     final title = notice['title']?.toString() ?? '';
-    return RegExp(r'^[\s【\[]*(节点|节点公告)[】\]]').hasMatch(title) ||
-        RegExp(r'(^|\s)#节点($|\s)').hasMatch(title);
+    final content = notice['content']?.toString() ?? '';
+    final taggedText = '$title\n$content';
+    return RegExp(r'^[\s【\[]*(节点|节点公告)[】\]]', multiLine: true)
+            .hasMatch(taggedText) ||
+        RegExp(r'(^|\s)#节点($|\s)').hasMatch(taggedText);
   }
 
   Future<void> _showNotice(Map<String, dynamic> notice) async {
