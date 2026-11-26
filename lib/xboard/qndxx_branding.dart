@@ -82,13 +82,20 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
               const SizedBox(height: 18),
               Text(
                 '青年大学习',
-                style: TextStyle(\n                  fontSize: 22,\n                  fontWeight: FontWeight.w700,\n                  color: context.colorScheme.onSurface,\n                ),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                  color: context.colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 8),
               Text(
                 '正在为你准备安全、稳定的连接体验',
-                style: TextStyle(\n                  fontSize: 14,\n                  color: context.colorScheme.onSurface,\n                ),
+                style: TextStyle(
+                  fontSize: 14,
+                  color: context.colorScheme.onSurface,
+                ),
                 textAlign: TextAlign.center,
               ),
             ],
