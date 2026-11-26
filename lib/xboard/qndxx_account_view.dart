@@ -86,7 +86,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         final results = await Future.wait<dynamic>([
           _service.getPlans().catchError((_) => <Map<String, dynamic>>[]),
           _service.getOrders().catchError(
-            (_) => <List<Map<String, dynamic>>>[],
+            (_) => <Map<String, dynamic>>[],
           ),
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
