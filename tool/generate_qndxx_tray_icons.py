@@ -7,7 +7,7 @@ status_3: TUN enabled (blue)
 status_4: safe mode (amber)
 """
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
+from PIL import Image, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 COLORS = {
@@ -18,48 +18,18 @@ COLORS = {
 }
 
 def make_app_icon(size: int = 1024) -> Image.Image:
-    """Draw a crisp, transparent QNDXX monogram for adaptive and desktop icons."""
-    # Supersampling keeps the circular mark smooth at launcher and taskbar sizes.
-    scale = 3
-    canvas_size = size * scale
-    mask = Image.new("L", (canvas_size, canvas_size), 0)
-    draw = ImageDraw.Draw(mask)
-
-    # A clean Q-shaped ring with a rounded diagonal tail. The mark sits inside
-    # Android's adaptive-icon safe area and remains legible at small sizes.
-    outer = (int(canvas_size * 0.17), int(canvas_size * 0.13),
-             int(canvas_size * 0.81), int(canvas_size * 0.77))
-    inner = (int(canvas_size * 0.285), int(canvas_size * 0.245),
-             int(canvas_size * 0.695), int(canvas_size * 0.655))
-    draw.ellipse(outer, fill=255)
-    draw.ellipse(inner, fill=0)
-    tail_width = int(canvas_size * 0.115)
-    draw.line(
-        (int(canvas_size * 0.625), int(canvas_size * 0.625),
-         int(canvas_size * 0.835), int(canvas_size * 0.835)),
-        fill=255, width=tail_width
+    """Load the approved QNDXX logo asset and scale it without distortion."""
+    source_path = ROOT / "assets/images/logo.png"
+    if not source_path.is_file():
+        raise FileNotFoundError(f"Required QNDXX logo is missing: {source_path}")
+    with Image.open(source_path) as source:
+        logo = source.convert("RGBA")
+    logo.thumbnail((size, size), Image.Resampling.LANCZOS)
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    canvas.alpha_composite(
+        logo, ((size - logo.width) // 2, (size - logo.height) // 2)
     )
-    tail_radius = tail_width // 2
-    tail_end = (int(canvas_size * 0.835), int(canvas_size * 0.835))
-    draw.ellipse(
-        (tail_end[0] - tail_radius, tail_end[1] - tail_radius,
-         tail_end[0] + tail_radius, tail_end[1] + tail_radius),
-        fill=255
-    )
-
-    # Cool cyan-to-indigo gradient; no baked blue tile or opaque square.
-    gradient = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
-    pixels = gradient.load()
-    top = (43, 211, 224)
-    bottom = (91, 82, 235)
-    for y in range(canvas_size):
-        for x in range(canvas_size):
-            t = min(1.0, max(0.0, (0.58 * x + 0.42 * y) / (canvas_size - 1)))
-            pixels[x, y] = tuple(
-                round(top[i] * (1 - t) + bottom[i] * t) for i in range(3)
-            ) + (255,)
-    gradient.putalpha(mask)
-    return gradient.resize((size, size), Image.Resampling.LANCZOS)
+    return canvas
 
 def make_icon(status: int, size: int) -> Image.Image:
     """Render the exact QNDXX app mark, tinted for the current connection state."""
