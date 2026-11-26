@@ -28,6 +28,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _busy = false;
+  bool _authenticated = false;
 
   @override
   void dispose() {
@@ -130,6 +131,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         'QNDXX 登录成功：${account.email}，订阅已导入',
         level: BannerLevel.success,
       );
+      _authenticated = true;
       Navigator.of(context).pop();
     } catch (error) {
       if (!mounted) return;
@@ -147,7 +149,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     // The first-launch login is mandatory: prevent system back, swipe-back,
     // and route-pop actions from dismissing it before authentication.
     return PopScope<void>(
-      canPop: false,
+      canPop: _authenticated,
       child: Scaffold(
       title: '登录账号',
       body: SafeArea(
