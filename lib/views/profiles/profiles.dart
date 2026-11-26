@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'add.dart';
 import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
+import 'package:fl_clash/xboard/qndxx_account_view.dart';
 import 'package:fl_clash/xboard/qndxx_crisp_service.dart';
 import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'edit.dart';
@@ -128,6 +129,14 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
                       );
                     },
                     child: const Text('XBoard 登录'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      unawaited(
+                        pushNestedPage<void>(context, const QndxxAccountView()),
+                      );
+                    },
+                    child: const Text('账户中心'),
                   ),
                   TextButton(
                     onPressed: () async {
