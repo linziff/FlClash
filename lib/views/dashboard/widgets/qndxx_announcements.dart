@@ -63,6 +63,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   Timer? _timer;
   int _index = 0;
   bool _reloadPending = false;
+  bool _loading = false;
 
   @override
   void initState() {
@@ -88,11 +89,17 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   }
 
   Future<void> _load() async {
+    if (_loading) {
+      _reloadPending = true;
+      return;
+    }
+    _loading = true;
     try {
       await _service.restoreSession();
       final notices = await _service.getNotices();
       if (!mounted || notices.isEmpty) return;
       setState(() => _notices = notices);
+      _timer?.cancel();
       if (notices.length > 1) {
         _timer = Timer.periodic(const Duration(seconds: 5), (_) {
           if (mounted) setState(() => _index = (_index + 1) % _notices.length);
@@ -111,6 +118,12 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
       }
     } catch (_) {
       // Announcements are optional; the dashboard remains usable offline.
+    } finally {
+      _loading = false;
+      if (mounted && _reloadPending) {
+        _reloadPending = false;
+        unawaited(_load());
+      }
     }
   }
 
