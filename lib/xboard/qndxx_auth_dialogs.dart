@@ -1,7 +1,7 @@
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show DropdownButton, DropdownMenuItem;
+import 'package:flutter/material.dart' show DropdownButton, DropdownMenuItem, Icons;
 
 import 'qndxx_xboard_service.dart';
 
@@ -143,6 +143,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
               ),
               DropdownButton<String>(
                 value: _emailDomain,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded),
+                iconSize: 24,
+                underline: const SizedBox.shrink(),
                 items: [
                   for (final domain in _emailDomains)
                     DropdownMenuItem(value: domain, child: Text(domain)),
