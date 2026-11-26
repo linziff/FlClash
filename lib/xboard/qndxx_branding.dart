@@ -15,8 +15,8 @@ class QndxxBrandLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(size * 0.23),
-      child: Image.network(
-        qndxxLogoUrl,
+      child: Image.asset(
+        'assets/images/QNDXXLG.png',
         width: size,
         height: size,
         fit: BoxFit.contain,
