@@ -26,9 +26,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
 
   @override
   Widget build(BuildContext context) {
-    return LiquidGlassHost(
-      enabled: false,
-      child: Scaffold(
+    return Scaffold(
         title: '在线客服',
         backgroundColor: context.colorScheme.surface,
         body: Padding(
@@ -75,7 +73,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
               if (_loading) const Center(child: CircularProgressIndicator()),
               if (_error != null)
                 ColoredBox(
-                  color: const Color(0xFFF5F5F5),
+                  color: context.colorScheme.surface,
                   child: Center(
                     child: Padding(
                       padding: const EdgeInsets.all(24),
@@ -102,7 +100,6 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
             ],
           ),
         ),
-      ),
     );
   }
 }
