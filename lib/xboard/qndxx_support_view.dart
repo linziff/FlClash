@@ -46,34 +46,34 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
               child: InAppWebView(
                 initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
                 initialSettings: InAppWebViewSettings(
-                transparentBackground: false,
-                javaScriptEnabled: true,
-                domStorageEnabled: true,
-                thirdPartyCookiesEnabled: true,
-                mediaPlaybackRequiresUserGesture: false,
-                supportZoom: false,
-              ),
-              onWebViewCreated: (controller) {
-                _controller = controller;
-              },
-              onLoadStart: (controller, url) {
-                if (!mounted) return;
-                setState(() {
-                  _loading = true;
-                  _error = null;
-                });
-              },
-              onLoadStop: (controller, url) {
-                if (!mounted) return;
-                setState(() => _loading = false);
-              },
-              onReceivedError: (controller, request, error) {
-                if (!mounted || request.isForMainFrame != true) return;
-                setState(() {
-                  _loading = false;
-                  _error = error.description;
-                });
-              },
+                  transparentBackground: false,
+                  javaScriptEnabled: true,
+                  domStorageEnabled: true,
+                  thirdPartyCookiesEnabled: true,
+                  mediaPlaybackRequiresUserGesture: false,
+                  supportZoom: false,
+                ),
+                onWebViewCreated: (controller) {
+                  _controller = controller;
+                },
+                onLoadStart: (controller, url) {
+                  if (!mounted) return;
+                  setState(() {
+                    _loading = true;
+                    _error = null;
+                  });
+                },
+                onLoadStop: (controller, url) {
+                  if (!mounted) return;
+                  setState(() => _loading = false);
+                },
+                onReceivedError: (controller, request, error) {
+                  if (!mounted || request.isForMainFrame != true) return;
+                  setState(() {
+                    _loading = false;
+                    _error = error.description;
+                  });
+                },
               ),
             ),
             if (_loading) const Center(child: CircularProgressIndicator()),

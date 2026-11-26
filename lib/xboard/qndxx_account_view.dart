@@ -231,10 +231,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                colors.primaryContainer,
-                colors.surfaceContainerHigh,
-              ],
+              colors: [colors.primaryContainer, colors.surfaceContainerHigh],
             ),
             border: Border.all(
               color: colors.outlineVariant.withValues(alpha: 0.55),
@@ -264,7 +261,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.storefront_rounded, color: colors.primary, size: 19),
+                        Icon(
+                          Icons.storefront_rounded,
+                          color: colors.primary,
+                          size: 19,
+                        ),
                         const SizedBox(width: 7),
                         Flexible(
                           child: Text(
@@ -280,7 +281,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                           ),
                         ),
                         const SizedBox(width: 7),
-                        Icon(Icons.shopping_bag_rounded, color: colors.primary, size: 18),
+                        Icon(
+                          Icons.shopping_bag_rounded,
+                          color: colors.primary,
+                          size: 18,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 5),
@@ -376,11 +381,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 children: [
                   Row(
                     children: [
-                      Icon(
-                        _planIcon(plan),
-                        color: colors.primary,
-                        size: 25,
-                      ),
+                      Icon(_planIcon(plan), color: colors.primary, size: 25),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
@@ -678,246 +679,250 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       // compact shop labels, prices, and plan descriptions.
       style: TextStyle(fontFamily: Platform.isWindows ? 'Segoe UI' : null),
       child: Scaffold(
-      title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
-      backgroundColor: context.colorScheme.surface,
-      body: ListView(
-        padding: EdgeInsets.only(
-          left: 16,
-          right: 16,
-          top: context.contentTopPadding,
-          bottom: 24 + context.bottomInset,
-        ),
-        children: [
-          if (_loading)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: LinearProgressIndicator(),
-            ),
-          if (_error != null && !_loading)
-            Card(
-              color: context.colorScheme.errorContainer,
-              elevation: 0,
-              child: Padding(
-                padding: const EdgeInsets.all(14),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline_rounded,
-                      color: context.colorScheme.onErrorContainer,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '账户数据暂时无法加载：$_error',
-                        style: TextStyle(
-                          color: context.colorScheme.onErrorContainer,
+        title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
+        backgroundColor: context.colorScheme.surface,
+        body: ListView(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: context.contentTopPadding,
+            bottom: 24 + context.bottomInset,
+          ),
+          children: [
+            if (_loading)
+              const Padding(
+                padding: EdgeInsets.only(bottom: 12),
+                child: LinearProgressIndicator(),
+              ),
+            if (_error != null && !_loading)
+              Card(
+                color: context.colorScheme.errorContainer,
+                elevation: 0,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: context.colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '账户数据暂时无法加载：$_error',
+                          style: TextStyle(
+                            color: context.colorScheme.onErrorContainer,
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: '重试',
-                      onPressed: _load,
-                      icon: const Icon(Icons.refresh_rounded),
-                    ),
+                      IconButton(
+                        tooltip: '重试',
+                        onPressed: _load,
+                        icon: const Icon(Icons.refresh_rounded),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (widget.mode == QndxxAccountViewMode.shop)
+              _buildShopHero(context),
+            if (!_signedIn) ...[
+              const Text('登录后即可查看套餐、订单和账户服务。'),
+              if (_error != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _error!,
+                  style: TextStyle(color: context.colorScheme.error),
+                ),
+              ],
+              const SizedBox(height: 16),
+              FilledButton(
+                onPressed: _loading ? null : _login,
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.login_rounded, size: 18),
+                    SizedBox(width: 8),
+                    Text('登录账号'),
                   ],
                 ),
               ),
-            ),
-          if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
-          if (!_signedIn) ...[
-            const Text('登录后即可查看套餐、订单和账户服务。'),
-            if (_error != null) ...[
               const SizedBox(height: 8),
-              Text(_error!, style: TextStyle(color: context.colorScheme.error)),
-            ],
-            const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _loading ? null : _login,
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.login_rounded, size: 18),
-                  SizedBox(width: 8),
-                  Text('登录账号'),
-                ],
-              ),
-            ),
-            const SizedBox(height: 8),
-          ] else ...[
-            if (widget.mode == QndxxAccountViewMode.account) ...[
-              generateSection(
-                title: '账号信息',
-                items: [
-                  ListItem(
-                    title: const Text('邮箱'),
-                    subtitle: Text(
-                      _value(_account['email'] ?? _account['username']),
-                    ),
-                  ),
-                  ListItem(
-                    title: const Text('当前套餐'),
-                    subtitle: Text(
-                      _value(
-                        (_subscription['plan'] is Map)
-                            ? (_subscription['plan'] as Map)['name']
-                            : _subscription['plan_name'],
-                      ),
-                    ),
-                  ),
-                  ListItem(
-                    title: const Text('到期时间'),
-                    subtitle: Text(
-                      _formatDate(
-                        _subscription['expired_at'] ??
-                            _subscription['expired_at_timestamp'],
-                      ),
-                    ),
-                  ),
-                  ListItem(
-                    title: const Text('流量总额'),
-                    subtitle: Text(
-                      _formatBytes(_subscription['transfer_enable']),
-                    ),
-                  ),
-                  ListItem(
-                    title: const Text('设备数量限制'),
-                    subtitle: Text(_value(_subscription['device_limit'])),
-                  ),
-                ],
-              ),
-            ],
-            if (widget.mode == QndxxAccountViewMode.shop) ...[
-              _buildPlansSection(context),
-              generateSection(
-                title: '订单记录',
-                items: [
-                  if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
-                  for (final order in _orders)
+            ] else ...[
+              if (widget.mode == QndxxAccountViewMode.account) ...[
+                generateSection(
+                  title: '账号信息',
+                  items: [
                     ListItem(
-                      title: Row(
-                        children: [
-                          Icon(
-                            Icons.receipt_long_rounded,
-                            size: 18,
-                            color: context.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(_value(order['trade_no'], '订单')),
-                          ),
-                        ],
-                      ),
+                      title: const Text('邮箱'),
                       subtitle: Text(
-                        '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
-                      ),
-                      onTap: () => _showOrder(order),
-                      trailing: (order['status']?.toString() == '0')
-                          ? TextButton(
-                              onPressed: () => _cancelOrder(order),
-                              child: const Text('取消'),
-                            )
-                          : null,
-                    ),
-                ],
-              ),
-            ],
-            if (widget.mode == QndxxAccountViewMode.account) ...[
-              generateSection(
-                title: '我的钱包',
-                items: [
-                  ListItem(
-                    title: const Text('可用佣金'),
-                    subtitle: Text(
-                      _account['balance'] == null
-                          ? '面板暂未提供余额数据'
-                          : _formatPrice(_account['balance']),
-                    ),
-                  ),
-                  ListItem(
-                    title: const Text('可划转佣金'),
-                    subtitle: Text(
-                      '¥${_availableCommission().toStringAsFixed(2)}',
-                    ),
-                    trailing: TextButton(
-                      onPressed: _transferCommission,
-                      child: const Text('划转到钱包'),
-                    ),
-                  ),
-                  const ListItem(
-                    title: Text('钱包用途'),
-                    subtitle: Text('划转后的余额仅可用于网站消费'),
-                  ),
-                ],
-              ),
-              generateSection(
-                title: '邀请与佣金',
-                items: [
-                  ListItem(
-                    title: const Text('邀请统计'),
-                    subtitle: Text(() {
-                      final stat = _invite['stat'];
-                      if (stat is List && stat.isNotEmpty) {
-                        final invited = stat[0];
-                        final total = stat.length > 1
-                            ? (num.tryParse(stat[1].toString()) ?? 0) / 100
-                            : 0;
-                        return '已邀请：$invited 人 · 累计佣金：¥${total.toStringAsFixed(2)}';
-                      }
-                      return _value(stat);
-                    }()),
-                  ),
-                  ListItem(
-                    title: const Text('生成邀请码'),
-                    trailing: TextButton(
-                      onPressed: _generateInvite,
-                      child: const Text('生成'),
-                    ),
-                  ),
-                  if (_inviteCodes.isEmpty)
-                    const ListItem(title: Text('暂无邀请码')),
-                  for (final code in _inviteCodes)
-                    ListItem(
-                      title: Text(_value(code['code'], '邀请码')),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
-                          ),
-                          const SizedBox(height: 8),
-                          QrImageView(
-                            data: _inviteUrl(_value(code['code'], '')),
-                            size: 144,
-                            backgroundColor: const Color(0xFFFFFFFF),
-                          ),
-                        ],
+                        _value(_account['email'] ?? _account['username']),
                       ),
                     ),
-                  if (_commissions.isNotEmpty)
-                    const ListItem(title: Text('佣金明细')),
-                  for (final commission in _commissions)
                     ListItem(
-                      title: Text('订单：${_value(commission['trade_no'])}'),
+                      title: const Text('当前套餐'),
                       subtitle: Text(
-                        '订单金额：${_formatPrice(commission['order_amount'])} · 佣金：${_formatPrice(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
+                        _value(
+                          (_subscription['plan'] is Map)
+                              ? (_subscription['plan'] as Map)['name']
+                              : _subscription['plan_name'],
+                        ),
                       ),
                     ),
-                ],
-              ),
-              generateSection(
-                title: '账户操作',
-                items: [
-                  ListItem(title: const Text('刷新账户数据'), onTap: _load),
-                  ListItem(title: const Text('退出登录'), onTap: _logout),
-                ],
-              ),
+                    ListItem(
+                      title: const Text('到期时间'),
+                      subtitle: Text(
+                        _formatDate(
+                          _subscription['expired_at'] ??
+                              _subscription['expired_at_timestamp'],
+                        ),
+                      ),
+                    ),
+                    ListItem(
+                      title: const Text('流量总额'),
+                      subtitle: Text(
+                        _formatBytes(_subscription['transfer_enable']),
+                      ),
+                    ),
+                    ListItem(
+                      title: const Text('设备数量限制'),
+                      subtitle: Text(_value(_subscription['device_limit'])),
+                    ),
+                  ],
+                ),
+              ],
+              if (widget.mode == QndxxAccountViewMode.shop) ...[
+                _buildPlansSection(context),
+                generateSection(
+                  title: '订单记录',
+                  items: [
+                    if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
+                    for (final order in _orders)
+                      ListItem(
+                        title: Row(
+                          children: [
+                            Icon(
+                              Icons.receipt_long_rounded,
+                              size: 18,
+                              color: context.colorScheme.primary,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(_value(order['trade_no'], '订单')),
+                            ),
+                          ],
+                        ),
+                        subtitle: Text(
+                          '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
+                        ),
+                        onTap: () => _showOrder(order),
+                        trailing: (order['status']?.toString() == '0')
+                            ? TextButton(
+                                onPressed: () => _cancelOrder(order),
+                                child: const Text('取消'),
+                              )
+                            : null,
+                      ),
+                  ],
+                ),
+              ],
+              if (widget.mode == QndxxAccountViewMode.account) ...[
+                generateSection(
+                  title: '我的钱包',
+                  items: [
+                    ListItem(
+                      title: const Text('可用佣金'),
+                      subtitle: Text(
+                        _account['balance'] == null
+                            ? '面板暂未提供余额数据'
+                            : _formatPrice(_account['balance']),
+                      ),
+                    ),
+                    ListItem(
+                      title: const Text('可划转佣金'),
+                      subtitle: Text(
+                        '¥${_availableCommission().toStringAsFixed(2)}',
+                      ),
+                      trailing: TextButton(
+                        onPressed: _transferCommission,
+                        child: const Text('划转到钱包'),
+                      ),
+                    ),
+                    const ListItem(
+                      title: Text('钱包用途'),
+                      subtitle: Text('划转后的余额仅可用于网站消费'),
+                    ),
+                  ],
+                ),
+                generateSection(
+                  title: '邀请与佣金',
+                  items: [
+                    ListItem(
+                      title: const Text('邀请统计'),
+                      subtitle: Text(() {
+                        final stat = _invite['stat'];
+                        if (stat is List && stat.isNotEmpty) {
+                          final invited = stat[0];
+                          final total = stat.length > 1
+                              ? (num.tryParse(stat[1].toString()) ?? 0) / 100
+                              : 0;
+                          return '已邀请：$invited 人 · 累计佣金：¥${total.toStringAsFixed(2)}';
+                        }
+                        return _value(stat);
+                      }()),
+                    ),
+                    ListItem(
+                      title: const Text('生成邀请码'),
+                      trailing: TextButton(
+                        onPressed: _generateInvite,
+                        child: const Text('生成'),
+                      ),
+                    ),
+                    if (_inviteCodes.isEmpty)
+                      const ListItem(title: Text('暂无邀请码')),
+                    for (final code in _inviteCodes)
+                      ListItem(
+                        title: Text(_value(code['code'], '邀请码')),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
+                            ),
+                            const SizedBox(height: 8),
+                            QrImageView(
+                              data: _inviteUrl(_value(code['code'], '')),
+                              size: 144,
+                              backgroundColor: const Color(0xFFFFFFFF),
+                            ),
+                          ],
+                        ),
+                      ),
+                    if (_commissions.isNotEmpty)
+                      const ListItem(title: Text('佣金明细')),
+                    for (final commission in _commissions)
+                      ListItem(
+                        title: Text('订单：${_value(commission['trade_no'])}'),
+                        subtitle: Text(
+                          '订单金额：${_formatPrice(commission['order_amount'])} · 佣金：${_formatPrice(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
+                        ),
+                      ),
+                  ],
+                ),
+                generateSection(
+                  title: '账户操作',
+                  items: [
+                    ListItem(title: const Text('刷新账户数据'), onTap: _load),
+                    ListItem(title: const Text('退出登录'), onTap: _logout),
+                  ],
+                ),
+              ],
             ],
           ],
-        ],
+        ),
       ),
-    ),
-  );
+    );
   }
 }
 

@@ -193,7 +193,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                           value: domain,
                           child: Row(
                             children: [
-                              const Icon(Icons.alternate_email_rounded, size: 15),
+                              const Icon(
+                                Icons.alternate_email_rounded,
+                                size: 15,
+                              ),
                               const SizedBox(width: 4),
                               Expanded(child: Text('@$domain', maxLines: 1)),
                             ],
