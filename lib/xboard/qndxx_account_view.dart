@@ -132,7 +132,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   }
 
   String _inviteUrl(String code) =>
-      'https://toufq.com/#/register?code=${Uri.encodeComponent(code)}';
+      'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
 
   Future<void> _login() async {
@@ -275,6 +275,37 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
+  double _availableCommission() {
+    final stat = _invite['stat'];
+    final raw = stat is Map ? stat['available_commission'] : null;
+    final cents = num.tryParse(raw?.toString() ?? '') ?? 0;
+    return cents / 100;
+  }
+
+  Future<void> _transferCommission() async {
+    final available = _availableCommission();
+    if (available <= 0) {
+      await dialogs.showAlert(
+        title: '佣金划转',
+        message: const TextSpan(text: '当前没有可划转的佣金'),
+      );
+      return;
+    }
+    final amount = await dialogs.showCommonDialog<double>(
+      child: _TransferCommissionDialog(maxAmount: available),
+    );
+    if (amount == null) return;
+    try {
+      await _service.transferCommissionToBalance(amount);
+      dialogs.showBanner('佣金已划转至网站钱包', level: BannerLevel.success);
+      await _load();
+    } catch (error) {
+      await dialogs.showAlert(
+        title: '佣金划转失败',
+        message: TextSpan(text: error.toString()),
+      );
+    }
+  }
   Future<void> _generateInvite() async {
     try {
       final code = await _service.generateInviteCode();
@@ -415,15 +446,21 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   ListItem(
                     title: const Text('可用佣金'),
                     subtitle: Text(_value(
-                      _invite['commission_balance'] ??
-                      _invite['balance'] ??
-                      _invite['commission'],
+                      _account['balance'],
                       '面板暂未提供余额数据',
                     )),
                   ),
+                  ListItem(
+                    title: const Text('可划转佣金'),
+                    subtitle: Text('¥${_availableCommission().toStringAsFixed(2)}'),
+                    trailing: TextButton(
+                      onPressed: _transferCommission,
+                      child: const Text('划转到钱包'),
+                    ),
+                  ),
                   const ListItem(
-                    title: Text('佣金用途'),
-                    subtitle: Text('佣金仅可用于网站消费'),
+                    title: Text('钱包用途'),
+                    subtitle: Text('划转后的余额仅可用于网站消费'),
                   ),
                 ],
               ),
@@ -485,6 +522,69 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   }
 }
 
+class _TransferCommissionDialog extends StatefulWidget {
+  const _TransferCommissionDialog({required this.maxAmount});
+
+  final double maxAmount;
+
+  @override
+  State<_TransferCommissionDialog> createState() =>
+      _TransferCommissionDialogState();
+}
+
+class _TransferCommissionDialogState extends State<_TransferCommissionDialog> {
+  final _amount = TextEditingController();
+
+  @override
+  void dispose() {
+    _amount.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: '佣金划转到网站钱包',
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('取消'),
+        ),
+        FilledButton(
+          onPressed: () {
+            final amount = double.tryParse(_amount.text.trim());
+            if (amount == null || amount <= 0 || amount > widget.maxAmount) {
+              dialogs.showBanner(
+                '请输入有效金额，最多可划转 ¥${widget.maxAmount.toStringAsFixed(2)}',
+                level: BannerLevel.warning,
+              );
+              return;
+            }
+            Navigator.of(context).pop(amount);
+          },
+          child: const Text('确认划转'),
+        ),
+      ],
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('可划转佣金：¥${widget.maxAmount.toStringAsFixed(2)}'),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: _amount,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              hintText: '请输入划转金额',
+              prefixText: '¥ ',
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text('划转至网站钱包后，仅可用于网站消费。'),
+        ],
+      ),
+    );
+  }
+}
 class _PlanPeriodDialog extends StatelessWidget {
   const _PlanPeriodDialog({required this.plan});
 
