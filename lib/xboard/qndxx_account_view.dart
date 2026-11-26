@@ -673,7 +673,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return DefaultTextStyle.merge(
+      // Use the native Windows UI font to avoid the softer fallback face in
+      // compact shop labels, prices, and plan descriptions.
+      style: TextStyle(fontFamily: Platform.isWindows ? 'Segoe UI' : null),
+      child: Scaffold(
       title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
       backgroundColor: context.colorScheme.surface,
       body: ListView(
@@ -1410,5 +1414,6 @@ class _QndxxMessageDialogState extends State<_QndxxMessageDialog> {
         decoration: const InputDecoration(hintText: '请输入回复内容'),
       ),
     );
+      ),
   }
 }
