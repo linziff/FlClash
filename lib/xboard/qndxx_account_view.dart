@@ -687,7 +687,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
                   for (final order in _orders)
                     ListItem(
-                      title: Text(_value(order['trade_no'], '订单')),
+                      title: Row(
+                        children: [
+                          Icon(Icons.receipt_long_rounded, size: 18, color: context.colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(_value(order['trade_no'], '订单'))),
+                        ],
+                      ),
                       subtitle: Text(
                         '金额：${_formatPrice(order['total_amount'])} · 状态：${_value(order['status'])}',
                       ),
