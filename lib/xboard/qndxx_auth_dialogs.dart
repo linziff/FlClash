@@ -309,7 +309,10 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
           TextFormField(
             controller: _email,
             keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(hintText: '注册邮箱'),
+            decoration: const InputDecoration(
+              hintText: '注册邮箱',
+              prefixIcon: Icon(Icons.email_outlined),
+            ),
           ),
           Row(
             spacing: 8,
@@ -317,7 +320,10 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _code,
-                  decoration: const InputDecoration(hintText: '邮箱验证码'),
+                  decoration: const InputDecoration(
+                    hintText: '邮箱验证码',
+                    prefixIcon: Icon(Icons.mark_email_unread_outlined),
+                  ),
                 ),
               ),
               TextButton(
@@ -329,7 +335,9 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
           TextFormField(
             controller: _password,
             obscureText: true,
-            decoration: const InputDecoration(hintText: '新密码'),
+            decoration: const InputDecoration(hintText: '新密码',
+              prefixIcon: Icon(Icons.lock_outline_rounded),
+            ),
           ),
         ],
       ),
