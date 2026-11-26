@@ -173,8 +173,8 @@ class ApplicationState extends ConsumerState<Application> {
     }
     await Navigator.of(globalState.navigatorKey.currentContext!).push<void>(
       MaterialPageRoute<void>(
-        fullscreenDialog: true,
-        builder: (_) => const QndxxLoginDialog(),
+        fullscreenDialog: false,
+        builder: (_) => const QndxxLoginDialog(mandatory: true),
       ),
     );
   }
