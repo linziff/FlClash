@@ -220,9 +220,12 @@ class QndxxXboardService {
   }
 
   bool _responseSucceeded(Map<String, dynamic> body) {
-    if (body['success'] == true || body['status'] == true) return true;
+    final status = body['status'];
+    if (status == false || status == 0 || status == 'error') return false;
+    if (body['success'] == true || status == true || status == 1) return true;
     final data = body['data'];
-    return data == true || data != null;
+    if (data is bool) return data;
+    return data != null;
   }
 
   Future<Response<Object?>> _publicPost(
@@ -243,9 +246,8 @@ class QndxxXboardService {
     Object? lastError;
     for (final candidate in urls) {
       try {
-        final baseUrl = _normalizeBaseUrl(candidate);
         final response = await _dio.post<Object?>(
-          '$baseUrl$path',
+          '${_normalizeBaseUrl(candidate)}$path',
           data: data,
           options: Options(
             responseType: ResponseType.plain,
@@ -264,7 +266,7 @@ class QndxxXboardService {
         lastError = error;
       }
     }
-    throw StateError('QNDXX 面板请求失败：${_safeError(lastError)}');
+    throw StateError('QNDXX 面板请求失败：' + _safeError(lastError));
   }
 
   Future<Map<String, dynamic>> getAccountInfo() async {
@@ -493,7 +495,7 @@ class QndxxXboardService {
     String? emailCode,
     String? inviteCode,
   }) async {
-    return (await _ensurePublicSdk()).auth.register(
+    return (await _ensureSdk()).auth.register(
       email,
       password,
       emailCode: emailCode,
@@ -502,7 +504,7 @@ class QndxxXboardService {
   }
 
   Future<bool> sendEmailVerifyCode(String email) async {
-    return (await _ensurePublicSdk()).auth.sendEmailVerifyCode(email);
+    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
   }
 
   Future<bool> forgotPassword(
@@ -510,7 +512,7 @@ class QndxxXboardService {
     String code,
     String newPassword,
   ) async {
-    return (await _ensurePublicSdk()).auth.forgotPassword(email, code, newPassword);
+    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
   }
 
   Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
