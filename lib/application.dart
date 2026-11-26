@@ -84,6 +84,7 @@ class ApplicationState extends ConsumerState<Application> {
       // A core startup exception must not prevent the XBoard login page from
       // being shown; the user can still sign in and inspect account status.
       final navigator = Navigator.of(navigatorContext);
+      final splashStartedAt = DateTime.now();
       final splashRoute = navigator.push<void>(
         PageRouteBuilder<void>(
           opaque: true,
@@ -118,6 +119,13 @@ class ApplicationState extends ConsumerState<Application> {
           level: BannerLevel.warning,
         );
       } finally {
+        // Keep the branded startup sequence visible for at least 3.5 seconds.
+        // If core/login initialization takes longer, do not add extra delay.
+        final splashElapsed = DateTime.now().difference(splashStartedAt);
+        const minimumSplashDuration = Duration(milliseconds: 3500);
+        if (splashElapsed < minimumSplashDuration) {
+          await Future<void>.delayed(minimumSplashDuration - splashElapsed);
+        }
         if (mounted && navigator.canPop()) {
           navigator.pop();
         }
