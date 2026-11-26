@@ -184,7 +184,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                           ?.toString().trim().isNotEmpty == true)
                     MarkdownBody(
                       data: (plan['content'] ?? plan['description'] ?? plan['plan_content']).toString(),
-                      shrinkWrap: true,
                     ),
                   const SizedBox(height: 10),
                   Wrap(
