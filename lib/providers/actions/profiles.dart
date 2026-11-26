@@ -442,13 +442,18 @@ class ProfilesAction extends _$ProfilesAction {
     String ageSecretKey = '',
   }) async {
     _showProfiles();
+    final profileLabel = label?.trim().isNotEmpty == true
+        ? label
+        : link.isShareLink
+        ? null
+        : '青年大学习';
     final profile = await globalState.loadingRun(
       tag: LoadingTag.profiles,
       () => link.isShareLink
-          ? _fromShareLinks(Profile.normal(label: label), [link])
+          ? _fromShareLinks(Profile.normal(label: profileLabel), [link])
           : _withAgeSecretKey(
               Profile.normal(
-                label: label,
+                label: profileLabel,
                 url: link,
               ).copyWith(ageSecretKey: ageSecretKey),
               _download,
@@ -472,7 +477,7 @@ class ProfilesAction extends _$ProfilesAction {
       [
         for (final link in links)
           if (!link.isShareLink)
-            (profile: Profile.normal(url: link), shareLinks: const <String>[])
+            (profile: Profile.normal(label: '青年大学习', url: link), shareLinks: const <String>[])
           else if (link == shareLinks.first)
             (profile: Profile.normal(), shareLinks: shareLinks),
       ],
