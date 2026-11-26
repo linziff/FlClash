@@ -675,9 +675,6 @@ class QndxxXboardService {
     return unique.values.toList(growable: false);
   }
 
-  String? _decrypt(String encrypted, String key) =>
-      QndxxSubscriptionDecryptor.decrypt(encrypted, key);
-
   bool _looksLikeClash(String content) =>
       QndxxSubscriptionDecryptor.looksLikeClash(content);
 
