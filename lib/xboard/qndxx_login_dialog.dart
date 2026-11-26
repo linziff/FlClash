@@ -228,7 +228,10 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                                   child: const QndxxRegisterDialog(),
                                 ),
                               ),
-                        icon: const Icon(Icons.person_add_alt_1_rounded, size: 17),
+                        icon: const Icon(
+                          Icons.person_add_alt_1_rounded,
+                          size: 17,
+                        ),
                         label: const Text('注册账号'),
                       ),
                     ],

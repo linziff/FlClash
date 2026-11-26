@@ -178,65 +178,65 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(24),
         child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryContainer.withValues(alpha: 0.82),
-                  colors.surfaceContainerHigh.withValues(alpha: 0.72),
-                ],
-              ),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.55),
-              ),
-              borderRadius: BorderRadius.circular(24),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: 0.13),
-                    borderRadius: BorderRadius.circular(17),
-                  ),
-                  child: Icon(
-                    Icons.storefront_rounded,
-                    color: colors.primary,
-                    size: 29,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '青年大学习 商店',
-                        style: TextStyle(
-                          color: colors.onSurface,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '选择适合你的套餐，畅享稳定连接',
-                        style: TextStyle(
-                          color: colors.onSurfaceVariant,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(Icons.auto_awesome_rounded, color: colors.primary),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.primaryContainer.withValues(alpha: 0.82),
+                colors.surfaceContainerHigh.withValues(alpha: 0.72),
               ],
             ),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.55),
+            ),
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 54,
+                height: 54,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.13),
+                  borderRadius: BorderRadius.circular(17),
+                ),
+                child: Icon(
+                  Icons.storefront_rounded,
+                  color: colors.primary,
+                  size: 29,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '青年大学习 商店',
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      '选择适合你的套餐，畅享稳定连接',
+                      style: TextStyle(
+                        color: colors.onSurfaceVariant,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.auto_awesome_rounded, color: colors.primary),
+            ],
           ),
         ),
+      ),
     );
   }
 
@@ -688,9 +688,15 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ListItem(
                       title: Row(
                         children: [
-                          Icon(Icons.receipt_long_rounded, size: 18, color: context.colorScheme.primary),
+                          Icon(
+                            Icons.receipt_long_rounded,
+                            size: 18,
+                            color: context.colorScheme.primary,
+                          ),
                           const SizedBox(width: 8),
-                          Expanded(child: Text(_value(order['trade_no'], '订单'))),
+                          Expanded(
+                            child: Text(_value(order['trade_no'], '订单')),
+                          ),
                         ],
                       ),
                       subtitle: Text(
