@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 
