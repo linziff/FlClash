@@ -119,9 +119,20 @@ class QndxxXboardService {
 
     final config = QndxxConfigService.instance;
     if (config.localConfig.isEmpty) {
-      await config.initialize(refreshRemote: true);
-    } else {
+      // Load bundled settings and the last known remote panel list first.
+      // A fresh remote-config fetch must not block a returning user's login.
+      await config.initialize(refreshRemote: false);
+    }
+    final cachedCandidates = config.rankedPanelUrls.isNotEmpty
+        ? config.rankedPanelUrls
+        : config.panelUrls;
+    if (cachedCandidates.isEmpty) {
+      // First launch without a usable cache still needs remote configuration.
       await config.refresh();
+    } else {
+      // Refresh routing/configuration in the background while authenticating
+      // against the last known working panel list.
+      unawaited(config.refresh());
     }
     final candidates = config.rankedPanelUrls.isNotEmpty
         ? config.rankedPanelUrls
