@@ -725,7 +725,7 @@ class QndxxXboardService {
     String? emailCode,
     String? inviteCode,
   }) async {
-    return (await _ensureSdk()).auth.register(
+    return (await _ensurePublicSdk()).auth.register(
       email,
       password,
       emailCode: emailCode,
@@ -734,7 +734,7 @@ class QndxxXboardService {
   }
 
   Future<bool> sendEmailVerifyCode(String email) async {
-    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
+    return (await _ensurePublicSdk()).auth.sendEmailVerifyCode(email);
   }
 
   Future<bool> forgotPassword(
@@ -742,7 +742,7 @@ class QndxxXboardService {
     String code,
     String newPassword,
   ) async {
-    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
+    return (await _ensurePublicSdk()).auth.forgotPassword(email, code, newPassword);
   }
 
   Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
