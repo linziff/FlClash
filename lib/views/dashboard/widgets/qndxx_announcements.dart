@@ -66,11 +66,17 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   @override
   void initState() {
     super.initState();
+    QndxxXboardService.sessionRevision.addListener(_handleSessionChanged);
     unawaited(_load());
+  }
+
+  void _handleSessionChanged() {
+    if (mounted) unawaited(_load());
   }
 
   @override
   void dispose() {
+    QndxxXboardService.sessionRevision.removeListener(_handleSessionChanged);
     _timer?.cancel();
     super.dispose();
   }
@@ -150,7 +156,6 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
     if (_notices.isEmpty) return const SizedBox.shrink();
     final notice = _notices[_index];
     final title = _noticeTitle(notice);
-    final content = _noticeContent(notice);
     final colors = context.colorScheme;
     return DashboardCard(
       padding: EdgeInsets.zero,
@@ -192,44 +197,16 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
                         child: child,
                       ),
                     ),
-                    child: Column(
+                    child: Text(
+                      title.isNotEmpty ? title : '平台公告',
                       key: ValueKey(_noticeKey(notice)),
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          title.isNotEmpty ? title : '平台公告',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            color: colors.onSurface,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 13,
-                          ),
-                        ),
-                        if (content.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxHeight: 38),
-                            child: ClipRect(
-                              child: MarkdownBody(
-                                data: content,
-                                styleSheet: MarkdownStyleSheet(
-                                  p: TextStyle(
-                                    color: colors.onSurfaceVariant,
-                                    fontSize: 12,
-                                    height: 1.25,
-                                  ),
-                                  h1: TextStyle(color: colors.onSurface, fontSize: 13, fontWeight: FontWeight.w700),
-                                  h2: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w700),
-                                  h3: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w700),
-                                  listBullet: TextStyle(color: colors.primary, fontSize: 12),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colors.onSurface,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 13,
+                      ),
                     ),
                   ),
                 ),
