@@ -39,31 +39,50 @@ class QndxxConfigService {
   String? get fastestPanelUrl => _fastestPanel;
   DateTime? get lastRefresh => _lastRefresh;
   List<String> get rankedPanelUrls => List.unmodifiable(_rankedPanels);
+  Map? get _remoteSubscription => _remote['subscription'] as Map?;
+  Map? get _remoteSecurity => _remote['security'] as Map?;
+  Map? get _remoteUserAgents => _remoteSecurity?['user_agents'] as Map?;
+
   String get decryptKey =>
-      (_local['subscription'] as Map?)?['decrypt_key']?.toString() ?? '';
+      (_remoteSubscription?['decrypt_key'] ??
+              (_local['subscription'] as Map?)?['decrypt_key'])
+          ?.toString() ??
+      '';
   bool get preferEncrypt =>
-      (_local['subscription'] as Map?)?['prefer_encrypt'] == true;
+      (_remoteSubscription?['prefer_encrypt'] ??
+          (_local['subscription'] as Map?)?['prefer_encrypt']) == true;
   String get obfuscationPrefix =>
-      (_local['security'] as Map?)?['obfuscation_prefix']?.toString() ?? '';
+      (_remoteSecurity?['obfuscation_prefix'] ??
+              (_local['security'] as Map?)?['obfuscation_prefix'])
+          ?.toString() ??
+      '';
   String get apiUserAgent {
-    final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    return agents?['api_encrypted']?.toString() ?? 'QNDXX/6.6.6';
+    final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
+    return (_remoteUserAgents?['api_encrypted'] ??
+                localAgents?['api_encrypted'])
+            ?.toString() ??
+        'QNDXX/6.6.6';
   }
 
   String get domainRacingUserAgent {
-    final agents = (_local['security'] as Map?)?['user_agents'] as Map?;
-    return agents?['domain_racing_test']?.toString() ??
+    final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
+    return (_remoteUserAgents?['domain_racing_test'] ??
+                localAgents?['domain_racing_test'])
+            ?.toString() ??
         'QNDXX/6.6.6 (Domain Racing Test)';
   }
 
   String get crispWebsiteId =>
+      (_remote['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       (_local['customer_service'] as Map?)?['crisp_website_id']?.toString() ??
       '92f20590-a75f-4b50-a521-6d5fc7a356dd';
   String get subscriptionUserAgent {
-    final security = _local['security'] as Map?;
-    final agents = security?['user_agents'] as Map?;
-    return agents?['subscription']?.toString() ??
-        agents?['api_encrypted']?.toString() ??
+    final localAgents = (_local['security'] as Map?)?['user_agents'] as Map?;
+    return (_remoteUserAgents?['subscription'] ??
+                _remoteUserAgents?['api_encrypted'] ??
+                localAgents?['subscription'] ??
+                localAgents?['api_encrypted'])
+            ?.toString() ??
         'QNDXX/6.6.6';
   }
 
