@@ -504,14 +504,7 @@ class QndxxXboardService {
     return _responseSucceeded(body);
   }
 
-  Future<void> logout() async {
-    try {
-      if (_token != null && _panelUrl != null) {
-        await _authorizedPost('/api/v1/passport/auth/logout', const {});
-      }
-    } catch (_) {
-      // Local logout must still succeed when the panel is unreachable.
-    }
+  Future<void> _clearLocalSession() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
     await prefs.remove(_panelKey);
@@ -520,6 +513,17 @@ class QndxxXboardService {
     _token = null;
     _panelUrl = null;
     _email = null;
+  }
+
+  Future<void> logout() async {
+    try {
+      if (_token != null && _panelUrl != null) {
+        await _authorizedPost('/api/v1/passport/auth/logout', const {});
+      }
+    } catch (_) {
+      // Local logout must still succeed when the panel is unreachable.
+    }
+    await _clearLocalSession();
   }
 
   Future<Response<Object?>> _authorizedGet(String path) async {
@@ -541,16 +545,24 @@ class QndxxXboardService {
         rethrow;
       }
       // Older XBoard installations expect the raw token without "Bearer ".
-      return _dio.get<Object?>(
-        '$_panelUrl$path',
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': _token!,
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
+      try {
+        return await _dio.get<Object?>(
+          '$_panelUrl$path',
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {
+              'Authorization': _token!,
+              'User-Agent': QndxxConfigService.instance.apiUserAgent,
+            },
+          ),
+        );
+      } on DioException catch (retryError) {
+        if (retryError.response?.statusCode == 401 ||
+            retryError.response?.statusCode == 403) {
+          await _clearLocalSession();
+        }
+        rethrow;
+      }
     }
   }
 
@@ -576,17 +588,25 @@ class QndxxXboardService {
           error.response?.statusCode != 403) {
         rethrow;
       }
-      return _dio.post<Object?>(
-        '$_panelUrl$path',
-        data: data,
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': _token!,
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
+      try {
+        return await _dio.post<Object?>(
+          '$_panelUrl$path',
+          data: data,
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {
+              'Authorization': _token!,
+              'User-Agent': QndxxConfigService.instance.apiUserAgent,
+            },
+          ),
+        );
+      } on DioException catch (retryError) {
+        if (retryError.response?.statusCode == 401 ||
+            retryError.response?.statusCode == 403) {
+          await _clearLocalSession();
+        }
+        rethrow;
+      }
     }
   }
 
