@@ -26,7 +26,9 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return LiquidGlassHost(
+      enabled: false,
+      child: Scaffold(
       title: '在线客服',
       backgroundColor: context.colorScheme.surface,
       body: Padding(
@@ -34,7 +36,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
         // the system gesture area instead of painting behind navigation.
         padding: EdgeInsets.only(
           top: context.contentTopPadding,
-          bottom: context.bottomInset,
+          bottom: context.bottomInset + 8,
         ),
         child: Stack(
           fit: StackFit.expand,
@@ -99,6 +101,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
               ),
           ],
         ),
+      ),
       ),
     );
   }
