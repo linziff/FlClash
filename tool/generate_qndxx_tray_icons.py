@@ -7,7 +7,7 @@ status_3: TUN enabled (blue)
 status_4: safe mode (amber)
 """
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 ROOT = Path(__file__).resolve().parents[1]
 COLORS = {
@@ -18,6 +18,18 @@ COLORS = {
 }
 
 def make_app_icon(size: int = 1024) -> Image.Image:
+    """Render the supplied high-resolution QNDXX brand mark into the app icon."""
+    source_path = ROOT / "assets/images/QNDXXLG.png"
+    if not source_path.is_file():
+        raise FileNotFoundError(f"QNDXX logo was not downloaded: {source_path}")
+    with Image.open(source_path) as source:
+        logo = source.convert("RGBA")
+    if min(logo.size) < 256:
+        raise ValueError(
+            f"QNDXX logo is too small for a crisp app icon: {logo.size}; "
+            "provide a source image of at least 256x256."
+        )
+
     image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     pixels = image.load()
     for y in range(size):
@@ -34,21 +46,16 @@ def make_app_icon(size: int = 1024) -> Image.Image:
         (0, 0, size - 1, size - 1), radius=int(size * 0.22), fill=255
     )
     image.putalpha(mask)
-    draw = ImageDraw.Draw(image)
-    font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-    if not Path(font_path).exists():
-        font_path = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-    if not Path(font_path).exists():
-        font_path = "C:/Windows/Fonts/arialbd.ttf"
-    try:
-        font = ImageFont.truetype(font_path, int(size * 0.38))
-    except OSError:
-        font = ImageFont.load_default()
-    label = "QX"
-    box = draw.textbbox((0, 0), label, font=font, stroke_width=0)
-    x = (size - (box[2] - box[0])) / 2 - box[0]
-    y = (size - (box[3] - box[1])) / 2 - box[1]
-    draw.text((x, y), label, font=font, fill=(245, 251, 255, 255))
+
+    # Preserve the complete logo and transparency; resize once from the
+    # original source with a high-quality filter before producing native icons.
+    logo = ImageOps.contain(
+        logo, (int(size * 0.78), int(size * 0.78)),
+        method=Image.Resampling.LANCZOS,
+    )
+    image.alpha_composite(
+        logo, ((size - logo.width) // 2, (size - logo.height) // 2)
+    )
     return image
 
 def make_icon(status: int, size: int) -> Image.Image:
