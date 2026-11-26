@@ -667,7 +667,13 @@ class QndxxXboardService {
   }
 
   Future<Map<String, dynamic>> checkForUpdates() async {
-    final urls = QndxxConfigService.instance.updateUrls;
+    final config = QndxxConfigService.instance;
+    if (config.localConfig.isEmpty) {
+      await config.initialize(refreshRemote: true);
+    } else {
+      await config.refresh();
+    }
+    final urls = config.updateUrls;
     if (urls.isEmpty) throw StateError('远程配置没有 update 更新服务器');
     final packageInfo = await PackageInfo.fromPlatform();
     final platform = Platform.isAndroid
