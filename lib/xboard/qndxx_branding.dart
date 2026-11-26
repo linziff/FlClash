@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:fl_clash/widgets/widgets.dart';
+
+import 'qndxx_config_service.dart';
 import 'package:flutter/widgets.dart';
 
 const qndxxLogoUrl = 'https://img.toufq.com/IMG/QNDXXLG.png';
@@ -9,6 +11,15 @@ class QndxxBrandLogo extends StatelessWidget {
   const QndxxBrandLogo({super.key, this.size = 76});
 
   final double size;
+
+  Future<void> _loadRemoteWebsite() async {
+    try {
+      await QndxxConfigService.instance.initialize(refreshRemote: true);
+      if (mounted) setState(() {});
+    } catch (_) {
+      // Keep the bundled website text if remote configuration is unavailable.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +65,7 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
   @override
   void initState() {
     super.initState();
+    unawaited(_loadRemoteWebsite());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) setState(() => _visible = true);
     });
@@ -90,7 +102,7 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
               ),
               const SizedBox(height: 8),
               Text(
-                '官网发布页：toufq.com',
+                QndxxConfigService.instance.appWebsite,
                 style: TextStyle(
                   fontSize: 14,
                   color: context.colorScheme.onSurface,
