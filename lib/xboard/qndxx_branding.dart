@@ -23,16 +23,12 @@ class QndxxBrandLogo extends StatelessWidget {
           width: size,
           height: size,
           alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: context.colorScheme.primaryContainer,
-            borderRadius: BorderRadius.circular(size * 0.23),
-          ),
           child: Text(
-            '青',
+            'Q',
             style: TextStyle(
-              fontSize: size * 0.48,
-              fontWeight: FontWeight.w700,
-              color: context.colorScheme.onPrimaryContainer,
+              fontSize: size * 0.62,
+              fontWeight: FontWeight.w800,
+              color: context.colorScheme.primary,
             ),
           ),
         ),
