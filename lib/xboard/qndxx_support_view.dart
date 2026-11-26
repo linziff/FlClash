@@ -19,11 +19,17 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_openCrisp()));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_openCrisp()),
+    );
   }
 
   Future<void> _openCrisp() async {
-    if (mounted) setState(() { _opening = true; _error = null; });
+    if (mounted)
+      setState(() {
+        _opening = true;
+        _error = null;
+      });
     try {
       await QndxxCrispService.instance.open();
     } catch (error) {

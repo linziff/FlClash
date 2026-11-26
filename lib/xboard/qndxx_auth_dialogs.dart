@@ -19,9 +19,19 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   bool _busy = false;
   String _emailDomain = 'qq.com';
   static const _emailDomains = [
-    'qq.com', '163.com', '126.com', 'yeah.net', 'gmail.com',
-    'yahoo.com', 'sina.com', 'outlook.com', 'foxmail.com', 'mail.ru',
-    'bk.ru', 'gzpuye.com', 'ne01-e.com',
+    'qq.com',
+    '163.com',
+    '126.com',
+    'yeah.net',
+    'gmail.com',
+    'yahoo.com',
+    'sina.com',
+    'outlook.com',
+    'foxmail.com',
+    'mail.ru',
+    'bk.ru',
+    'gzpuye.com',
+    'ne01-e.com',
   ];
 
   String get _fullEmail {

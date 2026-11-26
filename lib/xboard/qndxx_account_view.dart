@@ -134,7 +134,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   String _inviteUrl(String code) =>
       'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
-
   Future<void> _login() async {
     await dialogs.showCommonDialog<void>(child: const QndxxLoginDialog());
     await _load();
@@ -313,6 +312,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       );
     }
   }
+
   Future<void> _generateInvite() async {
     try {
       final code = await _service.generateInviteCode();
@@ -364,21 +364,28 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   ),
                   ListItem(
                     title: const Text('当前套餐'),
-                    subtitle: Text(_value(
-                      (_subscription['plan'] is Map)
-                          ? (_subscription['plan'] as Map)['name']
-                          : _subscription['plan_name'],
-                    )),
+                    subtitle: Text(
+                      _value(
+                        (_subscription['plan'] is Map)
+                            ? (_subscription['plan'] as Map)['name']
+                            : _subscription['plan_name'],
+                      ),
+                    ),
                   ),
                   ListItem(
                     title: const Text('到期时间'),
-                    subtitle: Text(_formatDate(
-                      _subscription['expired_at'] ?? _subscription['expired_at_timestamp'],
-                    )),
+                    subtitle: Text(
+                      _formatDate(
+                        _subscription['expired_at'] ??
+                            _subscription['expired_at_timestamp'],
+                      ),
+                    ),
                   ),
                   ListItem(
                     title: const Text('流量总额'),
-                    subtitle: Text(_formatBytes(_subscription['transfer_enable'])),
+                    subtitle: Text(
+                      _formatBytes(_subscription['transfer_enable']),
+                    ),
                   ),
                   ListItem(
                     title: const Text('设备数量限制'),
@@ -399,12 +406,24 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if ((plan['content'] ?? plan['description'] ?? plan['plan_content'])?.toString().trim().isNotEmpty == true)
+                          if ((plan['content'] ??
+                                      plan['description'] ??
+                                      plan['plan_content'])
+                                  ?.toString()
+                                  .trim()
+                                  .isNotEmpty ==
+                              true)
                             MarkdownBody(
-                              data: (plan['content'] ?? plan['description'] ?? plan['plan_content']).toString(),
+                              data:
+                                  (plan['content'] ??
+                                          plan['description'] ??
+                                          plan['plan_content'])
+                                      .toString(),
                             ),
                           const SizedBox(height: 6),
-                          Text('流量：${_formatBytes(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}'),
+                          Text(
+                            '流量：${_formatBytes(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}',
+                          ),
                         ],
                       ),
                       trailing: TextButton(
@@ -452,14 +471,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 items: [
                   ListItem(
                     title: const Text('可用佣金'),
-                    subtitle: Text(_value(
-                      _account['balance'],
-                      '面板暂未提供余额数据',
-                    )),
+                    subtitle: Text(_value(_account['balance'], '面板暂未提供余额数据')),
                   ),
                   ListItem(
                     title: const Text('可划转佣金'),
-                    subtitle: Text('¥${_availableCommission().toStringAsFixed(2)}'),
+                    subtitle: Text(
+                      '¥${_availableCommission().toStringAsFixed(2)}',
+                    ),
                     trailing: TextButton(
                       onPressed: _transferCommission,
                       child: const Text('划转到钱包'),
@@ -480,7 +498,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       final stat = _invite['stat'];
                       if (stat is List && stat.isNotEmpty) {
                         final invited = stat[0];
-                        final total = stat.length > 1 ? (num.tryParse(stat[1].toString()) ?? 0) / 100 : 0;
+                        final total = stat.length > 1
+                            ? (num.tryParse(stat[1].toString()) ?? 0) / 100
+                            : 0;
                         return '已邀请：$invited 人 · 累计佣金：¥${total.toStringAsFixed(2)}';
                       }
                       return _value(stat);
@@ -501,7 +521,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}'),
+                          Text(
+                            '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
+                          ),
                           const SizedBox(height: 8),
                           QrImageView(
                             data: _inviteUrl(_value(code['code'], '')),
@@ -600,6 +622,7 @@ class _TransferCommissionDialogState extends State<_TransferCommissionDialog> {
     );
   }
 }
+
 class _PlanPeriodDialog extends StatelessWidget {
   const _PlanPeriodDialog({required this.plan});
 

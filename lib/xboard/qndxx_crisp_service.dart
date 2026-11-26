@@ -114,9 +114,11 @@ class QndxxCrispService {
       ),
     );
     _desktopWindow = window;
-    unawaited(window.onClose.then((_) {
-      if (identical(_desktopWindow, window)) _desktopWindow = null;
-    }));
+    unawaited(
+      window.onClose.then((_) {
+        if (identical(_desktopWindow, window)) _desktopWindow = null;
+      }),
+    );
     try {
       await window.launch(uri.toString());
     } catch (_) {
