@@ -85,9 +85,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       } else {
         final results = await Future.wait<dynamic>([
           _service.getPlans().catchError((_) => <Map<String, dynamic>>[]),
-          _service.getOrders().catchError(
-            (_) => <Map<String, dynamic>>[],
-          ),
+          _service.getOrders().catchError((_) => <Map<String, dynamic>>[]),
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
         orders = results[1] as List<Map<String, dynamic>>;
@@ -163,8 +161,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     return generateSection(
       title: '精选套餐',
       items: [
-        if (_plans.isEmpty)
-          const ListItem(title: Text('当前面板没有返回可购买套餐')),
+        if (_plans.isEmpty) const ListItem(title: Text('当前面板没有返回可购买套餐')),
         for (final plan in _plans)
           ListItem(
             title: Text(
@@ -180,10 +177,19 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if ((plan['content'] ?? plan['description'] ?? plan['plan_content'])
-                          ?.toString().trim().isNotEmpty == true)
+                  if ((plan['content'] ??
+                              plan['description'] ??
+                              plan['plan_content'])
+                          ?.toString()
+                          .trim()
+                          .isNotEmpty ==
+                      true)
                     MarkdownBody(
-                      data: (plan['content'] ?? plan['description'] ?? plan['plan_content']).toString(),
+                      data:
+                          (plan['content'] ??
+                                  plan['description'] ??
+                                  plan['plan_content'])
+                              .toString(),
                     ),
                   const SizedBox(height: 10),
                   Wrap(
@@ -628,7 +634,13 @@ class _PlanFeatureChip extends StatelessWidget {
           children: [
             Icon(icon, size: 14, color: context.colorScheme.primary),
             const SizedBox(width: 5),
-            Text(label, style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: context.colorScheme.onSurfaceVariant,
+              ),
+            ),
           ],
         ),
       ),
@@ -653,7 +665,10 @@ class _PlanPriceRow extends StatelessWidget {
       ('three_year_price', '三年'),
     ];
     final prices = periods
-        .map((item) => (item.$2, num.tryParse(plan[item.$1]?.toString() ?? '') ?? 0))
+        .map(
+          (item) =>
+              (item.$2, num.tryParse(plan[item.$1]?.toString() ?? '') ?? 0),
+        )
         .where((item) => item.$2 > 0)
         .toList();
     if (prices.isEmpty) return const Text('价格以结算页为准');
@@ -674,13 +689,19 @@ class _PlanPriceRow extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: 3),
           child: Text(
             '${lowest.$1}起',
-            style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant),
+            style: TextStyle(
+              fontSize: 12,
+              color: context.colorScheme.onSurfaceVariant,
+            ),
           ),
         ),
         const Spacer(),
         Text(
           '${prices.length} 种周期',
-          style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant),
+          style: TextStyle(
+            fontSize: 12,
+            color: context.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );
