@@ -85,6 +85,47 @@ class QndxxCrispService {
     throw UnsupportedError('当前平台暂不支持 QNDXX Crisp 客服');
   }
 
+  Future<void> openPayment(String url) async {
+    final uri = Uri.tryParse(url);
+    if (uri == null || (uri.scheme != 'https' && uri.scheme != 'http')) {
+      throw const FormatException('支付地址无效');
+    }
+    if (!Platform.isWindows && !Platform.isMacOS) {
+      throw UnsupportedError('当前平台暂不支持内嵌支付');
+    }
+    final available = await WebviewWindow.isWebviewAvailable();
+    if (!available) throw StateError('当前设备缺少内嵌 WebView 运行环境');
+    await _desktopWindow?.close();
+    final supportDirectory = await getApplicationSupportDirectory();
+    final dataDirectory = Directory(
+      p.join(supportDirectory.path, 'QNDXX', 'PaymentWebView'),
+    );
+    if (Platform.isWindows) await dataDirectory.create(recursive: true);
+    final window = await WebviewWindow.create(
+      configuration: CreateConfiguration(
+        title: 'QNDXX 安全支付',
+        windowWidth: 1280,
+        windowHeight: 900,
+        windows: WindowsWebviewOptions(
+          userDataFolder: Platform.isWindows
+              ? dataDirectory.path
+              : supportDirectory.path,
+        ),
+      ),
+    );
+    _desktopWindow = window;
+    unawaited(window.onClose.then((_) {
+      if (identical(_desktopWindow, window)) _desktopWindow = null;
+    }));
+    try {
+      await window.launch(uri.toString());
+    } catch (_) {
+      _desktopWindow = null;
+      await window.close();
+      rethrow;
+    }
+  }
+
   Future<void> close() async {
     await _desktopWindow?.close();
     _desktopWindow = null;
