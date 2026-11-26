@@ -75,15 +75,46 @@ class ApplicationState extends ConsumerState<Application> {
     super.initState();
     SystemNavigator.setFrameworkHandlesBack(true);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-      if (globalState.navigatorKey.currentContext != null) {
-        await dialogs.showCommonDialog<void>(
-          child: const QndxxStartupSplash(),
-        );
-        await bootstrap.attach();
-        await _ensureQndxxLogin();
-      } else {
+      final navigatorContext = globalState.navigatorKey.currentContext;
+      if (navigatorContext == null) {
         exit(0);
+        return;
       }
+
+      // Keep the branded splash visible for the entire initialization flow.
+      // A core startup exception must not prevent the XBoard login page from
+      // being shown; the user can still sign in and inspect account status.
+      final navigator = Navigator.of(navigatorContext);
+      final splashRoute = navigator.push<void>(
+        PageRouteBuilder<void>(
+          opaque: true,
+          pageBuilder: (_, _, _) => const QndxxStartupSplash(),
+          transitionsBuilder: (_, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+
+      try {
+        await bootstrap.attach();
+      } catch (error, stack) {
+        commonPrint.log(
+          'QNDXX core startup failed: $error\\n$stack',
+          logLevel: LogLevel.warning,
+        );
+        dialogs.showBanner(
+          '核心启动失败，账号登录仍可继续；请检查核心日志。',
+          level: BannerLevel.warning,
+        );
+      }
+
+      await _ensureQndxxLogin();
+
+      if (mounted && navigator.canPop()) {
+        navigator.pop();
+      }
+      await splashRoute;
+
+      if (!mounted) return;
       _autoUpdateProfilesTask();
       _initLink();
       if (!safeModeBuild) {
