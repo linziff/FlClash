@@ -5,7 +5,11 @@ const _logoPath = 'assets/images/QNDXXLG.png';
 
 Future<void> main() async {
   final file = File(_logoPath);
-  if (await file.exists() && await file.length() > 0) return;
+  if (await file.exists() && await file.length() > 0) {
+    await file.copy('assets/images/icon.png');
+    stdout.writeln('Reused existing QNDXX logo at $_logoPath.');
+    return;
+  }
   await file.parent.create(recursive: true);
 
   final client = HttpClient();
