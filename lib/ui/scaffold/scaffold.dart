@@ -81,6 +81,7 @@ class Scaffold extends StatefulWidget {
   final ValueListenable<List<ScaffoldKeyword>>? keywords;
   final bool? resizeToAvoidBottomInset;
   final VoidCallback? backAction;
+  final bool hideLeading;
 
   /// Puts the toggle of the sort mode in the bar.
   final bool canSort;
@@ -95,6 +96,7 @@ class Scaffold extends StatefulWidget {
     this.actions,
     this.statusActions = const [],
     this.backAction,
+    this.hideLeading = false,
     this.isLoading = false,
     this.searchState,
     this.searchActions = const [],
@@ -755,7 +757,9 @@ class ScaffoldState extends State<Scaffold>
       listenable: Listenable.merge([_appBarState, _searchCovered]),
       builder: (_) {
         final searchState = _appBarState.value;
-        final leading = _buildLeading(backAction, pop: form.pop);
+        final leading = widget.hideLeading
+            ? null
+            : _buildLeading(backAction, pop: form.pop);
         final barSearch = searchState != null && !form.hasDockedSearch;
         final covered = barSearch && _searchCovered.value;
         final hidesBar = covered && _searchFillsBar;
