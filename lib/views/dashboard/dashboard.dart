@@ -254,10 +254,11 @@ class _DesktopDashboard extends StatelessWidget {
         ];
         final rowsHeight =
             padding.vertical +
+            60 +
             topHeight +
             controlHeight +
             middleHeight +
-            gap * 3;
+            gap * 4;
         final tablesFit = constraints.maxHeight >= rowsHeight + tablesHeight;
         final fills = constraints.maxHeight >= rowsHeight + summaryHeight;
         return SingleChildScrollView(
