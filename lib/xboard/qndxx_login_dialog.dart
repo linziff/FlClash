@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
@@ -35,10 +36,10 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     super.dispose();
   }
 
-  Future<List<int>> _normalizeSubscription(List<int> bytes) async {
+  Future<Uint8List> _normalizeSubscription(List<int> bytes) async {
     final content = utf8.decode(bytes, allowMalformed: false).trim();
     if (QndxxSubscriptionDecryptor.looksLikeClash(content)) {
-      return bytes;
+      return Uint8List.fromList(bytes);
     }
     if (!QndxxSubscriptionDecryptor.looksLikeShareLinks(content)) {
       throw const FormatException('订阅内容不是有效的 Mihomo 配置或节点分享链接');
@@ -74,7 +75,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     };
     // JSON is a valid YAML 1.2 document and avoids lossy hand-written YAML
     // escaping for passwords, IPv6 addresses, and transport options.
-    return utf8.encode(jsonEncode(profile));
+    return Uint8List.fromList(utf8.encode(jsonEncode(profile)));
   }
 
   Future<void> _loginAndImport() async {
