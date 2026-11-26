@@ -101,13 +101,19 @@ class QndxxConfigService {
 
   /// Text shown under the startup welcome message. Remote app.website
   /// takes precedence, with the bundled value retained as an offline fallback.
-  String get appWebsite =>
-      (_remote['app'] as Map?)?['website']?.toString().trim().isNotEmpty == true
-          ? ((_remote['app'] as Map)['website']).toString().trim()
-          : ((_local['app'] as Map?)?['website']?.toString().trim().isNotEmpty ==
-                    true
-                ? ((_local['app'] as Map)['website']).toString().trim()
-                : '官网发布页：toufq.com');
+  String get appWebsite {
+    final remoteApp = _remote['app'];
+    final remoteWebsite = remoteApp is Map
+        ? remoteApp['website']?.toString().trim() ?? ''
+        : '';
+    if (remoteWebsite.isNotEmpty) return remoteWebsite;
+
+    final localApp = _local['app'];
+    final localWebsite = localApp is Map
+        ? localApp['website']?.toString().trim() ?? ''
+        : '';
+    return localWebsite.isNotEmpty ? localWebsite : '官网发布页：toufq.com';
+  }
 
   String get panelType => _remote['panelType']?.toString() ?? 'xboard';
 
