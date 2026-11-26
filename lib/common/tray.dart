@@ -43,13 +43,11 @@ class AppTray implements TrayPort {
     return isWindows ? 'ico' : 'png';
   }
 
-  bool _isTemplate(bool monochrome) => false;
-
-  String _trayIconDir(bool monochrome) {
+  String _trayIconDir() {
     if (isWindows) {
       return 'assets/images/tray/windows';
     }
-    return _isTemplate(monochrome)
+    return isMacOS
         ? 'assets/images/tray/macos'
         : 'assets/images/tray/unix';
   }
@@ -70,7 +68,7 @@ class AppTray implements TrayPort {
       (false, false, false) => 2,
       (false, false, true) => 3,
     };
-    return '${_trayIconDir(monochrome)}/status_$status.$_trayIconSuffix';
+    return '${_trayIconDir()}/status_$status.$_trayIconSuffix';
   }
 
   @override
@@ -102,7 +100,7 @@ class AppTray implements TrayPort {
             safeMode: trayState.safeMode,
             monochrome: trayState.monochromeTrayIcon,
           ),
-          isTemplate: _isTemplate(trayState.monochromeTrayIcon),
+          isTemplate: false,
           size: isMacOS ? 18 : 16,
         ),
         toolTip: trayState.safeMode
