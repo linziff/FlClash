@@ -2,7 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show DropdownButtonFormField, DropdownMenuItem, Icons;
+    show Icons, PopupMenuButton, PopupMenuItem;
 
 import 'qndxx_xboard_service.dart';
 
@@ -145,23 +145,41 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                   ),
                 ),
               ),
-              Expanded(
-                flex: 2,
-                child: DropdownButtonFormField<String>(
+              SizedBox(
+                width: 132,
+                child: PopupMenuButton<String>(
+                  tooltip: '选择邮箱后缀',
                   initialValue: _emailDomain,
-                  isExpanded: true,
-                  // Keep the suffix picker independent from text-field decoration APIs.
-                  items: [
+                  enabled: !_busy,
+                  onSelected: (value) => setState(() => _emailDomain = value),
+                  itemBuilder: (context) => [
                     for (final domain in _emailDomains)
-                      DropdownMenuItem(value: domain, child: Text(domain)),
+                      PopupMenuItem<String>(
+                        value: domain,
+                        child: Text('@$domain'),
+                      ),
                   ],
-                  onChanged: _busy
-                      ? null
-                      : (value) {
-                          if (value != null) {
-                            setState(() => _emailDomain = value);
-                          }
-                        },
+                  child: Container(
+                    height: 56,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: context.colorScheme.outline),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            '@$_emailDomain',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const Icon(Icons.arrow_drop_down_rounded),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ],
