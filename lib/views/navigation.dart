@@ -21,7 +21,7 @@ class Navigation implements NavigationPort {
         builder: (_) => const DashboardView(),
       ),
       NavigationItem(
-        glyph: AppGlyphs.resources,
+        glyph: AppGlyphs.shop,
         label: PageLabel.shop,
         builder: (_) => const QndxxAccountView(mode: QndxxAccountViewMode.shop),
       ),
