@@ -154,6 +154,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     return PopScope<void>(
       canPop: !widget.mandatory || _authenticated,
       child: Scaffold(
+        hideLeading: widget.mandatory,
         title: '登录账号',
         body: SafeArea(
           child: Center(
