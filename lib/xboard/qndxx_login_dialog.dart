@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
@@ -12,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'qndxx_auth_dialogs.dart';
 import 'qndxx_branding.dart';
 import 'qndxx_remote_status_service.dart';
+import 'qndxx_subscription_decryptor.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxLoginDialog extends ConsumerStatefulWidget {
@@ -31,6 +33,50 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<List<int>> _normalizeSubscription(List<int> bytes) async {
+    final content = utf8.decode(bytes, allowMalformed: false).trim();
+    if (QndxxSubscriptionDecryptor.looksLikeClash(content)) {
+      return bytes;
+    }
+    if (!QndxxSubscriptionDecryptor.looksLikeShareLinks(content)) {
+      throw const FormatException('订阅内容不是有效的 Mihomo 配置或节点分享链接');
+    }
+
+    final lines = content
+        .split(RegExp(r'[\\r\\n]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty && !line.startsWith('#'))
+        .toList(growable: false);
+    final decoded = await ref
+        .read(coreHandlerProvider)
+        .decodeShareLinks(lines);
+    final proxiesByName = <String, Map<String, dynamic>>{};
+    for (final proxy in decoded.expand((items) => items)) {
+      final name = proxy['name']?.toString().trim() ?? '';
+      if (name.isNotEmpty) proxiesByName.putIfAbsent(name, () => proxy);
+    }
+    if (proxiesByName.isEmpty) {
+      throw const FormatException('节点分享链接无法解析，请检查订阅协议格式');
+    }
+
+    const groupName = 'QNDXX 节点选择';
+    final profile = <String, dynamic>{
+      'mode': 'rule',
+      'proxies': proxiesByName.values.toList(growable: false),
+      'proxy-groups': [
+        {
+          'name': groupName,
+          'type': 'select',
+          'proxies': ['DIRECT', ...proxiesByName.keys],
+        },
+      ],
+      'rules': ['MATCH,$groupName'],
+    };
+    // JSON is a valid YAML 1.2 document and avoids lossy hand-written YAML
+    // escaping for passwords, IPv6 addresses, and transport options.
+    return utf8.encode(jsonEncode(profile));
   }
 
   Future<void> _loginAndImport() async {
@@ -59,9 +105,12 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
           ? null
           : ref.read(profilesProvider).getProfile(boundId);
 
+      final normalizedSubscription = await _normalizeSubscription(
+        subscription.bytes,
+      );
       final profile = await (existingProfile ?? Profile.normal(label: 'QNDXX'))
           .saveFile(
-            subscription.bytes,
+            normalizedSubscription,
             validate: (path, ageSecretKey) async {
               final file = File(path);
               return action.validateConfigWithData(await file.readAsBytes());

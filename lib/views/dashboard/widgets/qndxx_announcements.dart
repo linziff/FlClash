@@ -150,7 +150,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
     if (_notices.isEmpty) return const SizedBox.shrink();
     final notice = _notices[_index];
     final title = _noticeTitle(notice);
-    final content = notice['content']?.toString().trim() ?? '';
+    final content = _noticeContent(notice);
     final colors = context.colorScheme;
     return DashboardCard(
       padding: EdgeInsets.zero,

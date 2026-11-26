@@ -27,6 +27,36 @@ class QndxxSubscriptionDecryptor {
     }
   }
 
+  static bool looksLikeShareLinks(String content) {
+    const schemes = {
+      'vmess',
+      'vless',
+      'trojan',
+      'ss',
+      'ssr',
+      'hysteria',
+      'hysteria2',
+      'tuic',
+      'socks',
+      'socks5',
+      'http',
+      'https',
+      'anytls',
+      'mierus',
+    };
+    final lines = content
+        .split(RegExp(r'[\\r\\n]+'))
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty && !line.startsWith('#'))
+        .toList(growable: false);
+    if (lines.isEmpty) return false;
+    return lines.every((line) {
+      final separator = line.indexOf('://');
+      return separator > 0 &&
+          schemes.contains(line.substring(0, separator).toLowerCase());
+    });
+  }
+
   static bool looksLikeClash(String content) {
     final normalized = content.replaceFirst('\uFEFF', '').trimLeft();
     // A valid Mihomo profile does not have to contain proxies/rules (for

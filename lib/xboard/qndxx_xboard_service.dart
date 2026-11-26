@@ -749,19 +749,38 @@ class QndxxXboardService {
         } catch (_) {
           // Plain-text subscription bodies are expected for many panels.
         }
-        final validContents = QndxxSubscriptionDecryptor.decodeCandidates(
+        final decodedContents = QndxxSubscriptionDecryptor.decodeCandidates(
           text,
           config.decryptKey,
-        ).where(_looksLikeClash).toList(growable: false);
-        if (validContents.isEmpty) {
-          lastError = StateError('订阅响应既不是 Mihomo YAML，也无法从 Base64/加密内容还原为有效配置');
-          continue;
+        );
+        final validContents = decodedContents
+            .where(_looksLikeClash)
+            .toList(growable: false);
+        if (validContents.isNotEmpty) {
+          return QndxxSubscription(
+            bytes: Uint8List.fromList(utf8.encode(validContents.first)),
+            sourceUrl: url,
+            userInfo: result.headers.value('subscription-userinfo'),
+          );
         }
-        final content = validContents.first;
-        return QndxxSubscription(
-          bytes: Uint8List.fromList(utf8.encode(content)),
-          sourceUrl: url,
-          userInfo: result.headers.value('subscription-userinfo'),
+
+        // Some XBoard nodes expose a Base64-encoded V2Ray share-link list
+        // instead of Clash YAML. Preserve it for the core share-link decoder
+        // used by the login/import flow rather than rejecting it as invalid.
+        final shareLinks = decodedContents.where(
+          QndxxSubscriptionDecryptor.looksLikeShareLinks,
+        );
+        final shareLinkContent = shareLinks.firstOrNull;
+        if (shareLinkContent != null) {
+          return QndxxSubscription(
+            bytes: Uint8List.fromList(utf8.encode(shareLinkContent)),
+            sourceUrl: url,
+            userInfo: result.headers.value('subscription-userinfo'),
+          );
+        }
+
+        lastError = StateError(
+          '订阅响应既不是 Mihomo YAML，也不是可识别的节点分享链接',
         );
       } catch (error) {
         lastError = error;

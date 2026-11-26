@@ -20,6 +20,32 @@ void main() {
       }
     });
 
+    test('recognizes supported V2Ray share-link subscriptions', () {
+      const links = 'vless://uuid@example.com:443?security=tls#node-one\\n'
+          'trojan://password@example.net:443?sni=example.net#node-two';
+      expect(
+        QndxxSubscriptionDecryptor.looksLikeShareLinks(links),
+        isTrue,
+      );
+      expect(
+        QndxxSubscriptionDecryptor.looksLikeShareLinks('<html>invalid</html>'),
+        isFalse,
+      );
+    });
+
+    test('recognizes Base64-wrapped share-link subscriptions', () {
+      const links = 'vmess://eyJhZGQiOiJleGFtcGxlLmNvbSJ9\\nss://YWVzLTI1Ni1nY206cGFzcw==@example.net:443#node';
+      final encoded = base64.encode(utf8.encode(links));
+      final candidates = QndxxSubscriptionDecryptor.decodeCandidates(
+        encoded,
+        '',
+      );
+      expect(
+        candidates.any(QndxxSubscriptionDecryptor.looksLikeShareLinks),
+        isTrue,
+      );
+    });
+
     test('rejects HTML and unrelated plain text', () {
       expect(
         QndxxSubscriptionDecryptor.looksLikeClash('<html>login</html>'),

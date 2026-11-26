@@ -107,12 +107,23 @@ class ApplicationState extends ConsumerState<Application> {
         );
       }
 
-      await _ensureQndxxLogin();
-
-      if (mounted && navigator.canPop()) {
-        navigator.pop();
+      try {
+        await _ensureQndxxLogin();
+      } catch (error, stack) {
+        commonPrint.log(
+          'QNDXX login presentation failed: $error\\n$stack',
+          logLevel: LogLevel.warning,
+        );
+        dialogs.showBanner(
+          '登录页面暂时无法打开，请从“我的”页面重新登录。',
+          level: BannerLevel.warning,
+        );
+      } finally {
+        if (mounted && navigator.canPop()) {
+          navigator.pop();
+        }
+        await splashRoute;
       }
-      await splashRoute;
 
       if (!mounted) return;
       _autoUpdateProfilesTask();
