@@ -62,8 +62,7 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
               });
             },
           ),
-          if (_loading)
-            const Center(child: CircularProgressIndicator()),
+          if (_loading) const Center(child: CircularProgressIndicator()),
           if (_error != null)
             ColoredBox(
               color: const Color(0xFFF5F5F5),

@@ -73,7 +73,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           _service.getSubscriptionInfo().catchError((_) => <String, dynamic>{}),
           _service.getInviteInfo().catchError((_) => <String, dynamic>{}),
           _service.getInviteCodes().catchError((_) => <Map<String, dynamic>>[]),
-          _service.getCommissionDetails().catchError((_) => <Map<String, dynamic>>[]),
+          _service.getCommissionDetails().catchError(
+            (_) => <Map<String, dynamic>>[],
+          ),
         ]);
         subscription = results[0] as Map<String, dynamic>;
         invite = results[1] as Map<String, dynamic>;
@@ -85,8 +87,12 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       } else {
         final results = await Future.wait<dynamic>([
           _service.getPlans().catchError((_) => <Map<String, dynamic>>[]),
-          _service.getOrders().catchError((_) => <List<Map<String, dynamic>>>[]),
-          _service.getNotices().catchError((_) => <List<Map<String, dynamic>>>[]),
+          _service.getOrders().catchError(
+            (_) => <List<Map<String, dynamic>>>[],
+          ),
+          _service.getNotices().catchError(
+            (_) => <List<Map<String, dynamic>>>[],
+          ),
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
         orders = results[1] as List<Map<String, dynamic>>;
@@ -505,7 +511,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 items: [
                   ListItem(
                     title: const Text('可用佣金'),
-                    subtitle: Text(_account['balance'] == null ? '面板暂未提供余额数据' : _formatPrice(_account['balance'])),
+                    subtitle: Text(
+                      _account['balance'] == null
+                          ? '面板暂未提供余额数据'
+                          : _formatPrice(_account['balance']),
+                    ),
                   ),
                   ListItem(
                     title: const Text('可划转佣金'),
@@ -690,7 +700,9 @@ class _PlanPeriodDialog extends StatelessWidget {
           for (final (period, label, price) in periods)
             ListItem(
               title: Text(label),
-              subtitle: Text('¥${((num.tryParse(price.toString()) ?? 0) / 100).toStringAsFixed(2)}'),
+              subtitle: Text(
+                '¥${((num.tryParse(price.toString()) ?? 0) / 100).toStringAsFixed(2)}',
+              ),
               onTap: () => Navigator.of(context).pop(period),
             ),
         ],
