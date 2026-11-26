@@ -124,6 +124,40 @@ jobs:
           python tool/generate_qndxx_tray_icons.py
       - name: Generate native app icons
         run: flutter pub run flutter_launcher_icons
+      - name: Patch Windows WebView CMake compatibility
+        shell: pwsh
+        run: |
+          $packages = Get-ChildItem "$env:LOCALAPPDATA\Pub\Cache\hosted\pub.dev" -Directory -Filter "flutter_inappwebview_windows_fx-*"
+          if ($packages.Count -eq 0) { throw "flutter_inappwebview_windows_fx was not found in the pub cache" }
+
+          foreach ($package in $packages) {
+            $path = Join-Path $package.FullName "windows\CMakeLists.txt"
+            $original = Get-Content $path -Raw
+            $source = $original
+            $expected = 'set(PLUGIN_NAME "flutter_inappwebview_windows_plugin")'
+            $fixed = 'set(PLUGIN_NAME "flutter_inappwebview_windows_fx_plugin")'
+            if ($source.Contains($expected)) {
+              $source = $source.Replace($expected, $fixed)
+            } elseif (-not $source.Contains($fixed)) {
+              throw "Unexpected Windows plugin target in $path"
+            }
+
+            $deprecationDefinition = 'add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)'
+            if (-not $source.Contains($deprecationDefinition)) {
+              $source = $source.Replace($fixed, "$fixed`n$deprecationDefinition")
+            }
+            if ($source -ne $original) {
+              [IO.File]::WriteAllText($path, $source, [Text.UTF8Encoding]::new($false))
+            }
+
+            $includeRoot = Join-Path $package.FullName "windows\include"
+            $sourceHeader = Join-Path $includeRoot "flutter_inappwebview_windows\flutter_inappwebview_windows_plugin_c_api.h"
+            $fixedInclude = Join-Path $includeRoot "flutter_inappwebview_windows_fx"
+            if (-not (Test-Path $sourceHeader)) { throw "Windows plugin C API header not found at $sourceHeader" }
+            New-Item -ItemType Directory -Force -Path $fixedInclude | Out-Null
+            Copy-Item -LiteralPath $sourceHeader -Destination $fixedInclude -Force
+          }
+
       - name: Build Windows
         run: dart tool/package.dart windows --arch ${{ matrix.arch == 'arm64' && 'arm64' || 'amd64' }} --tag v6.6.6 --env stable --verbose
       - uses: actions/upload-artifact@v4
