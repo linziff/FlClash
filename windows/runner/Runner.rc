@@ -90,7 +90,7 @@ BEGIN
         BLOCK "080404B0"
         BEGIN
             VALUE "CompanyName", "QNDXX" "\0"
-            VALUE "FileDescription", "青年大学习" "\0"
+            VALUE "FileDescription", "QNDXX" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "QNDXX" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 QNDXX. All rights reserved." "\0"
