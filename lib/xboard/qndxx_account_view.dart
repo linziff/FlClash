@@ -24,6 +24,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   Map<String, dynamic> _account = const {};
   Map<String, dynamic> _subscription = const {};
   Map<String, dynamic> _invite = const {};
+  List<Map<String, dynamic>> _inviteCodes = const [];
+  List<Map<String, dynamic>> _commissions = const [];
   List<Map<String, dynamic>> _plans = const [];
   List<Map<String, dynamic>> _orders = const [];
   List<Map<String, dynamic>> _notices = const [];
@@ -61,6 +63,12 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       final invite = await _service.getInviteInfo().catchError(
         (_) => <String, dynamic>{},
       );
+      final inviteCodes = await _service.getInviteCodes().catchError(
+        (_) => <Map<String, dynamic>>[],
+      );
+      final commissions = await _service.getCommissionDetails().catchError(
+        (_) => <Map<String, dynamic>>[],
+      );
       final tickets = await _service.getTickets().catchError(
         (_) => <Map<String, dynamic>>[],
       );
@@ -73,6 +81,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         _orders = orders;
         _notices = notices;
         _invite = invite;
+        _inviteCodes = inviteCodes;
+        _commissions = commissions;
         _tickets = tickets;
       });
     } catch (error) {
@@ -345,6 +355,24 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     child: const Text('生成'),
                   ),
                 ),
+                if (_inviteCodes.isEmpty)
+                  const ListItem(title: Text('暂无邀请码')),
+                for (final code in _inviteCodes)
+                  ListItem(
+                    title: Text(_value(code['code'], '邀请码')),
+                    subtitle: Text(
+                      '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
+                    ),
+                  ),
+                if (_commissions.isNotEmpty)
+                  const ListItem(title: Text('佣金明细')),
+                for (final commission in _commissions)
+                  ListItem(
+                    title: Text('订单：${_value(commission['trade_no'])}'),
+                    subtitle: Text(
+                      '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])}',
+                    ),
+                  ),
               ],
             ),
             generateSection(
