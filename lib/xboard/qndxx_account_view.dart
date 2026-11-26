@@ -141,7 +141,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   Future<void> _logout() async {
     final accepted = await dialogs.showMessage(
-      title: '退出 QNDXX 账号',
+      title: '退出账号',
       message: const TextSpan(text: '退出后会清除本设备保存的登录凭据，不会删除本地订阅配置。'),
       confirmText: '退出登录',
       destructive: true,
@@ -371,7 +371,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      title: widget.mode == QndxxAccountViewMode.shop ? 'QNDXX 商店' : 'QNDXX 我的',
+      title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
       isLoading: _loading,
       body: ListView(
         padding: EdgeInsets.only(
@@ -382,7 +382,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         ),
         children: [
           if (!_signedIn) ...[
-            const Text('登录 QNDXX XBoard 账号，即可管理订阅、套餐、订单、公告、邀请和工单。'),
+            const Text('登录账号后即可管理订阅、套餐、订单、公告、邀请和工单。'),
             if (_error != null) ...[
               const SizedBox(height: 8),
               Text(_error!, style: TextStyle(color: context.colorScheme.error)),
@@ -390,7 +390,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _loading ? null : _login,
-              child: const Text('XBoard 登录'),
+              child: const Text('登录账号'),
             ),
             const SizedBox(height: 8),
             TextButton(onPressed: _openSupport, child: const Text('在线客服')),
