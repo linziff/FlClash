@@ -4,10 +4,48 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/views/dashboard/widgets/card.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icons;
+import 'package:flutter/material.dart' show Icons, IconData;
 import 'package:flutter_markdown/flutter_markdown.dart';
 
 import '../../../xboard/qndxx_xboard_service.dart';
+
+String _noticeTitle(Map<String, dynamic> notice) =>
+    (notice['title'] ?? notice['name'] ?? '平台公告').toString().trim();
+
+String _noticeContent(Map<String, dynamic> notice) {
+  for (final key in ['content', 'message', 'description', 'body', 'text']) {
+    final value = notice[key]?.toString().trim() ?? '';
+    if (value.isNotEmpty) return value;
+  }
+  return '';
+}
+
+IconData _noticeIcon(Map<String, dynamic> notice) {
+  final category = [
+    notice['tag'],
+    notice['tags'],
+    notice['type'],
+    notice['category'],
+    notice['label'],
+    notice['title'],
+  ].map((value) => value?.toString() ?? '').join(' ').toLowerCase();
+  if (category.contains('节点') || category.contains('node')) {
+    return Icons.hub_rounded;
+  }
+  if (category.contains('更新') || category.contains('update')) {
+    return Icons.system_update_alt_rounded;
+  }
+  if (category.contains('支付') || category.contains('payment')) {
+    return Icons.payments_rounded;
+  }
+  if (category.contains('维护') || category.contains('maintenance')) {
+    return Icons.build_circle_rounded;
+  }
+  if (category.contains('活动') || category.contains('event')) {
+    return Icons.local_activity_rounded;
+  }
+  return Icons.campaign_rounded;
+}
 
 /// Compact, rotating announcement strip shared by desktop and mobile dashboard.
 class QndxxAnnouncementBanner extends StatefulWidget {
@@ -94,7 +132,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
       return true;
     }
     final title = notice['title']?.toString() ?? '';
-    final content = notice['content']?.toString() ?? '';
+    final content = _noticeContent(notice);
     final taggedText = '$title\n$content';
     return RegExp(r'^[\s【\[]*(节点|节点公告)[】\]]', multiLine: true)
             .hasMatch(taggedText) ||
@@ -111,7 +149,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
   Widget build(BuildContext context) {
     if (_notices.isEmpty) return const SizedBox.shrink();
     final notice = _notices[_index];
-    final title = notice['title']?.toString().trim();
+    final title = _noticeTitle(notice);
     final content = notice['content']?.toString().trim() ?? '';
     final colors = context.colorScheme;
     return DashboardCard(
@@ -134,7 +172,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
                     width: 36,
                     height: 36,
                     child: Icon(
-                      Icons.campaign_rounded,
+                      _noticeIcon(notice),
                       color: colors.onPrimaryContainer,
                       size: 20,
                     ),
@@ -171,13 +209,23 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
                         ),
                         if (content.isNotEmpty) ...[
                           const SizedBox(height: 3),
-                          Text(
-                            content.replaceAll(RegExp(r'[#*_\x60>\[\]()]'), ''),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              color: colors.onSurfaceVariant,
-                              fontSize: 12,
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxHeight: 38),
+                            child: ClipRect(
+                              child: MarkdownBody(
+                                data: content,
+                                styleSheet: MarkdownStyleSheet(
+                                  p: TextStyle(
+                                    color: colors.onSurfaceVariant,
+                                    fontSize: 12,
+                                    height: 1.25,
+                                  ),
+                                  h1: TextStyle(color: colors.onSurface, fontSize: 13, fontWeight: FontWeight.w700),
+                                  h2: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w700),
+                                  h3: TextStyle(color: colors.onSurface, fontSize: 12, fontWeight: FontWeight.w700),
+                                  listBullet: TextStyle(color: colors.primary, fontSize: 12),
+                                ),
+                              ),
                             ),
                           ),
                         ],
