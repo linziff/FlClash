@@ -989,7 +989,7 @@ class _PlanPeriodDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final periods =
-        <(String, String, dynamic)>[
+        <(String, String, dynamic, IconData)>[
               ('onetime_price', '一次性', plan['onetime_price'], Icons.bolt_rounded),
               ('month_price', '月付', plan['month_price'], Icons.calendar_today_rounded),
               ('quarter_price', '季付', plan['quarter_price'], Icons.date_range_rounded),
