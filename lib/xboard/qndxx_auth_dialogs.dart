@@ -190,8 +190,8 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                       onPressed: _busy
                           ? null
                           : () => controller.isOpen
-                              ? controller.close()
-                              : controller.open(),
+                                ? controller.close()
+                                : controller.open(),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(56),
                         padding: const EdgeInsets.symmetric(horizontal: 10),
