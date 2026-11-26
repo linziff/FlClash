@@ -73,9 +73,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     try {
       // Existing sessions already have a panel URL. Do not block this page on
       // remote-config retries; config refresh runs independently at startup.
-      await QndxxConfigService.instance.initialize(refreshRemote: false);
-      await _service.restoreSession();
-      final account = await _service.getAccountInfo();
+      await QndxxConfigService.instance
+          .initialize(refreshRemote: false)
+          .timeout(const Duration(seconds: 12));
+      await _service.restoreSession().timeout(const Duration(seconds: 8));
+      final account = await _service
+          .getAccountInfo()
+          .timeout(const Duration(seconds: 18));
       late final Map<String, dynamic> subscription;
       late final List<Map<String, dynamic>> plans;
       late final List<Map<String, dynamic>> orders;
@@ -646,6 +650,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   Widget build(BuildContext context) {
     return Scaffold(
       title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
+      backgroundColor: context.colorScheme.surface,
       body: ListView(
         padding: EdgeInsets.only(
           left: 16,
@@ -658,6 +663,35 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             const Padding(
               padding: EdgeInsets.only(bottom: 12),
               child: LinearProgressIndicator(),
+            ),
+          if (_error != null && !_loading)
+            Card(
+              color: context.colorScheme.errorContainer,
+              elevation: 0,
+              child: Padding(
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.info_outline_rounded,
+                        color: context.colorScheme.onErrorContainer),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        '账户数据暂时无法加载：$_error',
+                        style: TextStyle(
+                          color: context.colorScheme.onErrorContainer,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: '重试',
+                      onPressed: _load,
+                      icon: const Icon(Icons.refresh_rounded),
+                    ),
+                  ],
+                ),
+              ),
             ),
           if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
           if (!_signedIn) ...[
