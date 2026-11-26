@@ -26,12 +26,12 @@ class Navigation implements NavigationPort {
         builder: (_) => const QndxxAccountView(mode: QndxxAccountViewMode.shop),
       ),
       NavigationItem(
-        glyph: AppGlyphs.tools,
+        glyph: AppGlyphs.customerService,
         label: PageLabel.customerService,
         builder: (_) => const QndxxSupportView(),
       ),
       NavigationItem(
-        glyph: AppGlyphs.profiles,
+        glyph: AppGlyphs.account,
         label: PageLabel.account,
         builder: (_) => const QndxxAccountView(mode: QndxxAccountViewMode.account),
       ),
