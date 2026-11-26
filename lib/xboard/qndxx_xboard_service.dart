@@ -219,8 +219,8 @@ class QndxxXboardService {
         ),
         enableLogging: false,
       );
-      await current.saveToken(_token!);
     }
+    await current.saveToken(_token!);
     _sdk = current;
     return current;
   }
