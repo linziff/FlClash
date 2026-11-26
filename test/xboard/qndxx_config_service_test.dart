@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:fl_clash/common/package.dart';
 import 'package:fl_clash/xboard/qndxx_config_service.dart';
 import 'package:fl_clash/xboard/qndxx_subscription_decryptor.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -43,6 +44,44 @@ void main() {
     expect(config.rankedPanelUrls, isEmpty);
     expect(config.fastestPanelUrl, isNull);
   });
+  test('keeps HTTP User-Agent ASCII while preserving QNDXX branding', () {
+    final userAgent = qndxxUserAgent('6.6.6', platform: 'windows');
+    expect(userAgent, 'QNDXX/v6.6.6 clash-verge Platform/windows');
+    expect(RegExp(r'^[\\x00-\\x7F]+ Base64/XOR/Base64 subscriptions', () {
+    const key = 'qndxx-test-key';
+    const yaml = 'proxies:\n  - name: test-node\n' 
+        'rules:\n  - MATCH,DIRECT\n';
+    final stage = base64.encode(utf8.encode(yaml));
+    final stageBytes = utf8.encode(stage);
+    final keyBytes = utf8.encode(key);
+    final encrypted = base64.encode([
+      for (var i = 0; i < stageBytes.length; i++)
+        stageBytes[i] ^ keyBytes[i % keyBytes.length],
+    ]);
+
+    expect(QndxxSubscriptionDecryptor.decrypt(encrypted, key), yaml);
+    expect(QndxxSubscriptionDecryptor.looksLikeClash(yaml), isTrue);
+    expect(QndxxSubscriptionDecryptor.decrypt(encrypted, 'wrong-key'), isNull);
+  });
+
+  test('supports an additional Base64 layer used by some XBoard panels', () {
+    const key = 'qndxx-test-key';
+    const yaml = 'proxies:\n  - name: test-node\n';
+    final doubleEncoded = base64.encode(utf8.encode(
+      base64.encode(utf8.encode(yaml)),
+    ));
+    final bytes = utf8.encode(doubleEncoded);
+    final keyBytes = utf8.encode(key);
+    final encrypted = base64.encode([
+      for (var i = 0; i < bytes.length; i++) bytes[i] ^ keyBytes[i % keyBytes.length],
+    ]);
+
+    expect(QndxxSubscriptionDecryptor.decrypt(encrypted, key), yaml);
+  });
+}
+).hasMatch(userAgent), isTrue);
+  });
+
   test('decrypts Orange-compatible Base64/XOR/Base64 subscriptions', () {
     const key = 'qndxx-test-key';
     const yaml = 'proxies:\n  - name: test-node\n' 
