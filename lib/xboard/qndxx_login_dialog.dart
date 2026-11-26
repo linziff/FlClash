@@ -116,12 +116,12 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
           const Center(child: QndxxBrandLogo(size: 68)),
           Text(
             '欢迎使用青年大学习',
-            style: context.textTheme.titleMedium,
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: context.colorScheme.onSurface),
             textAlign: TextAlign.center,
           ),
           Text(
             '登录账号后即可同步订阅并管理你的服务。系统会自动选择响应最快的可用面板。',
-            style: context.textTheme.bodyMedium,
+            style: TextStyle(fontSize: 14, color: context.colorScheme.onSurface),
             textAlign: TextAlign.center,
           ),
           TextFormField(
