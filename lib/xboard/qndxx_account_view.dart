@@ -396,190 +396,194 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             TextButton(onPressed: _openSupport, child: const Text('在线客服')),
           ] else ...[
             if (widget.mode == QndxxAccountViewMode.account) ...[
-            generateSection(
-              title: '账号信息',
-              items: [
-                ListItem(
-                  title: const Text('邮箱'),
-                  subtitle: Text(
-                    _value(_account['email'] ?? _account['username']),
-                  ),
-                ),
-                ListItem(
-                  title: const Text('用户 ID'),
-                  subtitle: Text(_value(_account['id'])),
-                ),
-                ListItem(
-                  title: const Text('面板'),
-                  subtitle: Text(_value(_account['panelUrl'])),
-                ),
-                ListItem(
-                  title: const Text('套餐'),
-                  subtitle: Text(
-                    _value(
-                      (_subscription['plan'] is Map)
-                          ? (_subscription['plan'] as Map)['name']
-                          : null,
+              generateSection(
+                title: '账号信息',
+                items: [
+                  ListItem(
+                    title: const Text('邮箱'),
+                    subtitle: Text(
+                      _value(_account['email'] ?? _account['username']),
                     ),
                   ),
-                ),
-                ListItem(
-                  title: const Text('到期时间'),
-                  subtitle: Text(_value(_subscription['expired_at'])),
-                ),
-                ListItem(
-                  title: const Text('设备数量限制'),
-                  subtitle: Text(_value(_subscription['device_limit'])),
-                ),
-              ],
-            ),
+                  ListItem(
+                    title: const Text('用户 ID'),
+                    subtitle: Text(_value(_account['id'])),
+                  ),
+                  ListItem(
+                    title: const Text('面板'),
+                    subtitle: Text(_value(_account['panelUrl'])),
+                  ),
+                  ListItem(
+                    title: const Text('套餐'),
+                    subtitle: Text(
+                      _value(
+                        (_subscription['plan'] is Map)
+                            ? (_subscription['plan'] as Map)['name']
+                            : null,
+                      ),
+                    ),
+                  ),
+                  ListItem(
+                    title: const Text('到期时间'),
+                    subtitle: Text(_value(_subscription['expired_at'])),
+                  ),
+                  ListItem(
+                    title: const Text('设备数量限制'),
+                    subtitle: Text(_value(_subscription['device_limit'])),
+                  ),
+                ],
+              ),
             ],
             if (widget.mode == QndxxAccountViewMode.shop) ...[
-            generateSection(
-              title: '可用套餐',
-              items: [
-                if (_plans.isEmpty)
-                  const ListItem(title: Text('当前面板没有返回可购买套餐')),
-                for (final plan in _plans)
-                  ListItem(
-                    title: Text(_value(plan['name'], '未命名套餐')),
-                    subtitle: Text(
-                      '流量：${_value(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}',
+              generateSection(
+                title: '可用套餐',
+                items: [
+                  if (_plans.isEmpty)
+                    const ListItem(title: Text('当前面板没有返回可购买套餐')),
+                  for (final plan in _plans)
+                    ListItem(
+                      title: Text(_value(plan['name'], '未命名套餐')),
+                      subtitle: Text(
+                        '流量：${_value(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}',
+                      ),
+                      trailing: TextButton(
+                        onPressed: () => _purchasePlan(plan),
+                        child: const Text('购买'),
+                      ),
                     ),
-                    trailing: TextButton(
-                      onPressed: () => _purchasePlan(plan),
-                      child: const Text('购买'),
+                ],
+              ),
+              generateSection(
+                title: '订单记录',
+                items: [
+                  if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
+                  for (final order in _orders)
+                    ListItem(
+                      title: Text(_value(order['trade_no'], '订单')),
+                      subtitle: Text(
+                        '金额：${_value(order['total_amount'])} · 状态：${_value(order['status'])}',
+                      ),
+                      onTap: () => _showOrder(order),
+                      trailing: (order['status']?.toString() == '0')
+                          ? TextButton(
+                              onPressed: () => _cancelOrder(order),
+                              child: const Text('取消'),
+                            )
+                          : null,
                     ),
-                  ),
-              ],
-            ),
-            generateSection(
-              title: '订单记录',
-              items: [
-                if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
-                for (final order in _orders)
-                  ListItem(
-                    title: Text(_value(order['trade_no'], '订单')),
-                    subtitle: Text(
-                      '金额：${_value(order['total_amount'])} · 状态：${_value(order['status'])}',
+                ],
+              ),
+              generateSection(
+                title: '公告',
+                items: [
+                  if (_notices.isEmpty) const ListItem(title: Text('暂无公告')),
+                  for (final notice in _notices)
+                    ListItem(
+                      title: Text(_value(notice['title'], '公告')),
+                      subtitle: Text(_value(notice['content']), maxLines: 2),
                     ),
-                    onTap: () => _showOrder(order),
-                    trailing: (order['status']?.toString() == '0')
-                        ? TextButton(
-                            onPressed: () => _cancelOrder(order),
-                            child: const Text('取消'),
-                          )
-                        : null,
-                  ),
-              ],
-            ),
-            generateSection(
-              title: '公告',
-              items: [
-                if (_notices.isEmpty) const ListItem(title: Text('暂无公告')),
-                for (final notice in _notices)
-                  ListItem(
-                    title: Text(_value(notice['title'], '公告')),
-                    subtitle: Text(_value(notice['content']), maxLines: 2),
-                  ),
-              ],
-            ),
+                ],
+              ),
             ],
             if (widget.mode == QndxxAccountViewMode.account) ...[
-            generateSection(
-              title: '邀请与佣金',
-              items: [
-                ListItem(
-                  title: const Text('邀请统计'),
-                  subtitle: Text(_value(_invite['stat'])),
-                ),
-                ListItem(
-                  title: const Text('生成邀请码'),
-                  trailing: TextButton(
-                    onPressed: _generateInvite,
-                    child: const Text('生成'),
-                  ),
-                ),
-                if (_inviteCodes.isEmpty) const ListItem(title: Text('暂无邀请码')),
-                for (final code in _inviteCodes)
+              generateSection(
+                title: '邀请与佣金',
+                items: [
                   ListItem(
-                    title: Text(_value(code['code'], '邀请码')),
-                    subtitle: Text(
-                      '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
-                    ),
+                    title: const Text('邀请统计'),
+                    subtitle: Text(_value(_invite['stat'])),
                   ),
-                if (_commissions.isNotEmpty)
-                  const ListItem(title: Text('佣金明细')),
-                for (final commission in _commissions)
                   ListItem(
-                    title: Text('订单：${_value(commission['trade_no'])}'),
-                    subtitle: Text(
-                      '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])}',
+                    title: const Text('生成邀请码'),
+                    trailing: TextButton(
+                      onPressed: _generateInvite,
+                      child: const Text('生成'),
                     ),
                   ),
-              ],
-            ),
-            generateSection(
-              title: '工单支持',
-              items: [
-                ListItem(
-                  title: const Text('创建工单'),
-                  trailing: TextButton(
-                    onPressed: _createTicket,
-                    child: const Text('新建'),
-                  ),
-                ),
-                if (_tickets.isEmpty) const ListItem(title: Text('暂无工单')),
-                for (final ticket in _tickets)
+                  if (_inviteCodes.isEmpty)
+                    const ListItem(title: Text('暂无邀请码')),
+                  for (final code in _inviteCodes)
+                    ListItem(
+                      title: Text(_value(code['code'], '邀请码')),
+                      subtitle: Text(
+                        '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
+                      ),
+                    ),
+                  if (_commissions.isNotEmpty)
+                    const ListItem(title: Text('佣金明细')),
+                  for (final commission in _commissions)
+                    ListItem(
+                      title: Text('订单：${_value(commission['trade_no'])}'),
+                      subtitle: Text(
+                        '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])}',
+                      ),
+                    ),
+                ],
+              ),
+              generateSection(
+                title: '工单支持',
+                items: [
                   ListItem(
-                    title: Text(_value(ticket['subject'], '工单')),
+                    title: const Text('创建工单'),
+                    trailing: TextButton(
+                      onPressed: _createTicket,
+                      child: const Text('新建'),
+                    ),
+                  ),
+                  if (_tickets.isEmpty) const ListItem(title: Text('暂无工单')),
+                  for (final ticket in _tickets)
+                    ListItem(
+                      title: Text(_value(ticket['subject'], '工单')),
+                      subtitle: Text(
+                        '状态：${_value(ticket['status'])} · 更新时间：${_value(ticket['updated_at'])}',
+                      ),
+                      onTap: () => _showTicket(ticket),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton(
+                            onPressed: () => _replyTicket(ticket),
+                            child: const Text('回复'),
+                          ),
+                          TextButton(
+                            onPressed: () => _closeTicket(ticket),
+                            child: const Text('关闭'),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
+              ),
+              generateSection(
+                title: '远程设备状态',
+                items: [
+                  ListItem(
+                    title: const Text('WebSocket 状态上报'),
                     subtitle: Text(
-                      '状态：${_value(ticket['status'])} · 更新时间：${_value(ticket['updated_at'])}',
+                      _remoteStatus.isConnected
+                          ? '已安全连接；仅发送随机设备 ID 和心跳'
+                          : _remoteStatus.isEnabled
+                          ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
+                          : '默认关闭；启用后仅发送随机设备 ID 和心跳',
                     ),
-                    onTap: () => _showTicket(ticket),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        TextButton(
-                          onPressed: () => _replyTicket(ticket),
-                          child: const Text('回复'),
-                        ),
-                        TextButton(
-                          onPressed: () => _closeTicket(ticket),
-                          child: const Text('关闭'),
-                        ),
-                      ],
+                    trailing: TextButton(
+                      onPressed: _toggleRemoteStatus,
+                      child: Text(_remoteStatus.isEnabled ? '停用' : '启用'),
                     ),
                   ),
-              ],
-            ),
-            generateSection(
-              title: '远程设备状态',
-              items: [
-                ListItem(
-                  title: const Text('WebSocket 状态上报'),
-                  subtitle: Text(
-                    _remoteStatus.isConnected
-                        ? '已安全连接；仅发送随机设备 ID 和心跳'
-                        : _remoteStatus.isEnabled
-                        ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
-                        : '默认关闭；启用后仅发送随机设备 ID 和心跳',
+                ],
+              ),
+              generateSection(
+                title: '账户操作',
+                items: [
+                  ListItem(title: const Text('刷新账户数据'), onTap: _load),
+                  ListItem(
+                    title: const Text('在线客服 Crisp'),
+                    onTap: _openSupport,
                   ),
-                  trailing: TextButton(
-                    onPressed: _toggleRemoteStatus,
-                    child: Text(_remoteStatus.isEnabled ? '停用' : '启用'),
-                  ),
-                ),
-              ],
-            ),
-            generateSection(
-              title: '账户操作',
-              items: [
-                ListItem(title: const Text('刷新账户数据'), onTap: _load),
-                ListItem(title: const Text('在线客服 Crisp'), onTap: _openSupport),
-                ListItem(title: const Text('退出登录'), onTap: _logout),
-              ],
-            ),
+                  ListItem(title: const Text('退出登录'), onTap: _logout),
+                ],
+              ),
             ],
           ],
         ],

@@ -32,10 +32,7 @@ class QndxxSupportView extends StatelessWidget {
         children: [
           const Text('遇到连接、订阅或账户问题？通过 Crisp 联系在线客服。'),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: _openCrisp,
-            child: const Text('联系在线客服'),
-          ),
+          FilledButton(onPressed: _openCrisp, child: const Text('联系在线客服')),
           const SizedBox(height: 12),
           const Text('客服窗口将在应用内打开。若当前平台缺少所需 WebView 运行环境，页面会提示具体原因。'),
         ],
