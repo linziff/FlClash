@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'qndxx_auth_dialogs.dart';
+import 'qndxx_branding.dart';
 import 'qndxx_remote_status_service.dart';
 import 'qndxx_xboard_service.dart';
 
@@ -112,7 +113,17 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         spacing: 12,
         children: [
-          const Text('自动选择响应最快的 QNDXX 面板，并导入账号订阅。'),
+          const Center(child: QndxxBrandLogo(size: 68)),
+          Text(
+            '欢迎使用青年大学习',
+            style: context.textTheme.titleMedium,
+            textAlign: TextAlign.center,
+          ),
+          Text(
+            '登录账号后即可同步订阅并管理你的服务。系统会自动选择响应最快的可用面板。',
+            style: context.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
