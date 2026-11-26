@@ -148,7 +148,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
         children: [
           Row(
             children: [
-              Icon(Icons.person_add_alt_1_rounded, color: context.colorScheme.primary),
+              Icon(
+                Icons.person_add_alt_1_rounded,
+                color: context.colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               const Text('注册账号', style: TextStyle(fontWeight: FontWeight.w700)),
             ],
@@ -351,7 +354,10 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
         children: [
           Row(
             children: [
-              Icon(Icons.lock_reset_rounded, color: context.colorScheme.primary),
+              Icon(
+                Icons.lock_reset_rounded,
+                color: context.colorScheme.primary,
+              ),
               const SizedBox(width: 8),
               const Text('找回密码', style: TextStyle(fontWeight: FontWeight.w700)),
             ],
