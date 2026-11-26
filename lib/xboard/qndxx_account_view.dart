@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -135,7 +136,12 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
   Future<void> _login() async {
-    await dialogs.showCommonDialog<void>(child: const QndxxLoginDialog());
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        fullscreenDialog: true,
+        builder: (_) => const QndxxLoginDialog(),
+      ),
+    );
     await _load();
   }
 
