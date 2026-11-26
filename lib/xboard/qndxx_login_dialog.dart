@@ -208,7 +208,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      TextButton(
+                      TextButton.icon(
                         onPressed: _busy
                             ? null
                             : () => unawaited(
@@ -216,9 +216,10 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                                   child: const QndxxForgotPasswordDialog(),
                                 ),
                               ),
-                        child: const Text('忘记密码'),
+                        icon: const Icon(Icons.lock_reset_rounded, size: 17),
+                        label: const Text('忘记密码'),
                       ),
-                      TextButton(
+                      TextButton.icon(
                         onPressed: _busy
                             ? null
                             : () => unawaited(
@@ -226,7 +227,8 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                                   child: const QndxxRegisterDialog(),
                                 ),
                               ),
-                        child: const Text('注册账号'),
+                        icon: const Icon(Icons.person_add_alt_1_rounded, size: 17),
+                        label: const Text('注册账号'),
                       ),
                     ],
                   ),
