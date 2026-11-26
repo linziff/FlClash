@@ -141,7 +141,9 @@ class QndxxXboardService {
         );
         final body = _map(_decode(response.data));
         final data = _map(body['data']);
-        final token = (data['token'] ?? data['auth_data'])?.toString().trim();
+        // XBoard's auth_data is the Sanctum Bearer credential. `token` is the
+        // user's subscription token and must not be used for API authorization.
+        final token = (data['auth_data'] ?? data['token'])?.toString().trim();
         final status = body['status'];
         final rejected =
             status == false ||
