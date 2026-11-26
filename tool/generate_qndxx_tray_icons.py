@@ -62,25 +62,13 @@ def make_app_icon(size: int = 1024) -> Image.Image:
     return gradient.resize((size, size), Image.Resampling.LANCZOS)
 
 def make_icon(status: int, size: int) -> Image.Image:
-    color = COLORS[status]
-    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(image)
-    inset = max(1, size // 24)
-    draw.ellipse((inset, inset, size - inset - 1, size - inset - 1), fill=color)
-
-    # Keep the app mark legible at 16px tray sizes.
-    try:
-        font_path = "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf"
-        if not Path(font_path).exists():
-            font_path = "C:/Windows/Fonts/arialbd.ttf"
-        font = ImageFont.truetype(font_path, max(8, int(size * 0.42)))
-    except OSError:
-        font = ImageFont.load_default()
-    label = "QX"
-    box = draw.textbbox((0, 0), label, font=font, stroke_width=0)
-    x = (size - (box[2] - box[0])) / 2 - box[0]
-    y = (size - (box[3] - box[1])) / 2 - box[1]
-    draw.text((x, y), label, font=font, fill=(255, 255, 255, 255))
+    """Render the exact QNDXX app mark, tinted for the current connection state."""
+    mark = make_app_icon(size)
+    alpha = mark.getchannel("A")
+    # Keep the same transparent Q silhouette on Windows and macOS. Only its
+    # foreground color changes, matching FlClash's connection-state semantics.
+    image = Image.new("RGBA", (size, size), COLORS[status])
+    image.putalpha(alpha)
     return image
 
 def save_png(path: Path, status: int, size: int):
