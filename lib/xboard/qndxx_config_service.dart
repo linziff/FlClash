@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter/services.dart';
 import 'package:yaml/yaml.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// Loads the QNDXX XBoard routing configuration without replacing FlClash's
 /// v0.9.4 profile/core lifecycle. Remote configuration is optional at boot:
@@ -16,6 +17,7 @@ class QndxxConfigService {
   static const provider = 'QNDXX';
   static const remoteConfigUrl =
       'https://img.toufq.com/speed/blob/main/url/config.json';
+  static const _remoteCacheKey = 'qndxx.xboard.remote_config.v1';
 
   final Dio _dio = Dio(
     BaseOptions(
@@ -108,8 +110,29 @@ class QndxxConfigService {
     final normalized = _toMap(parsed);
     final xboard = normalized['xboard'];
     _local = xboard is Map<String, dynamic> ? xboard : const {};
+    await _restoreRemoteCache();
     if (refreshRemote) {
       await refresh();
+    }
+  }
+
+  Future<void> _restoreRemoteCache() async {
+    if (_remote.isNotEmpty) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cached = prefs.getString(_remoteCacheKey);
+      if (cached == null || cached.isEmpty) return;
+      final decoded = jsonDecode(cached);
+      if (decoded is! Map) return;
+      final panels = decoded['panels'];
+      final entries = panels is Map
+          ? (panels[provider] ?? panels[provider.toLowerCase()])
+          : null;
+      if (entries is! List || entries.isEmpty) return;
+      _remote = Map<String, dynamic>.from(decoded);
+      await racePanelDomains();
+    } catch (_) {
+      // A corrupt or unavailable cache must not block app startup.
     }
   }
 
@@ -125,7 +148,8 @@ class QndxxConfigService {
               int.tryParse('${a['priority'] ?? 0}') ?? 0,
             ),
           );
-    final retries = int.tryParse('${settings['max_retries'] ?? 3}') ?? 3;
+    final retries = (int.tryParse('${settings['max_retries'] ?? 3}') ?? 3).clamp(0, 5);
+    final timeoutSeconds = (int.tryParse('${settings['timeout_seconds'] ?? 15}') ?? 15).clamp(3, 60);
     final candidates = sources.isEmpty
         ? <String>[remoteConfigUrl]
         : sources
@@ -139,7 +163,7 @@ class QndxxConfigService {
     for (final url in candidates) {
       for (var attempt = 0; attempt <= retries; attempt++) {
         try {
-          final response = await _dio.get<Object?>(url);
+          final response = await _dio.get<Object?>(url, options: Options(connectTimeout: Duration(seconds: timeoutSeconds), receiveTimeout: Duration(seconds: timeoutSeconds), sendTimeout: Duration(seconds: timeoutSeconds)));
           final body = response.data;
           final decoded = body is String ? jsonDecode(body) : body;
           if (decoded is! Map) {
@@ -155,8 +179,15 @@ class QndxxConfigService {
               'QNDXX remote config must define panels.QNDXX',
             );
           }
-          _remote = Map<String, dynamic>.from(decoded);
+          final nextRemote = Map<String, dynamic>.from(decoded);
+          _remote = nextRemote;
           _lastRefresh = DateTime.now();
+          try {
+            final prefs = await SharedPreferences.getInstance();
+            await prefs.setString(_remoteCacheKey, jsonEncode(nextRemote));
+          } catch (_) {
+            // Live configuration remains usable when local storage is read-only.
+          }
           await racePanelDomains();
           return true;
         } catch (_) {
@@ -197,7 +228,7 @@ class QndxxConfigService {
           responseType: ResponseType.plain,
           followRedirects: true,
           headers: {'User-Agent': domainRacingUserAgent},
-          validateStatus: (status) => status != null && status < 500,
+          validateStatus: (status) => status != null && status >= 200 && status < 400,
           receiveTimeout: const Duration(seconds: 5),
           sendTimeout: const Duration(seconds: 5),
         ),
