@@ -148,12 +148,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
               Expanded(
                 flex: 2,
                 child: DropdownButtonFormField<String>(
-                  value: _emailDomain,
+                  initialValue: _emailDomain,
                   isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: '邮箱后缀',
-                    prefixIcon: Icon(Icons.alternate_email_rounded),
-                  ),
+                  // Keep the suffix picker independent from text-field decoration APIs.
                   items: [
                     for (final domain in _emailDomains)
                       DropdownMenuItem(value: domain, child: Text(domain)),
