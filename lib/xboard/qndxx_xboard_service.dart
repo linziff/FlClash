@@ -270,6 +270,12 @@ class QndxxXboardService {
     throw StateError('QNDXX 面板请求失败：' + _safeError(lastError));
   }
 
+  Future<(String, List<String>)> getRemoteStatusCredentials() async {
+    await restoreSession();
+    final urls = QndxxConfigService.instance.websocketUrls;
+    return (_token!, urls);
+  }
+
   Future<Map<String, dynamic>> getAccountInfo() async {
     return _responseData(await _authorizedGet('/api/v1/user/info'));
   }
