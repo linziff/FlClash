@@ -17,7 +17,8 @@ import 'package:flutter/material.dart'
         BorderSide,
         Divider,
         Clip,
-        LinearProgressIndicator;
+        LinearProgressIndicator,
+        IconButton;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -88,23 +89,38 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       late final List<Map<String, dynamic>> commissions;
       if (widget.mode == QndxxAccountViewMode.account) {
         final results = await Future.wait<dynamic>([
-          _service.getSubscriptionInfo().catchError((_) => <String, dynamic>{}),
-          _service.getInviteInfo().catchError((_) => <String, dynamic>{}),
-          _service.getInviteCodes().catchError((_) => <Map<String, dynamic>>[]),
-          _service.getCommissionDetails().catchError(
-            (_) => <Map<String, dynamic>>[],
-          ),
+          _service
+              .getSubscriptionInfo()
+              .timeout(const Duration(seconds: 12))
+              .catchError((_) => <String, dynamic>{}),
+          _service
+              .getInviteInfo()
+              .timeout(const Duration(seconds: 12))
+              .catchError((_) => <String, dynamic>{}),
+          _service
+              .getCommissionDetails()
+              .timeout(const Duration(seconds: 12))
+              .catchError((_) => <Map<String, dynamic>>[]),
         ]);
         subscription = results[0] as Map<String, dynamic>;
         invite = results[1] as Map<String, dynamic>;
-        inviteCodes = results[2] as List<Map<String, dynamic>>;
-        commissions = results[3] as List<Map<String, dynamic>>;
+        final rawCodes = invite['codes'];
+        inviteCodes = rawCodes is List
+            ? rawCodes.whereType<Map>().map((item) => Map<String, dynamic>.from(item)).toList(growable: false)
+            : const [];
+        commissions = results[2] as List<Map<String, dynamic>>;
         plans = const [];
         orders = const [];
       } else {
         final results = await Future.wait<dynamic>([
-          _service.getPlans().catchError((_) => <Map<String, dynamic>>[]),
-          _service.getOrders().catchError((_) => <Map<String, dynamic>>[]),
+          _service
+              .getPlans()
+              .timeout(const Duration(seconds: 12))
+              .catchError((_) => <Map<String, dynamic>>[]),
+          _service
+              .getOrders()
+              .timeout(const Duration(seconds: 12))
+              .catchError((_) => <Map<String, dynamic>>[]),
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
         orders = results[1] as List<Map<String, dynamic>>;
@@ -703,7 +719,14 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             const SizedBox(height: 16),
             FilledButton(
               onPressed: _loading ? null : _login,
-              child: const Text('登录账号'),
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.login_rounded, size: 18),
+                  SizedBox(width: 8),
+                  Text('登录账号'),
+                ],
+              ),
             ),
             const SizedBox(height: 8),
           ] else ...[
