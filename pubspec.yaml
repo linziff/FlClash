@@ -35,6 +35,10 @@ dependencies:
   ffi: ^2.2.0
 
   dio: ^5.11.1
+  flutter_xboard_sdk:
+    git:
+      url: https://github.com/hakimi-x/flutter_xboard_sdk.git
+      ref: d595221a2cdd88ae6ad25eb09507b779984100d3
   code_forge:
     path: plugins/code_forge
   re_highlight: ^0.0.3
