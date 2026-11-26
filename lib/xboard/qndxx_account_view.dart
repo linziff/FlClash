@@ -61,27 +61,41 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       await QndxxConfigService.instance.initialize(refreshRemote: true);
       await _service.restoreSession();
       final account = await _service.getAccountInfo();
-      final subscription = await _service.getSubscriptionInfo().catchError(
-        (_) => <String, dynamic>{},
-      );
-      final plans = await _service.getPlans().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
-      final orders = await _service.getOrders().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
-      final notices = await _service.getNotices().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
-      final invite = await _service.getInviteInfo().catchError(
-        (_) => <String, dynamic>{},
-      );
-      final inviteCodes = await _service.getInviteCodes().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
-      final commissions = await _service.getCommissionDetails().catchError(
-        (_) => <Map<String, dynamic>>[],
-      );
+      late final Map<String, dynamic> subscription;
+      late final List<Map<String, dynamic>> plans;
+      late final List<Map<String, dynamic>> orders;
+      late final List<Map<String, dynamic>> notices;
+      late final Map<String, dynamic> invite;
+      late final List<Map<String, dynamic>> inviteCodes;
+      late final List<Map<String, dynamic>> commissions;
+      if (widget.mode == QndxxAccountViewMode.account) {
+        final results = await Future.wait<dynamic>([
+          _service.getSubscriptionInfo().catchError((_) => <String, dynamic>{}),
+          _service.getInviteInfo().catchError((_) => <String, dynamic>{}),
+          _service.getInviteCodes().catchError((_) => <Map<String, dynamic>>[]),
+          _service.getCommissionDetails().catchError((_) => <Map<String, dynamic>>[]),
+        ]);
+        subscription = results[0] as Map<String, dynamic>;
+        invite = results[1] as Map<String, dynamic>;
+        inviteCodes = results[2] as List<Map<String, dynamic>>;
+        commissions = results[3] as List<Map<String, dynamic>>;
+        plans = const [];
+        orders = const [];
+        notices = const [];
+      } else {
+        final results = await Future.wait<dynamic>([
+          _service.getPlans().catchError((_) => <Map<String, dynamic>>[]),
+          _service.getOrders().catchError((_) => <List<Map<String, dynamic>>>[]),
+          _service.getNotices().catchError((_) => <List<Map<String, dynamic>>>[]),
+        ]);
+        plans = results[0] as List<Map<String, dynamic>>;
+        orders = results[1] as List<Map<String, dynamic>>;
+        notices = results[2] as List<Map<String, dynamic>>;
+        subscription = const {};
+        invite = const {};
+        inviteCodes = const [];
+        commissions = const [];
+      }
       if (!mounted) return;
       setState(() {
         _signedIn = true;
@@ -108,6 +122,13 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   String _value(dynamic value, [String fallback = '—']) {
     if (value == null || value.toString().trim().isEmpty) return fallback;
     return value.toString();
+  }
+
+  String _formatPrice(dynamic value) {
+    final amount = num.tryParse(value?.toString() ?? '');
+    if (amount == null || amount < 0) return _value(value);
+    // XBoard plan/order API amounts are integer cents.
+    return '¥' + (amount / 100).toStringAsFixed(2);
   }
 
   String _formatBytes(dynamic value) {
@@ -447,7 +468,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ListItem(
                       title: Text(_value(order['trade_no'], '订单')),
                       subtitle: Text(
-                        '金额：${_value(order['total_amount'])} · 状态：${_value(order['status'])}',
+                        '金额：${_formatPrice(order['total_amount'])} · 状态：${_value(order['status'])}',
                       ),
                       onTap: () => _showOrder(order),
                       trailing: (order['status']?.toString() == '0')
@@ -662,7 +683,7 @@ class _PlanPeriodDialog extends StatelessWidget {
           for (final (period, label, price) in periods)
             ListItem(
               title: Text(label),
-              subtitle: Text('¥$price'),
+              subtitle: Text('¥${((num.tryParse(price.toString()) ?? 0) / 100).toStringAsFixed(2)}'),
               onTap: () => Navigator.of(context).pop(period),
             ),
         ],
