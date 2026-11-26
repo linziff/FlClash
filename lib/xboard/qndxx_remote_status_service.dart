@@ -118,7 +118,7 @@ class QndxxRemoteStatusService extends ChangeNotifier {
       }
       throw StateError('所有 WSS 状态服务器连接失败：$lastError');
     } catch (error) {
-      _scheduleReconnect();
+      if (lastError != null) _scheduleReconnect();
       rethrow;
     } finally {
       _connecting = false;
