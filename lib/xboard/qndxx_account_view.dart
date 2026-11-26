@@ -244,7 +244,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           checkoutType == -1 &&
           (checkoutData == true || nestedData['data'] == true);
       if (url != null && url.isNotEmpty) {
-        await dialogs.openUrl(url);
+        if (Platform.isWindows || Platform.isMacOS) {
+          await QndxxCrispService.instance.openPayment(url);
+        } else {
+          await dialogs.openUrl(url);
+        }
       } else if (isFreePayment) {
         dialogs.showBanner('订单已完成，无需支付', level: BannerLevel.success);
       } else {
