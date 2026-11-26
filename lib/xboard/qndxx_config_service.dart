@@ -33,6 +33,7 @@ class QndxxConfigService {
   String? _fastestPanel;
   List<String> _rankedPanels = const [];
   DateTime? _lastRefresh;
+  DateTime? _lastAttempt;
 
   Map<String, dynamic> get localConfig => Map.unmodifiable(_local);
   Map<String, dynamic> get remoteConfig => Map.unmodifiable(_remote);
@@ -156,6 +157,13 @@ class QndxxConfigService {
   }
 
   Future<bool> refresh() async {
+    final now = DateTime.now();
+    if (_remote.isNotEmpty &&
+        _lastAttempt != null &&
+        now.difference(_lastAttempt!) < const Duration(minutes: 2)) {
+      return true;
+    }
+    _lastAttempt = now;
     final remoteSettings = _local['remote_config'];
     final settings = remoteSettings is Map ? remoteSettings : const {};
     final sources =
