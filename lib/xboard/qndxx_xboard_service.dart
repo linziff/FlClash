@@ -368,7 +368,9 @@ class QndxxXboardService {
     final body = _map(_decode(
       (await _authorizedGet('/api/v1/user/order/getPaymentMethod')).data,
     ));
-    return _list(body['data']);
+    return _list(body['data'])
+        .where((method) => method['is_available'] != false)
+        .toList(growable: false);
   }
 
   Future<List<Map<String, dynamic>>> getNotices({
