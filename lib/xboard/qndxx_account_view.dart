@@ -232,8 +232,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                colors.primaryContainer.withValues(alpha: 0.82),
-                colors.surfaceContainerHigh.withValues(alpha: 0.72),
+                colors.primaryContainer,
+                colors.surfaceContainerHigh,
               ],
             ),
             border: Border.all(
@@ -261,13 +261,27 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '青年大学习 商店',
-                      style: TextStyle(
-                        color: colors.onSurface,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.storefront_rounded, color: colors.primary, size: 19),
+                        const SizedBox(width: 7),
+                        Flexible(
+                          child: Text(
+                            '青年大学习 商店',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: colors.onSurface,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Icon(Icons.shopping_bag_rounded, color: colors.primary, size: 18),
+                      ],
                     ),
                     const SizedBox(height: 5),
                     Text(
@@ -362,20 +376,12 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                 children: [
                   Row(
                     children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: colors.primaryContainer,
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          _planIcon(plan),
-                          color: colors.onPrimaryContainer,
-                          size: 22,
-                        ),
+                      Icon(
+                        _planIcon(plan),
+                        color: colors.primary,
+                        size: 25,
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: Text(
                           _value(plan['name'], '未命名套餐'),
@@ -928,13 +934,14 @@ class _PlanFeatureChip extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 14, color: context.colorScheme.primary),
-            const SizedBox(width: 5),
+            Icon(icon, size: 18, color: context.colorScheme.primary),
+            const SizedBox(width: 7),
             Text(
               label,
               style: TextStyle(
-                fontSize: 12,
-                color: context.colorScheme.onSurfaceVariant,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: context.colorScheme.onSurface,
               ),
             ),
           ],
@@ -1185,8 +1192,9 @@ class _PlanPeriodDialog extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Icon(
-                      Icons.chevron_right_rounded,
-                      color: context.colorScheme.onSurfaceVariant,
+                      Icons.arrow_circle_right_rounded,
+                      color: context.colorScheme.primary,
+                      size: 22,
                     ),
                   ],
                 ),
@@ -1261,8 +1269,9 @@ class _PaymentMethodOption extends StatelessWidget {
               ),
             ),
             Icon(
-              Icons.chevron_right_rounded,
-              color: context.colorScheme.onSurfaceVariant,
+              Icons.arrow_circle_right_rounded,
+              color: context.colorScheme.primary,
+              size: 22,
             ),
           ],
         ),
