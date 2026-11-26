@@ -175,7 +175,8 @@ class QndxxXboardService {
         final statusCode = error.response?.statusCode;
         final responseBody = _map(_decode(error.response?.data));
         final serverMessage = _message(responseBody);
-        final detail = serverMessage ??
+        final detail =
+            serverMessage ??
             (error.response?.data is String
                 ? (error.response!.data as String).trim()
                 : error.message ?? error.toString());
