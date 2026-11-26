@@ -1,9 +1,13 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:intl/intl.dart';
 
 import 'qndxx_config_service.dart';
 import 'qndxx_crisp_service.dart';
@@ -133,6 +137,32 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     if (value == null || value.toString().trim().isEmpty) return fallback;
     return value.toString();
   }
+
+  String _formatBytes(dynamic value) {
+    final bytes = num.tryParse(value?.toString() ?? '');
+    if (bytes == null || bytes < 0) return _value(value);
+    final gb = bytes / (1024 * 1024 * 1024);
+    return gb >= 1024
+        ? '${(gb / 1024).toStringAsFixed(2)} TB'
+        : '${gb.toStringAsFixed(2)} GB';
+  }
+
+  String _formatDate(dynamic value) {
+    if (value == null || value.toString().isEmpty) return '不限时';
+    final numeric = int.tryParse(value.toString());
+    final date = numeric != null
+        ? DateTime.fromMillisecondsSinceEpoch(
+            numeric > 9999999999 ? numeric : numeric * 1000,
+          )
+        : DateTime.tryParse(value.toString());
+    return date == null
+        ? value.toString()
+        : DateFormat('yyyy-MM-dd HH:mm').format(date.toLocal());
+  }
+
+  String _inviteUrl(String code) =>
+      'https://toufq.com/#/register?code=${Uri.encodeComponent(code)}';
+
 
   Future<void> _login() async {
     await dialogs.showCommonDialog<void>(child: const QndxxLoginDialog());
@@ -415,18 +445,22 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ),
                   ),
                   ListItem(
-                    title: const Text('套餐'),
-                    subtitle: Text(
-                      _value(
-                        (_subscription['plan'] is Map)
-                            ? (_subscription['plan'] as Map)['name']
-                            : null,
-                      ),
-                    ),
+                    title: const Text('当前套餐'),
+                    subtitle: Text(_value(
+                      (_subscription['plan'] is Map)
+                          ? (_subscription['plan'] as Map)['name']
+                          : _subscription['plan_name'],
+                    )),
                   ),
                   ListItem(
                     title: const Text('到期时间'),
-                    subtitle: Text(_value(_subscription['expired_at'])),
+                    subtitle: Text(_formatDate(
+                      _subscription['expired_at'] ?? _subscription['expired_at_timestamp'],
+                    )),
+                  ),
+                  ListItem(
+                    title: const Text('流量总额'),
+                    subtitle: Text(_formatBytes(_subscription['transfer_enable'])),
                   ),
                   ListItem(
                     title: const Text('设备数量限制'),
@@ -444,8 +478,16 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   for (final plan in _plans)
                     ListItem(
                       title: Text(_value(plan['name'], '未命名套餐')),
-                      subtitle: Text(
-                        '流量：${_value(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}',
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if ((plan['content'] ?? plan['description'] ?? plan['plan_content'])?.toString().trim().isNotEmpty == true)
+                            MarkdownBody(
+                              data: (plan['content'] ?? plan['description'] ?? plan['plan_content']).toString(),
+                            ),
+                          const SizedBox(height: 6),
+                          Text('流量：${_formatBytes(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}'),
+                        ],
                       ),
                       trailing: TextButton(
                         onPressed: () => _purchasePlan(plan),
@@ -488,6 +530,24 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             ],
             if (widget.mode == QndxxAccountViewMode.account) ...[
               generateSection(
+                title: '我的钱包',
+                items: [
+                  ListItem(
+                    title: const Text('可用佣金'),
+                    subtitle: Text(_value(
+                      _invite['commission_balance'] ??
+                      _invite['balance'] ??
+                      _invite['commission'],
+                      '面板暂未提供余额数据',
+                    )),
+                  ),
+                  const ListItem(
+                    title: Text('佣金用途'),
+                    subtitle: Text('佣金仅可用于网站消费'),
+                  ),
+                ],
+              ),
+              generateSection(
                 title: '邀请与佣金',
                 items: [
                   ListItem(
@@ -506,8 +566,17 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   for (final code in _inviteCodes)
                     ListItem(
                       title: Text(_value(code['code'], '邀请码')),
-                      subtitle: Text(
-                        '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}'),
+                          const SizedBox(height: 8),
+                          QrImageView(
+                            data: _inviteUrl(_value(code['code'], '')),
+                            size: 144,
+                            backgroundColor: const Color(0xFFFFFFFF),
+                          ),
+                        ],
                       ),
                     ),
                   if (_commissions.isNotEmpty)
@@ -519,59 +588,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                         '订单金额：${_value(commission['order_amount'])} · 佣金：${_value(commission['get_amount'])}',
                       ),
                     ),
-                ],
-              ),
-              generateSection(
-                title: '工单支持',
-                items: [
-                  ListItem(
-                    title: const Text('创建工单'),
-                    trailing: TextButton(
-                      onPressed: _createTicket,
-                      child: const Text('新建'),
-                    ),
-                  ),
-                  if (_tickets.isEmpty) const ListItem(title: Text('暂无工单')),
-                  for (final ticket in _tickets)
-                    ListItem(
-                      title: Text(_value(ticket['subject'], '工单')),
-                      subtitle: Text(
-                        '状态：${_value(ticket['status'])} · 更新时间：${_value(ticket['updated_at'])}',
-                      ),
-                      onTap: () => _showTicket(ticket),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TextButton(
-                            onPressed: () => _replyTicket(ticket),
-                            child: const Text('回复'),
-                          ),
-                          TextButton(
-                            onPressed: () => _closeTicket(ticket),
-                            child: const Text('关闭'),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-              generateSection(
-                title: '远程设备状态',
-                items: [
-                  ListItem(
-                    title: const Text('WebSocket 状态上报'),
-                    subtitle: Text(
-                      _remoteStatus.isConnected
-                          ? '已安全连接；仅发送随机设备 ID 和心跳'
-                          : _remoteStatus.isEnabled
-                          ? '已启用，等待安全连接；不会执行远程 HTTP 任务'
-                          : '默认关闭；启用后仅发送随机设备 ID 和心跳',
-                    ),
-                    trailing: TextButton(
-                      onPressed: _toggleRemoteStatus,
-                      child: Text(_remoteStatus.isEnabled ? '停用' : '启用'),
-                    ),
-                  ),
                 ],
               ),
               generateSection(
