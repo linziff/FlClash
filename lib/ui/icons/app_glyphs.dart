@@ -984,7 +984,7 @@ abstract final class AppGlyphs {
     GlyphCircle(16.6, 12, 1.4, role: GlyphRole.detail, solid: true),
   ]);
 
-  static const account = Glyph([
+  static const qndxxAccount = Glyph([
     GlyphCircle(12, 12, 8.8),
     GlyphCircle(12, 9.4, 2.8, role: GlyphRole.detail),
     GlyphArc(
