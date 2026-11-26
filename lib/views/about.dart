@@ -4,6 +4,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
+import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'package:fl_clash/ui/icons/icons.dart';
 import 'package:fl_clash/ui/ui.dart';
 import 'package:flutter/widgets.dart';
@@ -27,6 +28,34 @@ class AboutView extends ConsumerWidget {
 
   Future<void> _checkUpdate(BuildContext context, WidgetRef ref) async {
     if (ref.read(loadingProvider(LoadingTag.checkUpdate))) return;
+    final remoteUpdate = await globalState.loadingRun(
+      QndxxXboardService.instance.checkForUpdates,
+      title: '检查 QNDXX 更新',
+      tag: LoadingTag.checkUpdate,
+    );
+    if (remoteUpdate != null) {
+      final latest = remoteUpdate['latestVersion']?.toString() ?? '';
+      final updateUrl = remoteUpdate['updateUrl']?.toString() ?? '';
+      if (remoteUpdate['hasUpdate'] == true && updateUrl.isNotEmpty) {
+        final accepted = await dialogs.showMessage(
+          title: '发现 QNDXX 新版本 $latest',
+          message: TextSpan(
+            text: remoteUpdate['releaseNotes']?.toString() ?? '发现新版本，是否前往下载？',
+          ),
+          confirmText: '下载更新',
+        );
+        if (accepted == true) await dialogs.openUrl(updateUrl);
+      } else {
+        await dialogs.showAlert(
+          title: '检查更新',
+          message: TextSpan(
+            text: latest.isEmpty ? '更新服务器没有返回版本信息' : '当前已是最新版本：${remoteUpdate['currentVersion']}',
+          ),
+        );
+      }
+      return;
+    }
+
     final commonAction = ref.read(commonActionProvider.notifier);
     final result = await globalState.loadingRun(
       () async => (release: await request.checkForUpdate()),
