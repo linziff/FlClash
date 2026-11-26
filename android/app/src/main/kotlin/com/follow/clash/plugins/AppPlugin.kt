@@ -747,7 +747,7 @@ class AppPlugin : FlutterPlugin, MethodChannel.MethodCallHandler, ActivityAware 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
         scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
         channel =
-            MethodChannel(flutterPluginBinding.binaryMessenger, "${Components.PACKAGE_NAME}/app")
+            MethodChannel(flutterPluginBinding.binaryMessenger, "qndxx.app/app")
         channel.setMethodCallHandler(this)
         flutterAssets = flutterPluginBinding.flutterAssets
         watchPackageChanges(flutterPluginBinding.applicationContext)
