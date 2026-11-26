@@ -5,7 +5,6 @@ import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'qndxx_config_service.dart';
@@ -71,7 +70,6 @@ class QndxxXboardService {
   String? _token;
   String? _panelUrl;
   String? _email;
-  XBoardSDK? _sdk;
 
   String _normalizeBaseUrl(String value) {
     final uri = Uri.parse(value.trim());
@@ -202,7 +200,35 @@ class QndxxXboardService {
     }
   }
 
-  Future<XBoardSDK> _ensurePublicSdk() async {
+  List<Map<String, dynamic>> _list(dynamic value) {
+    if (value is List) {
+      return value.whereType<Map>().map(_map).toList(growable: false);
+    }
+    if (value is Map && value['data'] is List) {
+      return (value['data'] as List)
+          .whereType<Map>()
+          .map(_map)
+          .toList(growable: false);
+    }
+    return const [];
+  }
+
+  Map<String, dynamic> _responseData(Response<Object?> response) {
+    final body = _map(_decode(response.data));
+    final data = body['data'];
+    return data is Map ? _map(data) : body;
+  }
+
+  bool _responseSucceeded(Map<String, dynamic> body) {
+    if (body['success'] == true || body['status'] == true) return true;
+    final data = body['data'];
+    return data == true || data != null;
+  }
+
+  Future<Response<Object?>> _publicPost(
+    String path,
+    Map<String, dynamic> data,
+  ) async {
     final config = QndxxConfigService.instance;
     if (config.localConfig.isEmpty) {
       await config.initialize(refreshRemote: true);
@@ -212,476 +238,218 @@ class QndxxXboardService {
     final candidates = config.rankedPanelUrls.isNotEmpty
         ? config.rankedPanelUrls
         : config.panelUrls;
-    final baseUrl = _panelUrl ?? config.fastestPanelUrl ??
-        (candidates.isNotEmpty ? candidates.first : null);
-    if (baseUrl == null || baseUrl.isEmpty) {
-      throw StateError('远程配置没有可用的 QNDXX 面板地址');
+    final urls = _panelUrl != null ? [_panelUrl!] : candidates;
+    if (urls.isEmpty) throw StateError('远程配置没有可用的 QNDXX 面板地址');
+    Object? lastError;
+    for (final candidate in urls) {
+      try {
+        final baseUrl = _normalizeBaseUrl(candidate);
+        final response = await _dio.post<Object?>(
+          '$baseUrl$path',
+          data: data,
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {'User-Agent': config.apiUserAgent},
+          ),
+        );
+        final body = _map(_decode(response.data));
+        if (response.statusCode != null &&
+            response.statusCode! >= 200 &&
+            response.statusCode! < 300 &&
+            _responseSucceeded(body)) {
+          return response;
+        }
+        lastError = StateError(_message(body) ?? '面板拒绝请求');
+      } catch (error) {
+        lastError = error;
+      }
     }
-    final current = _sdk ?? XBoardSDK.instance;
-    if (current.isInitialized && current.baseUrl != baseUrl) {
-      current.dispose();
-    }
-    if (!current.isInitialized) {
-      await current.initialize(
-        baseUrl,
-        panelType: config.panelType,
-        httpConfig: HttpConfig.production(
-          userAgent: config.apiUserAgent,
-          obfuscationPrefix: config.obfuscationPrefix.isEmpty
-              ? null
-              : config.obfuscationPrefix,
-        ),
-        enableLogging: false,
-      );
-    }
-    _sdk = current;
-    return current;
-  }
-
-  Future<XBoardSDK> _ensureSdk() async {
-    if (_token == null || _panelUrl == null) await restoreSession();
-    final current = await _ensurePublicSdk();
-    await current.saveToken(_token!);
-    return current;
+    throw StateError('QNDXX 面板请求失败：${_safeError(lastError)}');
   }
 
   Future<Map<String, dynamic>> getAccountInfo() async {
-    final model = await (await _ensureSdk()).user.getUserInfo();
-    return Map<String, dynamic>.from(model.toJson());
+    return _responseData(await _authorizedGet('/api/v1/user/info'));
   }
 
   Future<List<Map<String, dynamic>>> getPlans() async {
-    final models = await (await _ensureSdk()).plan.getPlans();
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/plan/fetch')).data,
+    ));
+    return _list(body['data']);
   }
 
   Future<Map<String, dynamic>?> getPlan(int id) async {
-    final model = await (await _ensureSdk()).plan.getPlan(id);
-    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+    for (final plan in await getPlans()) {
+      if (plan['id']?.toString() == id.toString()) return plan;
+    }
+    return null;
   }
 
   Future<Map<String, dynamic>> getSubscriptionInfo() async {
-    final model = await (await _ensureSdk()).subscription.getSubscription();
-    return Map<String, dynamic>.from(model.toJson());
+    return _responseData(await _authorizedGet('/api/v1/user/getSubscribe'));
   }
 
   Future<String> getSubscriptionUrl() async {
-    return (await _ensureSdk()).subscription.getSubscribeUrl();
+    final data = await getSubscriptionInfo();
+    final url = data['subscribe_url']?.toString() ?? '';
+    if (url.isEmpty) throw StateError('面板没有返回订阅链接');
+    return url;
   }
 
   Future<List<Map<String, dynamic>>> getOrders({
     int page = 1,
     int pageSize = 10,
   }) async {
-    final models = await (await _ensureSdk()).order.getOrders(
-      page: page,
-      pageSize: pageSize,
-    );
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/order/fetch')).data,
+    ));
+    return _list(body['data']);
   }
 
-  Future<String> createOrder(int planId, String period, {String? couponCode}) {
-    return _ensureSdk().then(
-      (sdk) => sdk.order.createOrder(planId, period, couponCode: couponCode),
-    );
+  Future<String> createOrder(
+    int planId,
+    String period, {
+    String? couponCode,
+  }) async {
+    final data = <String, dynamic>{
+      'plan_id': planId,
+      'period': period,
+      if (couponCode != null && couponCode.isNotEmpty) 'coupon_code': couponCode,
+    };
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/order/save',
+      data,
+    )).data));
+    final value = body['data'];
+    if (value is String && value.isNotEmpty) return value;
+    if (value is Map) {
+      final tradeNo = value['trade_no'] ?? value['tradeNo'];
+      if (tradeNo != null) return tradeNo.toString();
+    }
+    throw StateError(_message(body) ?? '面板没有返回订单号');
   }
 
   Future<Map<String, dynamic>> checkoutOrder(
     String tradeNo,
     String method,
   ) async {
-    final model = await (await _ensureSdk()).order.checkoutOrder(tradeNo, method);
-    return Map<String, dynamic>.from(model.toJson());
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/order/checkout',
+      {'trade_no': tradeNo, 'method': method},
+    )).data));
+    final value = body['data'];
+    if (value is Map) {
+      final data = _map(value);
+      return {
+        ...data,
+        'type': data['type'] ?? body['type'],
+        if (data['data'] is String && data['url'] == null) 'url': data['data'],
+      };
+    }
+    return {
+      'type': body['type'],
+      'data': value,
+      if (value is String) 'url': value,
+    };
   }
 
   Future<bool> cancelOrder(String tradeNo) async {
-    return (await _ensureSdk()).order.cancelOrder(tradeNo);
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/order/cancel',
+      {'trade_no': tradeNo},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<List<Map<String, dynamic>>> getPaymentMethods([String? tradeNo]) async {
-    final sdk = await _ensureSdk();
-    final models = tradeNo == null
-        ? await sdk.payment.getPaymentMethods()
-        : await sdk.order.getPaymentMethods(tradeNo);
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/order/getPaymentMethod')).data,
+    ));
+    return _list(body['data']);
   }
 
   Future<List<Map<String, dynamic>>> getNotices({
     int page = 1,
     int pageSize = 10,
   }) async {
-    final models = await (await _ensureSdk()).notice.getNotices(
-      page: page,
-      pageSize: pageSize,
-    );
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/notice/fetch')).data,
+    ));
+    return _list(body['data']);
   }
 
   Future<Map<String, dynamic>> getInviteInfo() async {
-    final model = await (await _ensureSdk()).invite.getInviteInfo();
-    return Map<String, dynamic>.from(model.toJson());
+    return _responseData(await _authorizedGet('/api/v1/user/invite/fetch'));
   }
 
   Future<List<Map<String, dynamic>>> getInviteCodes() async {
-    final models = await (await _ensureSdk()).invite.getInviteCodes();
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final info = await getInviteInfo();
+    return _list(info['codes']);
   }
 
   Future<String> generateInviteCode() async {
-    return (await _ensureSdk()).invite.generateInviteCode();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/invite/save')).data,
+    ));
+    if (body['data'] != true) {
+      throw StateError(_message(body) ?? '生成邀请码失败');
+    }
+    final codes = await getInviteCodes();
+    if (codes.isEmpty) throw StateError('面板未返回新邀请码');
+    return codes.first['code']?.toString() ?? '';
   }
 
   Future<List<Map<String, dynamic>>> getCommissionDetails({
     int page = 1,
     int pageSize = 10,
   }) async {
-    final models = await (await _ensureSdk()).invite.getCommissionDetails(
-      page: page,
-      pageSize: pageSize,
-    );
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final body = _map(_decode((await _authorizedGet(
+      '/api/v1/user/invite/details?current=$page&page_size=$pageSize&t=$timestamp',
+    )).data));
+    return _list(body['data']);
   }
 
   Future<List<Map<String, dynamic>>> getTickets({
     int page = 1,
     int pageSize = 10,
   }) async {
-    final models = await (await _ensureSdk()).ticket.getTickets(
-      page: page,
-      pageSize: pageSize,
-    );
-    return models.map((item) => Map<String, dynamic>.from(item.toJson())).toList();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/ticket/fetch')).data,
+    ));
+    return _list(body['data']);
   }
 
   Future<Map<String, dynamic>> getTicket(int id) async {
-    final model = await (await _ensureSdk()).ticket.getTicket(id);
-    return Map<String, dynamic>.from(model.toJson());
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/ticket/fetch?id=$id')).data,
+    ));
+    final data = body['data'];
+    return data is Map ? _map(data) : body;
   }
 
   Future<bool> createTicket(String subject, String message, int level) async {
-    return (await _ensureSdk()).ticket.createTicket(subject, message, level);
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/ticket/withdraw',
+      {'subject': subject, 'message': message, 'level': level},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<bool> replyTicket(int id, String message) async {
-    return (await _ensureSdk()).ticket.replyTicket(id, message);
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/ticket/reply',
+      {'id': id, 'message': message},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<bool> closeTicket(int id) async {
-    return (await _ensureSdk()).ticket.closeTicket(id);
-  }
-
-  Future<void> logout() async {
-    try {
-      if (_token != null && _panelUrl != null) {
-        await _authorizedPost('/api/v1/passport/auth/logout', const {});
-      }
-    } catch (_) {
-      // Local logout must still succeed when the panel is unreachable.
-    }
-    try {
-      final sdk = _sdk;
-      if (sdk != null && sdk.isInitialized) {
-        try { await sdk.clearToken(); } finally { sdk.dispose(); }
-      }
-    } catch (_) {
-      _sdk?.dispose();
-    }
-    _sdk = null;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_tokenKey);
-    await prefs.remove(_panelKey);
-    await prefs.remove(_emailKey);
-    await prefs.remove(_profileIdKey);
-    _token = null;
-    _panelUrl = null;
-    _email = null;
-  }
-
-  Future<Response<Object?>> _authorizedGet(String path) async {
-    if (_token == null || _panelUrl == null) await restoreSession();
-    try {
-      return await _dio.get<Object?>(
-        '$_panelUrl$path',
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': 'Bearer $_token',
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
-    } on DioException catch (error) {
-      if (error.response?.statusCode != 401 &&
-          error.response?.statusCode != 403) {
-        rethrow;
-      }
-      // Older XBoard installations expect the raw token without "Bearer ".
-      return _dio.get<Object?>(
-        '$_panelUrl$path',
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': _token!,
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
-    }
-  }
-
-  Future<Response<Object?>> _authorizedPost(
-    String path,
-    Map<String, dynamic> data,
-  ) async {
-    if (_token == null || _panelUrl == null) await restoreSession();
-    try {
-      return await _dio.post<Object?>(
-        '$_panelUrl$path',
-        data: data,
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': 'Bearer $_token',
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
-    } on DioException catch (error) {
-      if (error.response?.statusCode != 401 &&
-          error.response?.statusCode != 403) {
-        rethrow;
-      }
-      return _dio.post<Object?>(
-        '$_panelUrl$path',
-        data: data,
-        options: Options(
-          responseType: ResponseType.plain,
-          headers: {
-            'Authorization': _token!,
-            'User-Agent': QndxxConfigService.instance.apiUserAgent,
-          },
-        ),
-      );
-    }
-  }
-
-  String? _extractToken(String subscribeUrl, Map<String, dynamic> data) {
-    final fromData = data['token']?.toString();
-    if (fromData != null && fromData.isNotEmpty) return fromData;
-    try {
-      final uri = Uri.parse(subscribeUrl);
-      final queryToken = uri.queryParameters['token'];
-      if (queryToken != null && queryToken.isNotEmpty) return queryToken;
-      if (uri.pathSegments.isNotEmpty) {
-        final last = uri.pathSegments.last;
-        if (last.length >= 16) return last;
-      }
-    } catch (_) {}
-    return null;
-  }
-
-  List<_SubscriptionCandidate> _subscriptionCandidates(
-    String subscribeUrl,
-    String token,
-    bool preferEncrypt,
-  ) {
-    final config = QndxxConfigService.instance;
-    final candidates = <_SubscriptionCandidate>[];
-    for (final item in config.subscriptionUrls) {
-      final base = item['url']?.toString() ?? '';
-      final endpoints = _map(item['endpoints']);
-      final ordered = endpoints.entries.toList()
-        ..sort((a, b) {
-          bool encrypted(Map value, String key) =>
-              value['isEncrypt'] == true || key.toLowerCase() == 'v2';
-          final ae = encrypted(_map(a.value), a.key);
-          final be = encrypted(_map(b.value), b.key);
-          if (ae == be) return a.key.compareTo(b.key);
-          return preferEncrypt ? (be ? 1 : -1) : (ae ? 1 : -1);
-        });
-      for (final entry in ordered) {
-        final endpoint = _map(entry.value);
-        final path = endpoint['path']?.toString() ?? '';
-        if (base.isEmpty || path.isEmpty) continue;
-        final resolved = path.replaceAll('{token}', token);
-        final joined = base.endsWith('/')
-            ? '$base${resolved.startsWith('/') ? resolved.substring(1) : resolved}'
-            : '$base${resolved.startsWith('/') ? resolved : '/$resolved'}';
-        final uri = Uri.parse(joined);
-        final query = Map<String, String>.from(uri.queryParameters);
-        query.putIfAbsent('flag', () => 'flclash');
-        candidates.add(
-          _SubscriptionCandidate(
-            uri.replace(queryParameters: query).toString(),
-            endpoint['method']?.toString().toUpperCase() ?? 'GET',
-            endpoint['isEncrypt'] == true || entry.key.toLowerCase() == 'v2',
-          ),
-        );
-      }
-    }
-    if (subscribeUrl.isNotEmpty) {
-      final path = Uri.tryParse(subscribeUrl)?.path.toLowerCase() ?? '';
-      candidates.add(_SubscriptionCandidate(
-        subscribeUrl,
-        'GET',
-        path.contains('encrypt'),
-      ));
-    }
-    final unique = <String, _SubscriptionCandidate>{};
-    for (final candidate in candidates) {
-      unique.putIfAbsent(candidate.url, () => candidate);
-    }
-    return unique.values.toList(growable: false);
-  }
-
-  String? _decrypt(String encrypted, String key) =>
-      QndxxSubscriptionDecryptor.decrypt(encrypted, key);
-
-  bool _looksLikeClash(String content) =>
-      QndxxSubscriptionDecryptor.looksLikeClash(content);
-
-  Future<QndxxSubscription> _downloadSubscriptionCandidate(
-    _SubscriptionCandidate candidate,
-    String token,
-    QndxxConfigService config,
-    CancelToken cancelToken,
-  ) async {
-    Object? lastError;
-    for (var attempt = 0; attempt < 3; attempt++) {
-      try {
-        final options = Options(
-          responseType: ResponseType.plain,
-          cancelToken: cancelToken,
-          headers: {
-            'User-Agent': config.subscriptionUserAgent,
-            'Accept': '*/*',
-          },
-        );
-        final result = candidate.method == 'POST'
-            ? await _dio.post<Object?>(
-                candidate.url,
-                data: {'token': token},
-                options: options,
-              )
-            : await _dio.get<Object?>(candidate.url, options: options);
-        var text = result.data?.toString() ?? '';
-        final prefix = config.obfuscationPrefix;
-        if (prefix.isNotEmpty && text.startsWith(prefix)) {
-          text = text.substring(prefix.length);
-        }
-        if (text.isEmpty) throw StateError('订阅响应为空');
-        try {
-          final json = _map(jsonDecode(text));
-          if (json['data'] is String) text = json['data'] as String;
-        } catch (_) {
-          // Plain-text subscription bodies are expected for many panels.
-        }
-        final decrypted = _decrypt(text, config.decryptKey);
-        final content = decrypted != null && _looksLikeClash(decrypted)
-            ? decrypted
-            : text;
-        if (!_looksLikeClash(content)) {
-          throw StateError('订阅响应不是有效的 Clash YAML，且解密未成功');
-        }
-        return QndxxSubscription(
-          bytes: Uint8List.fromList(utf8.encode(content)),
-          sourceUrl: candidate.url,
-          userInfo: result.headers.value('subscription-userinfo'),
-        );
-      } catch (error) {
-        if (CancelToken.isCancel(error)) rethrow;
-        lastError = error;
-        if (attempt < 2) {
-          await Future<void>.delayed(Duration(seconds: attempt + 1));
-        }
-      }
-    }
-    throw StateError('订阅源失败：${_safeError(lastError)}');
-  }
-
-  Future<QndxxSubscription> _raceSubscriptionCandidates(
-    List<_SubscriptionCandidate> candidates,
-    String token,
-    QndxxConfigService config,
-  ) async {
-    if (candidates.isEmpty) throw StateError('没有可用的订阅地址');
-    if (candidates.length == 1) {
-      return _downloadSubscriptionCandidate(
-        candidates.single,
-        token,
-        config,
-        CancelToken(),
-      );
-    }
-    final completer = Completer<QndxxSubscription>();
-    final cancelTokens = List.generate(candidates.length, (_) => CancelToken());
-    var remaining = candidates.length;
-    Object? lastError;
-    for (var index = 0; index < candidates.length; index++) {
-      _downloadSubscriptionCandidate(
-        candidates[index],
-        token,
-        config,
-        cancelTokens[index],
-      ).then((result) {
-        if (completer.isCompleted) return;
-        completer.complete(result);
-        for (var other = 0; other < cancelTokens.length; other++) {
-          if (other != index) {
-            cancelTokens[other].cancel('another subscription endpoint won');
-          }
-        }
-      }).catchError((Object error) {
-        lastError = error;
-        remaining--;
-        if (remaining == 0 && !completer.isCompleted) {
-          completer.completeError(
-            StateError('所有订阅地址均失败：${_safeError(lastError)}'),
-          );
-        }
-      });
-    }
-    return completer.future;
-  }
-
-  Future<QndxxSubscription> downloadSubscription() async {
-    if (_token == null || _panelUrl == null) await restoreSession();
-    final response = await _authorizedGet('/api/v1/user/getSubscribe');
-    final body = _map(_decode(response.data));
-    final data = _map(body['data']);
-    final subscribeUrl =
-        (data['subscribe_url'] ?? data['subscribeUrl'])?.toString() ?? '';
-    if (subscribeUrl.isEmpty) {
-      throw StateError(_message(body) ?? '账号没有返回订阅地址');
-    }
-
-    final token = _extractToken(subscribeUrl, data);
-    if (token == null || token.isEmpty) {
-      throw StateError('无法从订阅信息中提取订阅 Token');
-    }
-
-    final config = QndxxConfigService.instance;
-    final candidates = _subscriptionCandidates(
-      subscribeUrl,
-      token,
-      config.preferEncrypt,
-    );
-    final preferred = candidates
-        .where((item) => item.isEncrypted == config.preferEncrypt)
-        .toList(growable: false);
-    final fallback = candidates
-        .where((item) => item.isEncrypted != config.preferEncrypt)
-        .toList(growable: false);
-    try {
-      return await _raceSubscriptionCandidates(
-        preferred.isEmpty ? candidates : preferred,
-        token,
-        config,
-      );
-    } catch (error) {
-      if (fallback.isEmpty || preferred.isEmpty) rethrow;
-      return _raceSubscriptionCandidates(fallback, token, config);
-    }
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/ticket/close',
+      {'id': id},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<Map<String, dynamic>> checkForUpdates() async {
@@ -814,15 +582,18 @@ class QndxxXboardService {
   }
 
   Future<bool> updateAccountInfo(Map<String, dynamic> data) async {
-    return (await _ensureSdk()).user.updateUserInfo(data);
-  }
-
-  Future<bool> changePassword(String oldPassword, String newPassword) async {
-    return (await _ensureSdk()).user.changePassword(oldPassword, newPassword);
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/update',
+      data,
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<bool> resetAccountSecurity() async {
-    return (await _ensureSdk()).user.resetSecurity();
+    final body = _map(_decode(
+      (await _authorizedGet('/api/v1/user/resetSecurity')).data,
+    ));
+    return _responseSucceeded(body);
   }
 
   Future<bool> register({
@@ -831,16 +602,25 @@ class QndxxXboardService {
     String? emailCode,
     String? inviteCode,
   }) async {
-    return (await _ensureSdk()).auth.register(
-      email,
-      password,
-      emailCode: emailCode,
-      inviteCode: inviteCode,
-    );
+    final data = <String, dynamic>{
+      'email': email,
+      'password': password,
+      if (emailCode != null && emailCode.isNotEmpty) 'email_code': emailCode,
+      if (inviteCode != null && inviteCode.isNotEmpty) 'invite_code': inviteCode,
+    };
+    final body = _map(_decode((await _publicPost(
+      '/api/v1/passport/auth/register',
+      data,
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<bool> sendEmailVerifyCode(String email) async {
-    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
+    final body = _map(_decode((await _publicPost(
+      '/api/v1/passport/comm/sendEmailVerify',
+      {'email': email},
+    )).data));
+    return body['data'] == true;
   }
 
   Future<bool> forgotPassword(
@@ -848,20 +628,31 @@ class QndxxXboardService {
     String code,
     String newPassword,
   ) async {
-    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
+    final body = _map(_decode((await _publicPost(
+      '/api/v1/passport/auth/forget',
+      {'email': email, 'password': newPassword, 'email_code': code},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
-    final model = await (await _ensureSdk()).order.getOrder(tradeNo);
-    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+    final body = _map(_decode((await _authorizedGet(
+      '/api/v1/user/order/detail?trade_no=$tradeNo',
+    )).data));
+    final data = body['data'];
+    return data is Map ? _map(data) : null;
   }
 
   Future<Map<String, dynamic>?> checkCoupon(
     String code,
     int planId,
   ) async {
-    final model = await (await _ensureSdk()).order.checkCoupon(code, planId);
-    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/coupon/check',
+      {'code': code, 'plan_id': planId},
+    )).data));
+    final data = body['data'];
+    return data is Map ? _map(data) : null;
   }
 
   Future<bool> withdrawCommission({
@@ -869,17 +660,20 @@ class QndxxXboardService {
     required String method,
     required Map<String, dynamic> params,
   }) async {
-    return (await _ensureSdk()).invite.withdrawCommission(
-      amount: amount,
-      method: method,
-      params: params,
-    );
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/invite/withdraw',
+      {'amount': amount, 'method': method, ...params},
+    )).data));
+    return _responseSucceeded(body);
   }
 
   Future<bool> transferCommissionToBalance(double amount) async {
-    return (await _ensureSdk()).invite.transferCommissionToBalance(amount);
+    final body = _map(_decode((await _authorizedPost(
+      '/api/v1/user/invite/transfer',
+      {'amount': amount},
+    )).data));
+    return _responseSucceeded(body);
   }
-
   void dispose() {
     _dio.close(force: true);
   }
