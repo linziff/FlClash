@@ -916,8 +916,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           ],
         ],
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _PlanFeatureChip extends StatelessWidget {
@@ -1414,6 +1414,5 @@ class _QndxxMessageDialogState extends State<_QndxxMessageDialog> {
         decoration: const InputDecoration(hintText: '请输入回复内容'),
       ),
     );
-      ),
   }
 }
