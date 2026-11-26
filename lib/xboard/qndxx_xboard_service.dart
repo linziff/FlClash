@@ -439,22 +439,6 @@ class QndxxXboardService {
     return codes.first['code']?.toString() ?? '';
   }
 
-  Future<bool> transferCommissionToBalance(double amountInYuan) async {
-    if (amountInYuan <= 0) {
-      throw ArgumentError.value(amountInYuan, 'amountInYuan', '必须大于 0');
-    }
-    final body = _map(
-      _decode(
-        (await _authorizedPost('/api/v1/user/invite/transfer', {
-          'amount': amountInYuan,
-        })).data,
-      ),
-    );
-    if (!_responseSucceeded(body)) {
-      throw StateError(_message(body) ?? '佣金划转失败');
-    }
-    return true;
-  }
   Future<List<Map<String, dynamic>>> getCommissionDetails({
     int page = 1,
     int pageSize = 10,
