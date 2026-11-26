@@ -15,7 +15,8 @@ import 'package:flutter/material.dart'
         RoundedRectangleBorder,
         BorderSide,
         Divider,
-        Clip;
+        Clip,
+        LinearProgressIndicator;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
