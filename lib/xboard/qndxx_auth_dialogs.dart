@@ -2,7 +2,7 @@ import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show DropdownButton, DropdownMenuItem, Icons;
+    show DropdownButtonFormField, DropdownMenuItem, Icons;
 
 import 'qndxx_xboard_service.dart';
 
@@ -139,30 +139,43 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                 child: TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(hintText: '邮箱账号'),
+                  decoration: const InputDecoration(
+                    hintText: '邮箱账号',
+                    prefixIcon: Icon(Icons.person_outline_rounded),
+                  ),
                 ),
               ),
-              DropdownButton<String>(
-                value: _emailDomain,
-                icon: const Icon(Icons.keyboard_arrow_down_rounded),
-                iconSize: 24,
-                underline: const SizedBox.shrink(),
-                items: [
-                  for (final domain in _emailDomains)
-                    DropdownMenuItem(value: domain, child: Text(domain)),
-                ],
-                onChanged: _busy
-                    ? null
-                    : (value) {
-                        if (value != null) setState(() => _emailDomain = value);
-                      },
+              Expanded(
+                flex: 2,
+                child: DropdownButtonFormField<String>(
+                  value: _emailDomain,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: '邮箱后缀',
+                    prefixIcon: Icon(Icons.alternate_email_rounded),
+                  ),
+                  items: [
+                    for (final domain in _emailDomains)
+                      DropdownMenuItem(value: domain, child: Text(domain)),
+                  ],
+                  onChanged: _busy
+                      ? null
+                      : (value) {
+                          if (value != null) {
+                            setState(() => _emailDomain = value);
+                          }
+                        },
+                ),
               ),
             ],
           ),
           TextFormField(
             controller: _password,
             obscureText: true,
-            decoration: const InputDecoration(hintText: '设置密码'),
+            decoration: const InputDecoration(
+              hintText: '设置密码',
+              prefixIcon: Icon(Icons.lock_outline_rounded),
+            ),
           ),
           Row(
             spacing: 8,
@@ -170,7 +183,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
               Expanded(
                 child: TextFormField(
                   controller: _code,
-                  decoration: const InputDecoration(hintText: '邮箱验证码（必填）'),
+                  decoration: const InputDecoration(
+                      hintText: '邮箱验证码（必填）',
+                      prefixIcon: Icon(Icons.mark_email_unread_outlined),
+                    ),
                 ),
               ),
               TextButton(
@@ -181,7 +197,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
           ),
           TextFormField(
             controller: _invite,
-            decoration: const InputDecoration(hintText: '邀请码（选填）'),
+            decoration: const InputDecoration(
+              hintText: '邀请码（选填）',
+              prefixIcon: Icon(Icons.confirmation_number_outlined),
+            ),
           ),
         ],
       ),
