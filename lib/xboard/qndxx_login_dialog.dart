@@ -37,7 +37,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     final password = _passwordController.text;
     if (email.isEmpty || password.isEmpty) {
       await dialogs.showAlert(
-        title: 'QNDXX XBoard',
+        title: '登录失败',
         message: const TextSpan(text: '请输入邮箱和密码'),
       );
       return;
@@ -84,7 +84,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
     } catch (error) {
       if (!mounted) return;
       await dialogs.showAlert(
-        title: 'QNDXX 登录或订阅失败',
+        title: '登录或订阅失败',
         message: TextSpan(text: error.toString()),
       );
     } finally {
@@ -95,7 +95,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: 'QNDXX XBoard 登录',
+      title: '登录账号',
       hasFields: true,
       actions: [
         TextButton(
