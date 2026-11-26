@@ -1,11 +1,8 @@
-import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 
 import 'qndxx_config_service.dart';
 import 'qndxx_subscription_decryptor.dart';
@@ -23,11 +20,10 @@ class QndxxAccount {
 }
 
 class _SubscriptionCandidate {
-  const _SubscriptionCandidate(this.url, this.method, this.isEncrypted);
+  const _SubscriptionCandidate(this.url, this.method);
 
   final String url;
   final String method;
-  final bool isEncrypted;
 }
 
 class QndxxSubscription {
@@ -247,7 +243,7 @@ class QndxxXboardService {
     for (final candidate in urls) {
       try {
         final response = await _dio.post<Object?>(
-          '${_normalizeBaseUrl(candidate)}$path',
+          _normalizeBaseUrl(candidate) + path,
           data: data,
           options: Options(
             responseType: ResponseType.plain,
@@ -393,7 +389,10 @@ class QndxxXboardService {
     final body = _map(_decode(
       (await _authorizedGet('/api/v1/user/invite/save')).data,
     ));
-    if (body['data'] != true) {
+    final data = body['data'];
+    if (data is String && data.isNotEmpty) return data;
+    if (data is Map && data['code'] != null) return data['code'].toString();
+    if (!_responseSucceeded(body)) {
       throw StateError(_message(body) ?? '生成邀请码失败');
     }
     final codes = await getInviteCodes();
@@ -454,133 +453,280 @@ class QndxxXboardService {
     return _responseSucceeded(body);
   }
 
-  Future<Map<String, dynamic>> checkForUpdates() async {
-    final config = QndxxConfigService.instance;
-    if (config.localConfig.isEmpty) {
-      await config.initialize(refreshRemote: true);
-    } else {
-      await config.refresh();
+  Future<void> logout() async {
+    try {
+      if (_token != null && _panelUrl != null) {
+        await _authorizedPost('/api/v1/passport/auth/logout', const {});
+      }
+    } catch (_) {
+      // Local logout must still succeed when the panel is unreachable.
     }
-    final urls = config.updateUrls;
-    if (urls.isEmpty) throw StateError('远程配置没有 update 更新服务器');
-    final packageInfo = await PackageInfo.fromPlatform();
-    final platform = Platform.isAndroid
-        ? 'android'
-        : Platform.isWindows
-            ? 'windows'
-            : Platform.isMacOS
-                ? 'macos'
-                : Platform.isIOS
-                    ? 'ios'
-                    : Platform.isLinux
-                        ? 'linux'
-                        : 'unknown';
-    Object? lastError;
-    for (final baseUrl in urls) {
-      final normalized = baseUrl.replaceFirst(RegExp(r'/+
-    return (await _ensureSdk()).user.updateUserInfo(data);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_tokenKey);
+    await prefs.remove(_panelKey);
+    await prefs.remove(_emailKey);
+    await prefs.remove(_profileIdKey);
+    _token = null;
+    _panelUrl = null;
+    _email = null;
   }
 
-  Future<bool> changePassword(String oldPassword, String newPassword) async {
-    return (await _ensureSdk()).user.changePassword(oldPassword, newPassword);
-  }
-
-  Future<bool> resetAccountSecurity() async {
-    return (await _ensureSdk()).user.resetSecurity();
-  }
-
-  Future<bool> register({
-    required String email,
-    required String password,
-    String? emailCode,
-    String? inviteCode,
-  }) async {
-    return (await _ensureSdk()).auth.register(
-      email,
-      password,
-      emailCode: emailCode,
-      inviteCode: inviteCode,
-    );
-  }
-
-  Future<bool> sendEmailVerifyCode(String email) async {
-    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
-  }
-
-  Future<bool> forgotPassword(
-    String email,
-    String code,
-    String newPassword,
-  ) async {
-    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
-  }
-
-  Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
-    final model = await (await _ensureSdk()).order.getOrder(tradeNo);
-    return model == null ? null : Map<String, dynamic>.from(model.toJson());
-  }
-
-  Future<Map<String, dynamic>?> checkCoupon(
-    String code,
-    int planId,
-  ) async {
-    final model = await (await _ensureSdk()).order.checkCoupon(code, planId);
-    return model == null ? null : Map<String, dynamic>.from(model.toJson());
-  }
-
-  Future<bool> withdrawCommission({
-    required double amount,
-    required String method,
-    required Map<String, dynamic> params,
-  }) async {
-    return (await _ensureSdk()).invite.withdrawCommission(
-      amount: amount,
-      method: method,
-      params: params,
-    );
-  }
-
-  Future<bool> transferCommissionToBalance(double amount) async {
-    return (await _ensureSdk()).invite.transferCommissionToBalance(amount);
-  }
-
-  void dispose() {
-    _dio.close(force: true);
-  }
-}
-), '');
-      try {
-        final response = await _dio.get<Object?>(
-          '$normalized/api/v1/check-update',
-          queryParameters: {
-            'version': packageInfo.version,
-            'platform': platform,
+  Future<Response<Object?>> _authorizedGet(String path) async {
+    if (_token == null || _panelUrl == null) await restoreSession();
+    try {
+      return await _dio.get<Object?>(
+        '$_panelUrl$path',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {
+            'Authorization': 'Bearer $_token',
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
           },
-          options: Options(
-            responseType: ResponseType.plain,
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': QndxxConfigService.instance.apiUserAgent,
-            },
-            validateStatus: (status) => status == 200,
+        ),
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 401 &&
+          error.response?.statusCode != 403) {
+        rethrow;
+      }
+      // Older XBoard installations expect the raw token without "Bearer ".
+      return _dio.get<Object?>(
+        '$_panelUrl$path',
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {
+            'Authorization': _token!,
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
+        ),
+      );
+    }
+  }
+
+  Future<Response<Object?>> _authorizedPost(
+    String path,
+    Map<String, dynamic> data,
+  ) async {
+    if (_token == null || _panelUrl == null) await restoreSession();
+    try {
+      return await _dio.post<Object?>(
+        '$_panelUrl$path',
+        data: data,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {
+            'Authorization': 'Bearer $_token',
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
+        ),
+      );
+    } on DioException catch (error) {
+      if (error.response?.statusCode != 401 &&
+          error.response?.statusCode != 403) {
+        rethrow;
+      }
+      return _dio.post<Object?>(
+        '$_panelUrl$path',
+        data: data,
+        options: Options(
+          responseType: ResponseType.plain,
+          headers: {
+            'Authorization': _token!,
+            'User-Agent': QndxxConfigService.instance.apiUserAgent,
+          },
+        ),
+      );
+    }
+  }
+
+  String? _extractToken(String subscribeUrl, Map<String, dynamic> data) {
+    final fromData = data['token']?.toString();
+    if (fromData != null && fromData.isNotEmpty) return fromData;
+    try {
+      final uri = Uri.parse(subscribeUrl);
+      final queryToken = uri.queryParameters['token'];
+      if (queryToken != null && queryToken.isNotEmpty) return queryToken;
+      if (uri.pathSegments.isNotEmpty) {
+        final last = uri.pathSegments.last;
+        if (last.length >= 16) return last;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  List<_SubscriptionCandidate> _subscriptionCandidates(
+    String subscribeUrl,
+    String token,
+    bool preferEncrypt,
+  ) {
+    final config = QndxxConfigService.instance;
+    final candidates = <_SubscriptionCandidate>[];
+    for (final item in config.subscriptionUrls) {
+      final base = item['url']?.toString() ?? '';
+      final endpoints = _map(item['endpoints']);
+      final ordered = endpoints.entries.toList()
+        ..sort((a, b) {
+          bool encrypted(Map value, String key) =>
+              value['isEncrypt'] == true || key.toLowerCase() == 'v2';
+          final ae = encrypted(_map(a.value), a.key);
+          final be = encrypted(_map(b.value), b.key);
+          if (ae == be) return a.key.compareTo(b.key);
+          return preferEncrypt ? (be ? 1 : -1) : (ae ? 1 : -1);
+        });
+      for (final entry in ordered) {
+        final endpoint = _map(entry.value);
+        final path = endpoint['path']?.toString() ?? '';
+        if (base.isEmpty || path.isEmpty) continue;
+        final resolved = path.replaceAll('{token}', token);
+        final joined = base.endsWith('/')
+            ? '$base${resolved.startsWith('/') ? resolved.substring(1) : resolved}'
+            : '$base${resolved.startsWith('/') ? resolved : '/$resolved'}';
+        final uri = Uri.parse(joined);
+        final query = Map<String, String>.from(uri.queryParameters);
+        query.putIfAbsent('flag', () => 'flclash');
+        candidates.add(
+          _SubscriptionCandidate(
+            uri.replace(queryParameters: query).toString(),
+            endpoint['method']?.toString().toUpperCase() ?? 'GET',
           ),
         );
-        final body = _map(_decode(response.data));
-        final data = _map(body['data']).isNotEmpty ? _map(body['data']) : body;
-        return {
-          'currentVersion': packageInfo.version,
-          'latestVersion': data['latest_version']?.toString() ?? '',
-          'hasUpdate': data['update_available'] == true,
-          'updateUrl': data['download_url']?.toString() ?? '',
-          'releaseNotes': data['release_notes']?.toString() ?? '',
-          'forceUpdate': data['force_update'] == true,
-          'source': normalized,
-        };
+      }
+    }
+    if (subscribeUrl.isNotEmpty) {
+      candidates.add(_SubscriptionCandidate(subscribeUrl, 'GET'));
+    }
+    final unique = <String, _SubscriptionCandidate>{};
+    for (final candidate in candidates) {
+      unique.putIfAbsent(candidate.url, () => candidate);
+    }
+    return unique.values.toList(growable: false);
+  }
+
+  String? _decrypt(String encrypted, String key) {
+    if (key.isEmpty) return null;
+    try {
+      final decoded = base64.decode(encrypted.trim());
+      final keyBytes = utf8.encode(key);
+      if (keyBytes.isEmpty) return null;
+      final xored = Uint8List(decoded.length);
+      for (var i = 0; i < decoded.length; i++) {
+        xored[i] = decoded[i] ^ keyBytes[i % keyBytes.length];
+      }
+      final stage = utf8.decode(xored);
+      final plain = utf8.decode(base64.decode(stage));
+      try {
+        return utf8.decode(base64.decode(plain));
+      } catch (_) {
+        return plain;
+      }
+    } catch (_) {
+      return null;
+    }
+  }
+
+  bool _looksLikeClash(String content) {
+    final normalized = content.trimLeft();
+    return normalized.contains('\nproxies:') ||
+        normalized.startsWith('proxies:') ||
+        normalized.contains('\nproxy-groups:') ||
+        normalized.startsWith('proxy-groups:') ||
+        normalized.contains('\nproxy-providers:') ||
+        normalized.startsWith('proxy-providers:') ||
+        normalized.contains('\nport:') ||
+        normalized.startsWith('port:') ||
+        normalized.contains('\nrules:') ||
+        normalized.startsWith('rules:');
+  }
+
+  Future<QndxxSubscription> downloadSubscription() async {
+    if (_token == null || _panelUrl == null) await restoreSession();
+    final response = await _authorizedGet('/api/v1/user/getSubscribe');
+    final body = _map(_decode(response.data));
+    final data = _map(body['data']);
+    final subscribeUrl =
+        (data['subscribe_url'] ?? data['subscribeUrl'])?.toString() ?? '';
+    if (subscribeUrl.isEmpty) {
+      throw StateError(_message(body) ?? '账号没有返回订阅地址');
+    }
+
+    final token = _extractToken(subscribeUrl, data);
+    if (token == null || token.isEmpty) {
+      throw StateError('无法从订阅信息中提取订阅 Token');
+    }
+
+    final config = QndxxConfigService.instance;
+    final candidates = _subscriptionCandidates(
+      subscribeUrl,
+      token,
+      config.preferEncrypt,
+    );
+    Object? lastError;
+    for (final candidate in candidates) {
+      final url = candidate.url;
+      try {
+        Response<Object?>? result;
+        Object? requestError;
+        for (var attempt = 0; attempt < 3; attempt++) {
+          try {
+            final options = Options(
+              responseType: ResponseType.plain,
+              headers: {
+                'User-Agent': config.subscriptionUserAgent,
+                'Accept': '*/*',
+              },
+            );
+            result = candidate.method == 'POST'
+                ? await _dio.post<Object?>(
+                    url,
+                    data: {'token': token},
+                    options: options,
+                  )
+                : await _dio.get<Object?>(url, options: options);
+            break;
+          } catch (error) {
+            requestError = error;
+            if (attempt < 2) {
+              await Future<void>.delayed(Duration(seconds: attempt + 1));
+            }
+          }
+        }
+        if (result == null) {
+          lastError = requestError ?? StateError('订阅请求失败');
+          continue;
+        }
+        var text = result.data?.toString() ?? '';
+        final obfuscationPrefix = config.obfuscationPrefix;
+        if (obfuscationPrefix.isNotEmpty &&
+            text.startsWith(obfuscationPrefix)) {
+          text = text.substring(obfuscationPrefix.length);
+        }
+        if (text.isEmpty) continue;
+        try {
+          final json = _map(jsonDecode(text));
+          if (json['data'] is String) {
+            text = json['data'] as String;
+          }
+        } catch (_) {
+          // Plain-text subscription bodies are expected for many panels.
+        }
+        final decrypted = _decrypt(text, config.decryptKey);
+        final content = decrypted != null && _looksLikeClash(decrypted)
+            ? decrypted
+            : text;
+        if (!_looksLikeClash(content)) {
+          lastError = StateError('订阅响应不是有效的 Clash YAML，且解密未成功');
+          continue;
+        }
+        return QndxxSubscription(
+          bytes: Uint8List.fromList(utf8.encode(content)),
+          sourceUrl: url,
+          userInfo: result.headers.value('subscription-userinfo'),
+        );
       } catch (error) {
         lastError = error;
       }
     }
-    throw StateError('所有 QNDXX 更新服务器均不可用：${_safeError(lastError)}');
+    throw StateError('获取订阅失败：${_safeError(lastError)}');
   }
 
   Future<bool> updateAccountInfo(Map<String, dynamic> data) async {
@@ -676,6 +822,65 @@ class QndxxXboardService {
     )).data));
     return _responseSucceeded(body);
   }
+
+  Future<Map<String, dynamic>> checkForUpdates() async {
+    final config = QndxxConfigService.instance;
+    if (config.localConfig.isEmpty) {
+      await config.initialize(refreshRemote: true);
+    } else {
+      await config.refresh();
+    }
+    final urls = config.updateUrls;
+    if (urls.isEmpty) throw StateError('远程配置没有 update 更新服务器');
+    final packageInfo = await PackageInfo.fromPlatform();
+    final platform = Platform.isAndroid
+        ? 'android'
+        : Platform.isWindows
+            ? 'windows'
+            : Platform.isMacOS
+                ? 'macos'
+                : Platform.isIOS
+                    ? 'ios'
+                    : Platform.isLinux
+                        ? 'linux'
+                        : 'unknown';
+    Object? lastError;
+    for (final baseUrl in urls) {
+      final normalized = baseUrl.replaceFirst(RegExp(r'/+$'), '');
+      try {
+        final response = await _dio.get<Object?>(
+          normalized + '/api/v1/check-update',
+          queryParameters: {
+            'version': packageInfo.version,
+            'platform': platform,
+          },
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': config.apiUserAgent,
+            },
+            validateStatus: (status) => status == 200,
+          ),
+        );
+        final body = _map(_decode(response.data));
+        final data = _map(body['data']).isNotEmpty ? _map(body['data']) : body;
+        return {
+          'currentVersion': packageInfo.version,
+          'latestVersion': data['latest_version']?.toString() ?? '',
+          'hasUpdate': data['update_available'] == true,
+          'updateUrl': data['download_url']?.toString() ?? '',
+          'releaseNotes': data['release_notes']?.toString() ?? '',
+          'forceUpdate': data['force_update'] == true,
+          'source': normalized,
+        };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw StateError('所有 QNDXX 更新服务器均不可用：' + _safeError(lastError));
+  }
+
   void dispose() {
     _dio.close(force: true);
   }
