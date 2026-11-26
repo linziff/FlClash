@@ -40,7 +40,9 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
     final value = _email.text.trim();
     final separator = value.lastIndexOf('@');
     final localPart = separator < 0 ? value : value.substring(0, separator);
-    final typedDomain = separator < 0 ? '' : value.substring(separator + 1).trim();
+    final typedDomain = separator < 0
+        ? ''
+        : value.substring(separator + 1).trim();
     final domain = typedDomain.isNotEmpty ? typedDomain : _emailDomain;
     return '$localPart@$domain';
   }
