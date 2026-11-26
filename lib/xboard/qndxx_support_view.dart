@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:material_ui/material_ui.dart' show CircularProgressIndicator;
+import 'package:flutter/material.dart' show CircularProgressIndicator;
 
 import 'qndxx_crisp_service.dart';
 
