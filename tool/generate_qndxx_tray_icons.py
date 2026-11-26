@@ -18,34 +18,48 @@ COLORS = {
 }
 
 def make_app_icon(size: int = 1024) -> Image.Image:
-    """Render the supplied high-resolution QNDXX brand mark into the app icon."""
-    source_path = ROOT / "assets/images/QNDXXLG.png"
-    if not source_path.is_file():
-        raise FileNotFoundError(f"QNDXX logo was not downloaded: {source_path}")
-    with Image.open(source_path) as source:
-        logo = source.convert("RGBA")
-    # The currently supplied brand asset is 64x64. Upscale it with a
-    # high-quality reconstruction filter so packaging can proceed, while
-    # retaining the source artwork. A genuinely crisp result still requires
-    # replacing this asset with a larger original.
-    if min(logo.size) < size:
-        logo = logo.resize((size, size), Image.Resampling.LANCZOS)
-        logo = logo.filter(ImageFilter.UnsharpMask(radius=1.2, percent=115, threshold=3))
+    """Draw a crisp, transparent QNDXX monogram for adaptive and desktop icons."""
+    # Supersampling keeps the circular mark smooth at launcher and taskbar sizes.
+    scale = 3
+    canvas_size = size * scale
+    mask = Image.new("L", (canvas_size, canvas_size), 0)
+    draw = ImageDraw.Draw(mask)
 
-    # Keep the app mark on a genuinely transparent canvas. The former
-    # blue-gradient rounded square was baked into the Windows taskbar icon.
-    image = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    # A clean Q-shaped ring with a rounded diagonal tail. The mark sits inside
+    # Android's adaptive-icon safe area and remains legible at small sizes.
+    outer = (int(canvas_size * 0.17), int(canvas_size * 0.13),
+             int(canvas_size * 0.81), int(canvas_size * 0.77))
+    inner = (int(canvas_size * 0.285), int(canvas_size * 0.245),
+             int(canvas_size * 0.695), int(canvas_size * 0.655))
+    draw.ellipse(outer, fill=255)
+    draw.ellipse(inner, fill=0)
+    tail_width = int(canvas_size * 0.115)
+    draw.line(
+        (int(canvas_size * 0.625), int(canvas_size * 0.625),
+         int(canvas_size * 0.835), int(canvas_size * 0.835)),
+        fill=255, width=tail_width
+    )
+    tail_radius = tail_width // 2
+    tail_end = (int(canvas_size * 0.835), int(canvas_size * 0.835))
+    draw.ellipse(
+        (tail_end[0] - tail_radius, tail_end[1] - tail_radius,
+         tail_end[0] + tail_radius, tail_end[1] + tail_radius),
+        fill=255
+    )
 
-    # Preserve the complete logo and its alpha channel without adding a
-    # background. The native launcher generators consume this same PNG.
-    logo = ImageOps.contain(
-        logo, (int(size * 0.92), int(size * 0.92)),
-        method=Image.Resampling.LANCZOS,
-    )
-    image.alpha_composite(
-        logo, ((size - logo.width) // 2, (size - logo.height) // 2)
-    )
-    return image
+    # Cool cyan-to-indigo gradient; no baked blue tile or opaque square.
+    gradient = Image.new("RGBA", (canvas_size, canvas_size), (0, 0, 0, 0))
+    pixels = gradient.load()
+    top = (43, 211, 224)
+    bottom = (91, 82, 235)
+    for y in range(canvas_size):
+        for x in range(canvas_size):
+            t = min(1.0, max(0.0, (0.58 * x + 0.42 * y) / (canvas_size - 1)))
+            pixels[x, y] = tuple(
+                round(top[i] * (1 - t) + bottom[i] * t) for i in range(3)
+            ) + (255,)
+    gradient.putalpha(mask)
+    return gradient.resize((size, size), Image.Resampling.LANCZOS)
 
 def make_icon(status: int, size: int) -> Image.Image:
     color = COLORS[status]
