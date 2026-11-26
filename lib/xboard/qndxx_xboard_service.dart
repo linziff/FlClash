@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_xboard_sdk/flutter_xboard_sdk.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'qndxx_config_service.dart';
 
@@ -630,6 +632,129 @@ class QndxxXboardService {
       }
     }
     throw StateError('获取订阅失败：${_safeError(lastError)}');
+  }
+
+  Future<Map<String, dynamic>> checkForUpdates() async {
+    final urls = QndxxConfigService.instance.updateUrls;
+    if (urls.isEmpty) throw StateError('远程配置没有 update 更新服务器');
+    final packageInfo = await PackageInfo.fromPlatform();
+    final platform = Platform.isAndroid
+        ? 'android'
+        : Platform.isWindows
+            ? 'windows'
+            : Platform.isMacOS
+                ? 'macos'
+                : Platform.isIOS
+                    ? 'ios'
+                    : Platform.isLinux
+                        ? 'linux'
+                        : 'unknown';
+    Object? lastError;
+    for (final baseUrl in urls) {
+      final normalized = baseUrl.replaceFirst(RegExp(r'/+
+    return (await _ensureSdk()).user.updateUserInfo(data);
+  }
+
+  Future<bool> changePassword(String oldPassword, String newPassword) async {
+    return (await _ensureSdk()).user.changePassword(oldPassword, newPassword);
+  }
+
+  Future<bool> resetAccountSecurity() async {
+    return (await _ensureSdk()).user.resetSecurity();
+  }
+
+  Future<bool> register({
+    required String email,
+    required String password,
+    String? emailCode,
+    String? inviteCode,
+  }) async {
+    return (await _ensureSdk()).auth.register(
+      email,
+      password,
+      emailCode: emailCode,
+      inviteCode: inviteCode,
+    );
+  }
+
+  Future<bool> sendEmailVerifyCode(String email) async {
+    return (await _ensureSdk()).auth.sendEmailVerifyCode(email);
+  }
+
+  Future<bool> forgotPassword(
+    String email,
+    String code,
+    String newPassword,
+  ) async {
+    return (await _ensureSdk()).auth.forgotPassword(email, code, newPassword);
+  }
+
+  Future<Map<String, dynamic>?> getOrder(String tradeNo) async {
+    final model = await (await _ensureSdk()).order.getOrder(tradeNo);
+    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<Map<String, dynamic>?> checkCoupon(
+    String code,
+    int planId,
+  ) async {
+    final model = await (await _ensureSdk()).order.checkCoupon(code, planId);
+    return model == null ? null : Map<String, dynamic>.from(model.toJson());
+  }
+
+  Future<bool> withdrawCommission({
+    required double amount,
+    required String method,
+    required Map<String, dynamic> params,
+  }) async {
+    return (await _ensureSdk()).invite.withdrawCommission(
+      amount: amount,
+      method: method,
+      params: params,
+    );
+  }
+
+  Future<bool> transferCommissionToBalance(double amount) async {
+    return (await _ensureSdk()).invite.transferCommissionToBalance(amount);
+  }
+
+  void dispose() {
+    _dio.close(force: true);
+  }
+}
+), '');
+      try {
+        final response = await _dio.get<Object?>(
+          '$normalized/api/v1/check-update',
+          queryParameters: {
+            'version': packageInfo.version,
+            'platform': platform,
+          },
+          options: Options(
+            responseType: ResponseType.plain,
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': QndxxConfigService.instance.apiUserAgent,
+            },
+            validateStatus: (status) => status == 200,
+          ),
+        );
+        final body = _map(_decode(response.data));
+        final data = _map(body['data']).isNotEmpty ? _map(body['data']) : body;
+        return {
+          'currentVersion': packageInfo.version,
+          'latestVersion': data['latest_version']?.toString() ?? '',
+          'hasUpdate': data['update_available'] == true,
+          'updateUrl': data['download_url']?.toString() ?? '',
+          'releaseNotes': data['release_notes']?.toString() ?? '',
+          'forceUpdate': data['force_update'] == true,
+          'source': normalized,
+        };
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw StateError('所有 QNDXX 更新服务器均不可用：${_safeError(lastError)}');
   }
 
   Future<bool> updateAccountInfo(Map<String, dynamic> data) async {
