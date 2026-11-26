@@ -13,6 +13,7 @@ import 'layout.dart';
 import 'style.dart';
 import 'widget_registry.dart';
 import 'widgets/widgets.dart';
+import 'widgets/qndxx_announcements.dart';
 
 // Narrower columns leave a pair of service cells too tight for a status, so
 // the grid stacks them in one.
@@ -193,6 +194,7 @@ class _DesktopDashboard extends StatelessWidget {
             child: Column(
               spacing: gap,
               children: [
+                const QndxxAnnouncementBanner(),
                 sized(
                   topHeight,
                   const RepaintBoundary(child: CurrentOutboundCard()),
@@ -267,6 +269,7 @@ class _DesktopDashboard extends StatelessWidget {
               child: Column(
                 spacing: gap,
                 children: [
+                  const QndxxAnnouncementBanner(),
                   ...rows,
                   if (tablesFit)
                     Expanded(
@@ -358,6 +361,7 @@ class _MobileDashboard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   spacing: gap,
                   children: [
+                    const QndxxAnnouncementBanner(),
                     for (final widget in widgets)
                       RepaintBoundary(
                         key: cardKeyOf(widget),
