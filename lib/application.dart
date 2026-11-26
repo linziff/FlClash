@@ -78,7 +78,6 @@ class ApplicationState extends ConsumerState<Application> {
       final navigatorContext = globalState.navigatorKey.currentContext;
       if (navigatorContext == null) {
         exit(0);
-        return;
       }
 
       // Keep the branded splash visible for the entire initialization flow.
