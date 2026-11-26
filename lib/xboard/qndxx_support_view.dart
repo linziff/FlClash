@@ -30,10 +30,10 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
       title: '在线客服',
       backgroundColor: context.colorScheme.surface,
       body: Padding(
-        // Keep the embedded page above the floating Android glass dock and
-        // the system gesture area instead of painting behind navigation.
+        // Scaffold already reserves the page title/header area. Adding the
+        // global contentTopPadding here a second time created a mismatched
+        // dark strip above Crisp on desktop and mobile.
         padding: EdgeInsets.only(
-          top: context.contentTopPadding,
           bottom: context.bottomInset + 8,
         ),
         child: Stack(
