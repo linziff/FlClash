@@ -45,8 +45,8 @@ void main() {
   });
   test('decrypts Orange-compatible Base64/XOR/Base64 subscriptions', () {
     const key = 'qndxx-test-key';
-    const yaml = 'proxies:\\n  - name: test-node\\n' 
-        'rules:\\n  - MATCH,DIRECT\\n';
+    const yaml = 'proxies:\n  - name: test-node\n' 
+        'rules:\n  - MATCH,DIRECT\n';
     final stage = base64.encode(utf8.encode(yaml));
     final stageBytes = utf8.encode(stage);
     final keyBytes = utf8.encode(key);
@@ -62,7 +62,7 @@ void main() {
 
   test('supports an additional Base64 layer used by some XBoard panels', () {
     const key = 'qndxx-test-key';
-    const yaml = 'proxies:\\n  - name: test-node\\n';
+    const yaml = 'proxies:\n  - name: test-node\n';
     final doubleEncoded = base64.encode(utf8.encode(
       base64.encode(utf8.encode(yaml)),
     ));
@@ -74,5 +74,4 @@ void main() {
 
     expect(QndxxSubscriptionDecryptor.decrypt(encrypted, key), yaml);
   });
-
 }
