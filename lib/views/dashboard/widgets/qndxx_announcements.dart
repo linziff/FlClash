@@ -156,7 +156,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
       padding: EdgeInsets.zero,
       child: Semantics(
         button: true,
-        label: '公告：${title?.isNotEmpty == true ? title : content}',
+        label: '公告：${title.isNotEmpty ? title : content}',
         child: GestureDetector(
           onTap: () => _showNotice(notice),
           child: Padding(
@@ -198,7 +198,7 @@ class _QndxxAnnouncementBannerState extends State<QndxxAnnouncementBanner> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          title?.isNotEmpty == true ? title! : '平台公告',
+                          title.isNotEmpty ? title : '平台公告',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: TextStyle(
@@ -252,7 +252,7 @@ class _QndxxAnnouncementDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = notice['title']?.toString().trim();
+    final title = notice['title']?.toString().trim() ?? '';
     final content = notice['content']?.toString() ?? '';
     final colors = context.colorScheme;
     return AlertDialog(
