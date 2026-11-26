@@ -187,13 +187,23 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       );
       if (method == null) return;
       final result = await _service.checkoutOrder(tradeNo, method);
+      final checkoutData = result['data'];
+      final nestedData = checkoutData is Map
+          ? Map<String, dynamic>.from(checkoutData)
+          : const <String, dynamic>{};
       final url =
           result['url']?.toString() ??
-          (result['data'] is Map
-              ? (result['data'] as Map)['url']?.toString()
-              : null);
+          nestedData['url']?.toString() ??
+          (checkoutData is String ? checkoutData : null) ??
+          (nestedData['data'] is String ? nestedData['data'] as String : null);
+      final checkoutType = result['type'] ?? nestedData['type'];
+      final isFreePayment =
+          checkoutType == -1 &&
+          (checkoutData == true || nestedData['data'] == true);
       if (url != null && url.isNotEmpty) {
         await dialogs.openUrl(url);
+      } else if (isFreePayment) {
+        dialogs.showBanner('订单已完成，无需支付', level: BannerLevel.success);
       } else {
         await dialogs.showAlert(
           title: '支付结果',
