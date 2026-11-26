@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart' show Icons, Icon, IconData, FilledButton;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -37,7 +38,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   List<Map<String, dynamic>> _commissions = const [];
   List<Map<String, dynamic>> _plans = const [];
   List<Map<String, dynamic>> _orders = const [];
-  List<Map<String, dynamic>> _notices = const [];
   String? _error;
 
   @override
@@ -64,7 +64,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       late final Map<String, dynamic> subscription;
       late final List<Map<String, dynamic>> plans;
       late final List<Map<String, dynamic>> orders;
-      late final List<Map<String, dynamic>> notices;
       late final Map<String, dynamic> invite;
       late final List<Map<String, dynamic>> inviteCodes;
       late final List<Map<String, dynamic>> commissions;
@@ -96,7 +95,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         ]);
         plans = results[0] as List<Map<String, dynamic>>;
         orders = results[1] as List<Map<String, dynamic>>;
-        notices = results[2] as List<Map<String, dynamic>>;
         subscription = const {};
         invite = const {};
         inviteCodes = const [];
@@ -109,7 +107,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
         _subscription = subscription;
         _plans = plans;
         _orders = orders;
-        _notices = notices;
         _invite = invite;
         _inviteCodes = inviteCodes;
         _commissions = commissions;
@@ -164,6 +161,67 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     return date == null
         ? value.toString()
         : DateFormat('yyyy-MM-dd HH:mm').format(date.toLocal());
+  }
+
+  Widget _buildPlansSection(BuildContext context) {
+    return generateSection(
+      title: '精选套餐',
+      items: [
+        if (_plans.isEmpty)
+          const ListItem(title: Text('当前面板没有返回可购买套餐')),
+        for (final plan in _plans)
+          ListItem(
+            title: Text(
+              _value(plan['name'], '未命名套餐'),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: context.colorScheme.onSurface,
+              ),
+            ),
+            subtitle: Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if ((plan['content'] ?? plan['description'] ?? plan['plan_content'])
+                          ?.toString().trim().isNotEmpty == true)
+                    MarkdownBody(
+                      data: (plan['content'] ?? plan['description'] ?? plan['plan_content']).toString(),
+                      shrinkWrap: true,
+                    ),
+                  const SizedBox(height: 10),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _PlanFeatureChip(
+                        icon: Icons.data_usage_rounded,
+                        label: _formatPlanTraffic(plan['transfer_enable']),
+                      ),
+                      _PlanFeatureChip(
+                        icon: Icons.devices_rounded,
+                        label: '${_value(plan['device_limit'])} 台设备',
+                      ),
+                      if (plan['speed_limit'] != null)
+                        _PlanFeatureChip(
+                          icon: Icons.speed_rounded,
+                          label: '${plan['speed_limit']} Mbps',
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  _PlanPriceRow(plan: plan),
+                ],
+              ),
+            ),
+            trailing: FilledButton(
+              onPressed: () => _purchasePlan(plan),
+              child: const Text('选购'),
+            ),
+          ),
+      ],
+    );
   }
 
   String _inviteUrl(String code) =>
@@ -435,44 +493,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               ),
             ],
             if (widget.mode == QndxxAccountViewMode.shop) ...[
-              generateSection(
-                title: '可用套餐',
-                items: [
-                  if (_plans.isEmpty)
-                    const ListItem(title: Text('当前面板没有返回可购买套餐')),
-                  for (final plan in _plans)
-                    ListItem(
-                      title: Text(_value(plan['name'], '未命名套餐')),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          if ((plan['content'] ??
-                                      plan['description'] ??
-                                      plan['plan_content'])
-                                  ?.toString()
-                                  .trim()
-                                  .isNotEmpty ==
-                              true)
-                            MarkdownBody(
-                              data:
-                                  (plan['content'] ??
-                                          plan['description'] ??
-                                          plan['plan_content'])
-                                      .toString(),
-                            ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '流量：${_formatPlanTraffic(plan['transfer_enable'])} · 设备：${_value(plan['device_limit'])}',
-                          ),
-                        ],
-                      ),
-                      trailing: TextButton(
-                        onPressed: () => _purchasePlan(plan),
-                        child: const Text('购买'),
-                      ),
-                    ),
-                ],
-              ),
+              _buildPlansSection(context),
               generateSection(
                 title: '订单记录',
                 items: [
@@ -490,17 +511,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                               child: const Text('取消'),
                             )
                           : null,
-                    ),
-                ],
-              ),
-              generateSection(
-                title: '公告',
-                items: [
-                  if (_notices.isEmpty) const ListItem(title: Text('暂无公告')),
-                  for (final notice in _notices)
-                    ListItem(
-                      title: Text(_value(notice['title'], '公告')),
-                      subtitle: Text(_value(notice['content']), maxLines: 2),
                     ),
                 ],
               ),
@@ -599,6 +609,85 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           ],
         ],
       ),
+    );
+  }
+}
+
+class _PlanFeatureChip extends StatelessWidget {
+  const _PlanFeatureChip({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14, color: context.colorScheme.primary),
+            const SizedBox(width: 5),
+            Text(label, style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant)),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlanPriceRow extends StatelessWidget {
+  const _PlanPriceRow({required this.plan});
+
+  final Map<String, dynamic> plan;
+
+  @override
+  Widget build(BuildContext context) {
+    const periods = <(String, String)>[
+      ('onetime_price', '一次性'),
+      ('month_price', '月付'),
+      ('quarter_price', '季付'),
+      ('half_year_price', '半年'),
+      ('year_price', '年付'),
+      ('two_year_price', '两年'),
+      ('three_year_price', '三年'),
+    ];
+    final prices = periods
+        .map((item) => (item.$2, num.tryParse(plan[item.$1]?.toString() ?? '') ?? 0))
+        .where((item) => item.$2 > 0)
+        .toList();
+    if (prices.isEmpty) return const Text('价格以结算页为准');
+    final lowest = prices.reduce((a, b) => a.$2 < b.$2 ? a : b);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          '¥${(lowest.$2 / 100).toStringAsFixed(2)}',
+          style: TextStyle(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: context.colorScheme.primary,
+          ),
+        ),
+        const SizedBox(width: 7),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 3),
+          child: Text(
+            '${lowest.$1}起',
+            style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant),
+          ),
+        ),
+        const Spacer(),
+        Text(
+          '${prices.length} 种周期',
+          style: TextStyle(fontSize: 12, color: context.colorScheme.onSurfaceVariant),
+        ),
+      ],
     );
   }
 }
