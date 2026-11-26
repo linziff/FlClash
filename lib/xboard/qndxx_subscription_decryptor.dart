@@ -45,7 +45,7 @@ class QndxxSubscriptionDecryptor {
       'mierus',
     };
     final lines = content
-        .split(RegExp(r'[\\r\\n]+'))
+        .split(RegExp(r'[\r\n]+'))
         .map((line) => line.trim())
         .where((line) => line.isNotEmpty && !line.startsWith('#'))
         .toList(growable: false);

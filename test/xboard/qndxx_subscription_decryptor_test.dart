@@ -21,7 +21,7 @@ void main() {
     });
 
     test('recognizes supported V2Ray share-link subscriptions', () {
-      const links = 'vless://uuid@example.com:443?security=tls#node-one\\n'
+      const links = 'vless://uuid@example.com:443?security=tls#node-one\n'
           'trojan://password@example.net:443?sni=example.net#node-two';
       expect(
         QndxxSubscriptionDecryptor.looksLikeShareLinks(links),

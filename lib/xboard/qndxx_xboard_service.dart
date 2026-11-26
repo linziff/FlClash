@@ -767,10 +767,13 @@ class QndxxXboardService {
         // Some XBoard nodes expose a Base64-encoded V2Ray share-link list
         // instead of Clash YAML. Preserve it for the core share-link decoder
         // used by the login/import flow rather than rejecting it as invalid.
-        final shareLinks = decodedContents.where(
-          QndxxSubscriptionDecryptor.looksLikeShareLinks,
-        );
-        final shareLinkContent = shareLinks.firstOrNull;
+        String? shareLinkContent;
+        for (final candidateContent in decodedContents) {
+          if (QndxxSubscriptionDecryptor.looksLikeShareLinks(candidateContent)) {
+            shareLinkContent = candidateContent;
+            break;
+          }
+        }
         if (shareLinkContent != null) {
           return QndxxSubscription(
             bytes: Uint8List.fromList(utf8.encode(shareLinkContent)),
