@@ -37,14 +37,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   ];
 
   String get _fullEmail {
-    final value = _email.text.trim();
-    final separator = value.lastIndexOf('@');
-    final localPart = separator < 0 ? value : value.substring(0, separator);
-    final typedDomain = separator < 0
-        ? ''
-        : value.substring(separator + 1).trim();
-    final domain = typedDomain.isNotEmpty ? typedDomain : _emailDomain;
-    return '$localPart@$domain';
+    // The suffix picker is authoritative. The text field only accepts the
+    // mailbox prefix, so the exact selected domain is always sent to XBoard.
+    final localPart = _email.text.trim().split('@').first.trim();
+    return '$localPart@$_emailDomain';
   }
 
   @override
@@ -163,9 +159,10 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
                 child: TextFormField(
                   controller: _email,
                   keyboardType: TextInputType.emailAddress,
+                  onChanged: (_) => setState(() {}),
                   decoration: const InputDecoration(
-                    hintText: '邮箱前缀（也可填写完整邮箱）',
-                    prefixIcon: Icon(Icons.person_outline_rounded),
+                    hintText: '邮箱前缀',
+                    prefixIcon: Icon(Icons.email_outlined),
                   ),
                 ),
               ),
