@@ -5,6 +5,5 @@
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowSplashScreenBackground">#F5F7FB</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/qndxx_splash</item>
-        <item name="android:postSplashScreenTheme">@style/NormalTheme</item>
     </style>
 </resources>
