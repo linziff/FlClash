@@ -701,8 +701,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             bottom: 24 + context.bottomInset,
           ),
           children: [
-            generateSection(
-              title: '外观设置',
+            if (widget.mode == QndxxAccountViewMode.account)
+              generateSection(
+                title: '外观设置',
               items: [
                 ListItem(
                   title: const Text('主题模式'),
@@ -902,7 +903,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   ],
                 ),
                 generateSection(
-                  title: '邀请与佣金',
+                  title: 'Orange 邀请功能',
                   items: [
                     ListItem(
                       title: const Text('邀请统计'),
@@ -945,8 +946,9 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                           ],
                         ),
                       ),
-                    if (_commissions.isNotEmpty)
-                      const ListItem(title: Text('佣金明细')),
+                    const ListItem(title: Text('邀请记录 / 佣金明细')),
+                    if (_commissions.isEmpty)
+                      const ListItem(title: Text('暂无邀请记录')),
                     for (final commission in _commissions)
                       ListItem(
                         title: Text('订单：${_value(commission['trade_no'])}'),
