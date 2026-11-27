@@ -122,7 +122,7 @@ class ApplicationState extends ConsumerState<Application> {
         // Keep the branded startup sequence visible for at least 3.5 seconds.
         // If core/login initialization takes longer, do not add extra delay.
         final splashElapsed = DateTime.now().difference(splashStartedAt);
-        const minimumSplashDuration = Duration(milliseconds: 3500);
+        const minimumSplashDuration = Duration(seconds: 5);
         if (splashElapsed < minimumSplashDuration) {
           await Future<void>.delayed(minimumSplashDuration - splashElapsed);
         }
