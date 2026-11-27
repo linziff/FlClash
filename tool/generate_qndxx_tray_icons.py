@@ -42,6 +42,20 @@ def make_app_icon(size: int = 1024) -> Image.Image:
     return logo
 
 
+def make_adaptive_foreground(size: int = 1024) -> Image.Image:
+    """Inset the mark into Android's adaptive-icon safe zone.
+
+    Android 12 reuses the adaptive foreground for the system splash screen.
+    A full-bleed foreground is clipped/oversized there, so keep the artwork
+    inside the central 66% while leaving the surrounding pixels transparent.
+    """
+    mark = make_app_icon(round(size * 0.66))
+    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
+    offset = (size - mark.width) // 2
+    canvas.alpha_composite(mark, (offset, offset))
+    return canvas
+
+
 def make_icon(status: int, size: int) -> Image.Image:
     """Keep the established four-state color mapping and rounded alpha shape."""
     mark = make_app_icon(size)
@@ -58,6 +72,11 @@ def save_png(path: Path, status: int, size: int):
 def main():
     (ROOT / "assets/images/qndxx_app_icon.png").parent.mkdir(parents=True, exist_ok=True)
     make_app_icon().save(ROOT / "assets/images/qndxx_app_icon.png", format="PNG", optimize=True)
+    make_adaptive_foreground().save(
+        ROOT / "assets/images/qndxx_adaptive_foreground.png",
+        format="PNG",
+        optimize=True,
+    )
 
     windows = ROOT / "assets/images/tray/windows"
     windows.mkdir(parents=True, exist_ok=True)
