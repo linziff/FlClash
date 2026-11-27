@@ -2,8 +2,8 @@
 
 本目录按平台分类记录、复现和跟踪问题。
 
-- [Windows 问题](./win/README.md)
-- [Android 问题](./安卓/README.md)
+- [Windows 问题](./Win/README.md)
+- [Android 问题](./Android/README.md)
 
 ## 提交要求
 
