@@ -31,6 +31,7 @@ import 'package:flutter/material.dart'
         ThemeMode;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:prism_ui/theme_data.dart' as prism;
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
@@ -687,10 +688,15 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     final themeMode = ref.watch(
       themeSettingProvider.select((settings) => settings.themeMode),
     );
+    final materialThemeMode = switch (themeMode) {
+      prism.ThemeMode.system => ThemeMode.system,
+      prism.ThemeMode.light => ThemeMode.light,
+      prism.ThemeMode.dark => ThemeMode.dark,
+    };
     final themeModeLabel = switch (themeMode) {
-      ThemeMode.system => '跟随系统',
-      ThemeMode.light => '正常模式',
-      ThemeMode.dark => '夜间模式',
+      prism.ThemeMode.system => '跟随系统',
+      prism.ThemeMode.light => '正常模式',
+      prism.ThemeMode.dark => '夜间模式',
     };
     return DefaultTextStyle.merge(
       // Use the native Windows UI font to avoid the softer fallback face in
@@ -937,7 +943,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                         title: const Text('主题模式'),
                         subtitle: Text(themeModeLabel),
                         trailing: DropdownButton<ThemeMode>(
-                          value: themeMode,
+                          value: materialThemeMode,
                           isDense: true,
                           underline: const SizedBox.shrink(),
                           items: const [
@@ -956,9 +962,14 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                           ],
                           onChanged: (mode) {
                             if (mode == null) return;
+                            final prismMode = switch (mode) {
+                              ThemeMode.system => prism.ThemeMode.system,
+                              ThemeMode.light => prism.ThemeMode.light,
+                              ThemeMode.dark => prism.ThemeMode.dark,
+                            };
                             ref.read(themeSettingProvider.notifier).value = ref
                                 .read(themeSettingProvider)
-                                .copyWith(themeMode: mode);
+                                .copyWith(themeMode: prismMode);
                           },
                         ),
                       ),
