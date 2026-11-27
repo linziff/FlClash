@@ -100,24 +100,24 @@ abstract final class AppGlyphs {
 
   static const shop = Glyph([
     GlyphPolyline([
-      GlyphVertex(5, 9),
-      GlyphVertex(19, 9, 2),
-      GlyphVertex(18, 20, 2),
-      GlyphVertex(6, 20, 2),
+      GlyphVertex(3.5, 9),
+      GlyphVertex(20.5, 9, 2),
+      GlyphVertex(19.5, 20.5, 2),
+      GlyphVertex(4.5, 20.5, 2),
     ], closed: true),
     GlyphPolyline([
-      GlyphVertex(9, 9),
-      GlyphVertex(9, 6, 1.8),
-      GlyphVertex(15, 6, 1.8),
-      GlyphVertex(15, 9),
+      GlyphVertex(7.5, 9),
+      GlyphVertex(7.5, 5.5, 1.8),
+      GlyphVertex(16.5, 5.5, 1.8),
+      GlyphVertex(16.5, 9),
     ], role: GlyphRole.line),
     GlyphPolyline([
-      GlyphVertex(10, 13),
-      GlyphVertex(10, 16),
+      GlyphVertex(9, 12.5),
+      GlyphVertex(9, 16.5),
     ], role: GlyphRole.detail),
     GlyphPolyline([
-      GlyphVertex(14, 13),
-      GlyphVertex(14, 16),
+      GlyphVertex(15, 12.5),
+      GlyphVertex(15, 16.5),
     ], role: GlyphRole.detail),
   ]);
 
