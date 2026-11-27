@@ -6,7 +6,8 @@ import 'package:in_app_webview_flutter/flutter_inappwebview.dart';
 import 'qndxx_config_service.dart';
 
 /// Crisp is rendered inside the current QNDXX page on Android, Windows and
-/// macOS. It must not create a second native window or launch an external app.
+/// macOS. HomePage owns the dock's safe content inset; this view must not add
+/// another bottom reservation or wrap/intercept the dock's hit-test region.
 class QndxxSupportView extends StatefulWidget {
   const QndxxSupportView({super.key});
 
@@ -29,81 +30,72 @@ class _QndxxSupportViewState extends State<QndxxSupportView> {
     return Scaffold(
       title: '在线客服',
       backgroundColor: context.colorScheme.surface,
-      body: Padding(
-        // HomeShell's BottomInsetScope already keeps every tab's body above
-        // the floating navigation dock. Do not add that inset again here:
-        // the extra reservation made Crisp end noticeably higher than the
-        // dashboard and shop and reduced its usable chat area.
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            ColoredBox(
-              // Keep the Windows WebView surface fully opaque; transparent
-              // composition can blend the Crisp page with the app's glass dock.
-              color: context.colorScheme.surface,
-              child: InAppWebView(
-                initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
-                initialSettings: InAppWebViewSettings(
-                  transparentBackground: false,
-                  javaScriptEnabled: true,
-                  domStorageEnabled: true,
-                  thirdPartyCookiesEnabled: true,
-                  mediaPlaybackRequiresUserGesture: false,
-                  supportZoom: false,
-                ),
-                onWebViewCreated: (controller) {
-                  _controller = controller;
-                },
-                onLoadStart: (controller, url) {
-                  if (!mounted) return;
-                  setState(() {
-                    _loading = true;
-                    _error = null;
-                  });
-                },
-                onLoadStop: (controller, url) {
-                  if (!mounted) return;
-                  setState(() => _loading = false);
-                },
-                onReceivedError: (controller, request, error) {
-                  if (!mounted || request.isForMainFrame != true) return;
-                  setState(() {
-                    _loading = false;
-                    _error = error.description;
-                  });
-                },
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(
+            color: context.colorScheme.surface,
+            child: InAppWebView(
+              initialUrlRequest: URLRequest(url: WebUri(_crispUrl)),
+              initialSettings: InAppWebViewSettings(
+                transparentBackground: false,
+                javaScriptEnabled: true,
+                domStorageEnabled: true,
+                thirdPartyCookiesEnabled: true,
+                mediaPlaybackRequiresUserGesture: false,
+                supportZoom: false,
               ),
+              onWebViewCreated: (controller) {
+                _controller = controller;
+              },
+              onLoadStart: (controller, url) {
+                if (!mounted) return;
+                setState(() {
+                  _loading = true;
+                  _error = null;
+                });
+              },
+              onLoadStop: (controller, url) {
+                if (!mounted) return;
+                setState(() => _loading = false);
+              },
+              onReceivedError: (controller, request, error) {
+                if (!mounted || request.isForMainFrame != true) return;
+                setState(() {
+                  _loading = false;
+                  _error = error.description;
+                });
+              },
             ),
-            if (_loading) const Center(child: CircularProgressIndicator()),
-            if (_error != null)
-              ColoredBox(
-                color: context.colorScheme.surface,
-                child: Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(_error!, textAlign: TextAlign.center),
-                        const SizedBox(height: 16),
-                        FilledButton(
-                          onPressed: () {
-                            setState(() {
-                              _loading = true;
-                              _error = null;
-                            });
-                            _controller?.reload();
-                          },
-                          child: const Text('重新加载客服'),
-                        ),
-                      ],
-                    ),
+          ),
+          if (_loading) const Center(child: CircularProgressIndicator()),
+          if (_error != null)
+            ColoredBox(
+              color: context.colorScheme.surface,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_error!, textAlign: TextAlign.center),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: () {
+                          setState(() {
+                            _loading = true;
+                            _error = null;
+                          });
+                          _controller?.reload();
+                        },
+                        child: const Text('重新加载客服'),
+                      ),
+                    ],
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
