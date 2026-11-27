@@ -35,9 +35,7 @@ class QndxxBootstrapSplash extends StatelessWidget {
                     errorBuilder: (_, _, _) => const SizedBox(
                       width: 112,
                       height: 112,
-                      child: Center(
-                        child: Icon(Icons.apps_rounded, size: 72),
-                      ),
+                      child: Center(child: Icon(Icons.apps_rounded, size: 72)),
                     ),
                   ),
                 ),
