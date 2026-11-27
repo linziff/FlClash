@@ -67,7 +67,7 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
           child: Center(
             child: AnimatedOpacity(
               opacity: _visible ? 1 : 0,
-              duration: const Duration(milliseconds: 800),
+              duration: const Duration(milliseconds: 1200),
               curve: Curves.easeOutCubic,
               child: AnimatedScale(
                 scale: _visible ? 1 : 0.9,
@@ -81,7 +81,7 @@ class _QndxxStartupSplashState extends State<QndxxStartupSplash> {
                       // Keep the source logo's transparent edges visible.
                       // A colored tile behind it made the splash look like
                       // a second, mismatched app icon.
-                      const QndxxBrandLogo(size: 132),
+                      const QndxxBrandLogo(size: 112),
                       const SizedBox(height: 28),
                       Text(
                         '青年大学习',
