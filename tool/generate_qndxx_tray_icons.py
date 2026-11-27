@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate rounded, transparent QNDXX icons with the original four states."""
 from pathlib import Path
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 COLORS = {
@@ -53,22 +53,13 @@ def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
     return image.resize((size, size), Image.Resampling.LANCZOS)
 
 def make_adaptive_foreground(size: int = 1024) -> Image.Image:
-    """Use the startup artwork with transparent rounded corners on Android.
+    """Render Android artwork with smooth, transparent rounded corners.
 
-    The source logo can contain dark pixels in its pre-rounded outer corners.
-    Clip those corners to alpha instead of carrying a black tile into the
-    Android adaptive icon and native splash. Android applies its own mask too.
+    Reuse the same 4x supersampled alpha-mask pipeline as Windows icons so
+    the corner transition stays antialiased instead of showing jagged pixels.
+    Android applies its own adaptive-icon mask on top of this transparent PNG.
     """
-    image = make_app_icon(size)
-    mask = Image.new("L", (size, size), 0)
-    ImageDraw.Draw(mask).rounded_rectangle(
-        (0, 0, size - 1, size - 1),
-        radius=round(size * 0.22),
-        fill=255,
-    )
-    image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
-    return image
-
+    return make_rounded_icon(size, radius_ratio=0.22)
 
 def make_icon(status: int, size: int) -> Image.Image:
     """Preserve the original QNDXX logo and show FlClash state as a small badge.
