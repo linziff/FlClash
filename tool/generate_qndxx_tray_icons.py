@@ -57,12 +57,35 @@ def make_adaptive_foreground(size: int = 1024) -> Image.Image:
 
 
 def make_icon(status: int, size: int) -> Image.Image:
-    """Keep the established four-state color mapping and rounded alpha shape."""
-    mark = make_app_icon(size)
-    image = Image.new("RGBA", (size, size), COLORS[status])
-    image.putalpha(mark.getchannel("A"))
-    return image
+    """Preserve the original QNDXX logo and show FlClash state as a small badge.
 
+    The old implementation replaced every visible logo pixel with a flat
+    status color. That erased the blue background and the logo artwork, making
+    the tray icon look like a featureless square at small Windows sizes.
+    """
+    image = make_app_icon(size)
+    draw = ImageDraw.Draw(image)
+
+    # Keep the QNDXX brand artwork untouched; indicate connection state with
+    # a compact lower-right dot instead of recoloring the entire logo.
+    diameter = max(5, round(size * 0.30))
+    margin = max(0, round(size * 0.035))
+    right = size - 1 - margin
+    bottom = size - 1 - margin
+    left = right - diameter + 1
+    top = bottom - diameter + 1
+
+    # White keyline keeps the state marker legible on both blue and light logos.
+    outline = max(1, round(size * 0.055))
+    draw.ellipse(
+        (left - outline, top - outline, right, bottom),
+        fill=(255, 255, 255, 255),
+    )
+    draw.ellipse(
+        (left, top, right - outline, bottom - outline),
+        fill=COLORS[status],
+    )
+    return image
 
 def save_png(path: Path, status: int, size: int):
     path.parent.mkdir(parents=True, exist_ok=True)
