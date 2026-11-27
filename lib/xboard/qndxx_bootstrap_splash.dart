@@ -32,7 +32,7 @@ class QndxxBootstrapSplash extends StatelessWidget {
                   child: Image.asset(
                     Platform.isAndroid
                         ? 'assets/images/qndxx_adaptive_foreground.png'
-                        : 'assets/images/logo.png',
+                        : 'assets/images/qndxx_app_icon.png',
                     width: 112,
                     height: 112,
                     fit: BoxFit.contain,
