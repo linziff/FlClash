@@ -923,41 +923,41 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                     ),
                   ],
                 ),
-            if (widget.mode == QndxxAccountViewMode.account)
-              generateSection(
-                title: '外观设置',
-              items: [
-                ListItem(
-                  title: const Text('主题模式'),
-                  subtitle: Text(themeModeLabel),
-                  trailing: DropdownButton<ThemeMode>(
-                    value: themeMode,
-                    isDense: true,
-                    underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(
-                        value: ThemeMode.system,
-                        child: Text('跟随系统'),
-                      ),
-                      DropdownMenuItem(
-                        value: ThemeMode.light,
-                        child: Text('正常模式'),
-                      ),
-                      DropdownMenuItem(
-                        value: ThemeMode.dark,
-                        child: Text('夜间模式'),
+                if (widget.mode == QndxxAccountViewMode.account)
+                  generateSection(
+                    title: '外观设置',
+                    items: [
+                      ListItem(
+                        title: const Text('主题模式'),
+                        subtitle: Text(themeModeLabel),
+                        trailing: DropdownButton<ThemeMode>(
+                          value: themeMode,
+                          isDense: true,
+                          underline: const SizedBox.shrink(),
+                          items: const [
+                            DropdownMenuItem(
+                              value: ThemeMode.system,
+                              child: Text('跟随系统'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.light,
+                              child: Text('正常模式'),
+                            ),
+                            DropdownMenuItem(
+                              value: ThemeMode.dark,
+                              child: Text('夜间模式'),
+                            ),
+                          ],
+                          onChanged: (mode) {
+                            if (mode == null) return;
+                            ref.read(themeSettingProvider.notifier).value = ref
+                                .read(themeSettingProvider)
+                                .copyWith(themeMode: mode);
+                          },
+                        ),
                       ),
                     ],
-                    onChanged: (mode) {
-                      if (mode == null) return;
-                      ref.read(themeSettingProvider.notifier).value = ref
-                          .read(themeSettingProvider)
-                          .copyWith(themeMode: mode);
-                    },
                   ),
-                ),
-              ],
-            ),
                 generateSection(
                   title: '账户操作',
                   items: [
