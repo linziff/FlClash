@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 /// First Flutter frame shown immediately, before Rust, database and platform
@@ -28,7 +30,9 @@ class QndxxBootstrapSplash extends StatelessWidget {
                 ClipRRect(
                   borderRadius: BorderRadius.circular(25),
                   child: Image.asset(
-                    'assets/images/qndxx_adaptive_foreground.png',
+                    Platform.isAndroid
+                        ? 'assets/images/qndxx_adaptive_foreground.png'
+                        : 'assets/images/logo.png',
                     width: 112,
                     height: 112,
                     fit: BoxFit.contain,
