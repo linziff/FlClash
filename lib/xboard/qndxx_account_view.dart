@@ -9,8 +9,7 @@ import 'package:fl_clash/widgets/widgets.dart'
         Divider,
         FilledButton,
         LinearProgressIndicator,
-        IconButton,
-        ThemeMode;
+        IconButton;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
     show
@@ -25,8 +24,7 @@ import 'package:flutter/material.dart'
         Divider,
         Clip,
         LinearProgressIndicator,
-        IconButton,
-        ThemeMode;
+        IconButton;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prism_ui/theme_data.dart' as prism;
