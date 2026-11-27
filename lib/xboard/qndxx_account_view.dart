@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
+import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart'
     hide Card, Divider, FilledButton, LinearProgressIndicator, IconButton;
 import 'package:flutter/widgets.dart';
@@ -18,7 +19,10 @@ import 'package:flutter/material.dart'
         Divider,
         Clip,
         LinearProgressIndicator,
-        IconButton;
+        IconButton,
+        DropdownButton,
+        DropdownMenuItem,
+        ThemeMode;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -674,6 +678,14 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   @override
   Widget build(BuildContext context) {
+    final themeMode = ref.watch(
+      themeSettingProvider.select((settings) => settings.themeMode),
+    );
+    final themeModeLabel = switch (themeMode) {
+      ThemeMode.system => '跟随系统',
+      ThemeMode.light => '正常模式',
+      ThemeMode.dark => '夜间模式',
+    };
     return DefaultTextStyle.merge(
       // Use the native Windows UI font to avoid the softer fallback face in
       // compact shop labels, prices, and plan descriptions.
@@ -689,6 +701,40 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             bottom: 24 + context.bottomInset,
           ),
           children: [
+            generateSection(
+              title: '外观设置',
+              items: [
+                ListItem(
+                  title: const Text('主题模式'),
+                  subtitle: Text(themeModeLabel),
+                  trailing: DropdownButton<ThemeMode>(
+                    value: themeMode,
+                    isDense: true,
+                    underline: const SizedBox.shrink(),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ThemeMode.system,
+                        child: Text('跟随系统'),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Text('正常模式'),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text('夜间模式'),
+                      ),
+                    ],
+                    onChanged: (mode) {
+                      if (mode == null) return;
+                      ref.read(themeSettingProvider.notifier).value = ref
+                          .read(themeSettingProvider)
+                          .copyWith(themeMode: mode);
+                    },
+                  ),
+                ),
+              ],
+            ),
             if (_loading)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
