@@ -382,8 +382,6 @@ class _HomePageViewState extends ConsumerState<_HomePageView> {
   }
 }
 
-const _restingDelta = 0.001;
-
 /// Cancels the page view's slide so a tab switch cross-fades in place, and
 /// wraps every page even when off so switching the setting keeps their state.
 /// A page off its resting place is drawn from a snapshot, as a moving route is.
