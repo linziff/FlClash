@@ -109,7 +109,7 @@ flutter_launcher_icons:
   ios: false
   image_path: assets/images/qndxx_app_icon.png
   adaptive_icon_background: "#F4F7FF"
-  adaptive_icon_foreground: assets/images/qndxx_app_icon.png
+  adaptive_icon_foreground: assets/images/qndxx_adaptive_foreground.png
   adaptive_icon_monochrome: assets/images/qndxx_app_icon.png
   windows:
     generate: true
