@@ -119,10 +119,11 @@ class ApplicationState extends ConsumerState<Application> {
           level: BannerLevel.warning,
         );
       } finally {
-        // Keep the branded startup sequence visible for at least 3.5 seconds.
-        // If core/login initialization takes longer, do not add extra delay.
+        // The bootstrap gate already showed the animated first-launch splash
+        // for 4.5 seconds before Application was mounted. This second cover
+        // only bridges core/login attachment and must not add another long wait.
         final splashElapsed = DateTime.now().difference(splashStartedAt);
-        const minimumSplashDuration = Duration(seconds: 5);
+        const minimumSplashDuration = Duration(milliseconds: 1200);
         if (splashElapsed < minimumSplashDuration) {
           await Future<void>.delayed(minimumSplashDuration - splashElapsed);
         }
