@@ -53,17 +53,13 @@ def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
     return image.resize((size, size), Image.Resampling.LANCZOS)
 
 def make_adaptive_foreground(size: int = 1024) -> Image.Image:
-    """Inset the mark into Android's adaptive-icon safe zone.
+    """Use the exact startup-animation artwork for Android launcher/splash.
 
-    Android 12 reuses the adaptive foreground for the system splash screen.
-    A full-bleed foreground is clipped/oversized there, so keep the artwork
-    inside the central 66% while leaving the surrounding pixels transparent.
+    Keep the original logo at full canvas size so the launcher icon and the
+    Flutter animated first screen use the same artwork and visual scale.
+    Android applies its own adaptive-icon mask at display time.
     """
-    mark = make_app_icon(round(size * 0.66))
-    canvas = Image.new("RGBA", (size, size), (0, 0, 0, 0))
-    offset = (size - mark.width) // 2
-    canvas.alpha_composite(mark, (offset, offset))
-    return canvas
+    return make_app_icon(size)
 
 
 def make_icon(status: int, size: int) -> Image.Image:
