@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 
 /// First Flutter frame shown immediately, before Rust, database and platform
