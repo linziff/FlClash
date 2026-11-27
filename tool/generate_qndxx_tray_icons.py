@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generate rounded, transparent QNDXX icons with the original four states."""
 from pathlib import Path
-from PIL import Image, ImageDraw
+from PIL import Image, ImageChops, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[1]
 COLORS = {
@@ -53,13 +53,21 @@ def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
     return image.resize((size, size), Image.Resampling.LANCZOS)
 
 def make_adaptive_foreground(size: int = 1024) -> Image.Image:
-    """Use the exact startup-animation artwork for Android launcher/splash.
+    """Use the startup artwork with transparent rounded corners on Android.
 
-    Keep the original logo at full canvas size so the launcher icon and the
-    Flutter animated first screen use the same artwork and visual scale.
-    Android applies its own adaptive-icon mask at display time.
+    The source logo can contain dark pixels in its pre-rounded outer corners.
+    Clip those corners to alpha instead of carrying a black tile into the
+    Android adaptive icon and native splash. Android applies its own mask too.
     """
-    return make_app_icon(size)
+    image = make_app_icon(size)
+    mask = Image.new("L", (size, size), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, size - 1, size - 1),
+        radius=round(size * 0.22),
+        fill=255,
+    )
+    image.putalpha(ImageChops.multiply(image.getchannel("A"), mask))
+    return image
 
 
 def make_icon(status: int, size: int) -> Image.Image:
