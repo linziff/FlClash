@@ -111,6 +111,17 @@ def main():
         optimize=True,
     )
 
+    # Android 12+ displays a native system splash before Flutter's first frame.
+    # Use a regular PNG drawable so Android does not substitute the launcher
+    # adaptive icon or apply a second platform-specific mask.
+    android_splash = ROOT / "android/app/src/main/res/drawable-nodpi/qndxx_splash.png"
+    android_splash.parent.mkdir(parents=True, exist_ok=True)
+    make_rounded_icon(1024, radius_ratio=0.22).save(
+        android_splash,
+        format="PNG",
+        optimize=True,
+    )
+
     # Windows and macOS both receive the same rounded, transparent artwork.
     windows_app_icon = ROOT / "windows/runner/resources/app_icon.ico"
     windows_app_icon.parent.mkdir(parents=True, exist_ok=True)
