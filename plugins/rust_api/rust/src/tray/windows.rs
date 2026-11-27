@@ -5,7 +5,8 @@
 use super::emit;
 use crate::api::tray::{TrayContent, TrayItem, TrayItemKind, TraySignalKind};
 use std::mem::{size_of, zeroed};
-use std::ptr::{null, null_mut};\nuse std::path::PathBuf;
+use std::ptr::{null, null_mut};
+use std::path::PathBuf;
 use std::sync::{mpsc, Mutex, MutexGuard, OnceLock, PoisonError};
 
 use windows_sys::core::PCSTR;
