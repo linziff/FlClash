@@ -26,8 +26,6 @@ import 'package:flutter/material.dart'
         Clip,
         LinearProgressIndicator,
         IconButton,
-        DropdownButton,
-        DropdownMenuItem,
         ThemeMode;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -691,11 +689,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     final themeMode = ref.watch(
       themeSettingProvider.select((settings) => settings.themeMode),
     );
-    final materialThemeMode = switch (themeMode) {
-      prism.ThemeMode.system => ThemeMode.system,
-      prism.ThemeMode.light => ThemeMode.light,
-      prism.ThemeMode.dark => ThemeMode.dark,
-    };
     final themeModeLabel = switch (themeMode) {
       prism.ThemeMode.system => '跟随系统',
       prism.ThemeMode.light => '正常模式',
@@ -942,39 +935,24 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                   generateSection(
                     title: '外观设置',
                     items: [
-                      ListItem(
+                      ListItem<prism.ThemeMode>.options(
                         title: const Text('主题模式'),
-                        subtitle: Text(themeModeLabel),
-                        trailing: DropdownButton<ThemeMode>(
-                          value: materialThemeMode,
-                          isDense: true,
-                          underline: const SizedBox.shrink(),
-                          items: const [
-                            DropdownMenuItem(
-                              value: ThemeMode.system,
-                              child: Text('跟随系统'),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.light,
-                              child: Text('正常模式'),
-                            ),
-                            DropdownMenuItem(
-                              value: ThemeMode.dark,
-                              child: Text('夜间模式'),
-                            ),
-                          ],
-                          onChanged: (mode) {
-                            if (mode == null) return;
-                            final prismMode = switch (mode) {
-                              ThemeMode.system => prism.ThemeMode.system,
-                              ThemeMode.light => prism.ThemeMode.light,
-                              ThemeMode.dark => prism.ThemeMode.dark,
-                            };
-                            ref.read(themeSettingProvider.notifier).value = ref
-                                .read(themeSettingProvider)
-                                .copyWith(themeMode: prismMode);
-                          },
-                        ),
+                        options: const [
+                          prism.ThemeMode.system,
+                          prism.ThemeMode.light,
+                          prism.ThemeMode.dark,
+                        ],
+                        value: themeMode,
+                        textBuilder: (mode) => switch (mode) {
+                          prism.ThemeMode.system => '跟随系统',
+                          prism.ThemeMode.light => '正常模式',
+                          prism.ThemeMode.dark => '夜间模式',
+                        },
+                        onChanged: (mode) {
+                          ref.read(themeSettingProvider.notifier).value = ref
+                              .read(themeSettingProvider)
+                              .copyWith(themeMode: mode);
+                        },
                       ),
                     ],
                   ),
