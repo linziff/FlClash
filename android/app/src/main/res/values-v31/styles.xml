@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Android 12+ native splash: use the explicitly rounded QNDXX PNG,
+         not the launcher adaptive icon (which Android masks independently). -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">#F5F7FB</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/qndxx_splash</item>
+        <item name="android:postSplashScreenTheme">@style/NormalTheme</item>
+    </style>
+</resources>
