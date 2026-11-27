@@ -404,14 +404,6 @@ class _FadeTabPage extends StatefulWidget {
 }
 
 class _FadeTabPageState extends State<_FadeTabPage> {
-  final _snapshot = SnapshotController();
-
-  @override
-  void dispose() {
-    _snapshot.dispose();
-    super.dispose();
-  }
-
   // Not controller.page: it clamps to the extent of the last layout, which a
   // page inserted before the current one outgrows before the next layout.
   double get _delta {
@@ -433,21 +425,18 @@ class _FadeTabPageState extends State<_FadeTabPage> {
       animation: widget.controller,
       builder: (_, child) {
         final offset = _delta;
-        // Live page content must remain the source of truth during tab changes.\n        // Snapshotting platform-backed/account views produced a persistent blank\n        // surface on Windows and Android after navigation. Keep the fade/slide\n        // transition, but render the page live instead of caching a texture.\n        _snapshot.allowSnapshotting = false;
         final delta = widget.enabled ? offset : 0.0;
         return FractionalTranslation(
           translation: Offset(-delta, 0),
           child: Opacity(opacity: 1 - delta.abs(), child: child),
         );
       },
-      child: SnapshotWidget(
-        controller: _snapshot,
-        mode: SnapshotMode.permissive,
-        autoresize: true,
-        child: LiquidGlassHost(
-          enabled: LiquidGlassScope.of(context),
-          child: widget.child,
-        ),
+      // Keep account pages, QR codes and embedded platform views in the live
+      // render tree. SnapshotWidget can retain an empty texture after a
+      // navigation transition on Windows/Android, leaving the whole page grey.
+      child: LiquidGlassHost(
+        enabled: LiquidGlassScope.of(context),
+        child: widget.child,
       ),
     );
   }
