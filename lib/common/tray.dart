@@ -56,7 +56,6 @@ class AppTray implements TrayPort {
     required bool isStart,
     required bool tunEnable,
     required bool safeMode,
-    bool monochrome = true,
   }) {
     final status = switch ((
       safeMode,
@@ -93,12 +92,13 @@ class AppTray implements TrayPort {
     }
     await Tray.instance.show(
       TraySpec(
+        // QNDXX uses a full-color brand mark on macOS. Do not let AppKit
+        // template-image tinting turn the blue logo into a monochrome glyph.
         icon: TrayIcon.asset(
           getTrayIcon(
             isStart: trayState.isStart && !trayState.suspended,
             tunEnable: trayState.tunEnable,
             safeMode: trayState.safeMode,
-            monochrome: trayState.monochromeTrayIcon,
           ),
           isTemplate: false,
           size: isMacOS ? 18 : 16,
