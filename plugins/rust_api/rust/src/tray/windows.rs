@@ -5,7 +5,7 @@
 use super::emit;
 use crate::api::tray::{TrayContent, TrayItem, TrayItemKind, TraySignalKind};
 use std::mem::{size_of, zeroed};
-use std::ptr::{null, null_mut};
+use std::ptr::{null, null_mut};\nuse std::path::PathBuf;
 use std::sync::{mpsc, Mutex, MutexGuard, OnceLock, PoisonError};
 
 use windows_sys::core::PCSTR;
@@ -276,17 +276,38 @@ fn restore(window: HWND) {
 }
 
 fn load_icon(path: &str) -> Option<Icon> {
-    let icon = unsafe {
-        LoadImageW(
-            null_mut(),
-            wide(path).as_ptr(),
-            IMAGE_ICON,
-            GetSystemMetrics(SM_CXSMICON),
-            GetSystemMetrics(SM_CYSMICON),
-            LR_LOADFROMFILE,
-        )
-    };
-    (!icon.is_null()).then_some(Icon(icon))
+    // Flutter bundles assets under <exe>/data/flutter_assets. The process
+    // working directory is not stable for Start-menu/taskbar launches, so a
+    // relative assets/... path alone makes the tray icon disappear.
+    let mut candidates = Vec::new();
+    if let Ok(executable) = std::env::current_exe() {
+        if let Some(directory) = executable.parent() {
+            candidates.push(directory.join("data").join("flutter_assets").join(path));
+            candidates.push(directory.join(path));
+        }
+    }
+    candidates.push(PathBuf::from(path));
+
+    for candidate in candidates {
+        if !candidate.is_file() {
+            continue;
+        }
+        let path = candidate.to_string_lossy();
+        let icon = unsafe {
+            LoadImageW(
+                null_mut(),
+                wide(&path).as_ptr(),
+                IMAGE_ICON,
+                GetSystemMetrics(SM_CXSMICON),
+                GetSystemMetrics(SM_CYSMICON),
+                LR_LOADFROMFILE,
+            )
+        };
+        if !icon.is_null() {
+            return Some(Icon(icon));
+        }
+    }
+    None
 }
 
 fn popup_menu(window: HWND) {
