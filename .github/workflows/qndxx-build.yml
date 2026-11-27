@@ -59,12 +59,12 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Generate native app icons
+        run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
         run: |
           python -m pip install --disable-pip-version-check pillow
           python tool/generate_qndxx_tray_icons.py
-      - name: Generate native app icons
-        run: flutter pub run flutter_launcher_icons
       - name: Remove legacy PNG launcher icons
         shell: bash
         run: find android/app/src/main/res -type f -path '*/mipmap-*/*' -name 'ic_launcher*.png' -delete
@@ -118,12 +118,12 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Generate native app icons
+        run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
         run: |
           python -m pip install --disable-pip-version-check pillow
           python tool/generate_qndxx_tray_icons.py
-      - name: Generate native app icons
-        run: flutter pub run flutter_launcher_icons
       - name: Patch Windows WebView CMake compatibility
         shell: pwsh
         run: |
@@ -196,12 +196,12 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Generate native app icons
+        run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
         run: |
           python -m pip install --disable-pip-version-check pillow
           python tool/generate_qndxx_tray_icons.py
-      - name: Generate native app icons
-        run: flutter pub run flutter_launcher_icons
       - name: Setup Xcode
         run: |
           sudo xcode-select -s /Applications/Xcode_26.3.app || sudo xcode-select -s /Applications/Xcode_26.2.app
