@@ -59,6 +59,8 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Prepare QNDXX icon source assets
+        run: python tool/generate_qndxx_tray_icons.py
       - name: Generate native app icons
         run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
@@ -118,6 +120,8 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Prepare QNDXX icon source assets
+        run: python tool/generate_qndxx_tray_icons.py
       - name: Generate native app icons
         run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
@@ -196,6 +200,8 @@ jobs:
         run: flutter pub get
       - name: Download QNDXX logo
         run: dart tool/prepare_qndxx_assets.dart
+      - name: Prepare QNDXX icon source assets
+        run: python tool/generate_qndxx_tray_icons.py
       - name: Generate native app icons
         run: flutter pub run flutter_launcher_icons
       - name: Generate QNDXX launcher and tray icons
