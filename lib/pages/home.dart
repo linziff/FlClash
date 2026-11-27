@@ -369,75 +369,12 @@ class _HomePageViewState extends ConsumerState<_HomePageView> {
         return _order?.indexOf(index) ?? index;
       },
       itemBuilder: (context, index) {
-        final page = widget.pageBuilder(context, _order?[index] ?? index);
-        return _FadeTabPage(
-          key: page.key,
-          controller: _pageController,
-          position: index,
-          enabled: fade,
-          child: page,
-        );
+        // Keep the page subtree directly in PageView's render tree. Wrapping
+        // tab roots in LiquidGlassHost/Opacity/FractionalTranslation can leave
+        // platform-backed descendants with an empty composited layer after a
+        // tab transition on Windows and Android.
+        return widget.pageBuilder(context, _order?[index] ?? index);
       },
-    );
-  }
-}
-
-/// Cancels the page view's slide so a tab switch cross-fades in place, and
-/// wraps every page even when off so switching the setting keeps their state.
-/// A page off its resting place is drawn from a snapshot, as a moving route is.
-class _FadeTabPage extends StatefulWidget {
-  const _FadeTabPage({
-    super.key,
-    required this.controller,
-    required this.position,
-    required this.enabled,
-    required this.child,
-  });
-
-  final PageController controller;
-  final int position;
-  final bool enabled;
-  final Widget child;
-
-  @override
-  State<_FadeTabPage> createState() => _FadeTabPageState();
-}
-
-class _FadeTabPageState extends State<_FadeTabPage> {
-  // Not controller.page: it clamps to the extent of the last layout, which a
-  // page inserted before the current one outgrows before the next layout.
-  double get _delta {
-    final controller = widget.controller;
-    if (!controller.hasClients) {
-      return 0;
-    }
-    final metrics = controller.position;
-    if (!metrics.hasContentDimensions || metrics.viewportDimension == 0) {
-      return 0;
-    }
-    final page = metrics.pixels / metrics.viewportDimension;
-    return (widget.position - page).clamp(-1.0, 1.0);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.controller,
-      builder: (_, child) {
-        final offset = _delta;
-        final delta = widget.enabled ? offset : 0.0;
-        return FractionalTranslation(
-          translation: Offset(-delta, 0),
-          child: Opacity(opacity: 1 - delta.abs(), child: child),
-        );
-      },
-      // Keep account pages, QR codes and embedded platform views in the live
-      // render tree. SnapshotWidget can retain an empty texture after a
-      // navigation transition on Windows/Android, leaving the whole page grey.
-      child: LiquidGlassHost(
-        enabled: LiquidGlassScope.of(context),
-        child: widget.child,
-      ),
     );
   }
 }
