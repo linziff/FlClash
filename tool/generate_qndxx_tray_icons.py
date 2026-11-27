@@ -30,8 +30,13 @@ def _load_logo() -> Image.Image:
 
 
 def make_app_icon(size: int = 1024) -> Image.Image:
-    """Return a clean square master; macOS applies its own Dock corner mask."""
-    return _load_logo().resize((size, size), Image.Resampling.LANCZOS)
+    """Return the shared rounded, antialiased icon with transparent corners.
+
+    Apply the rounded alpha mask in the source artwork itself so macOS,
+    Android legacy launchers and other icon consumers do not depend on an
+    operating-system-specific corner mask.
+    """
+    return make_rounded_icon(size, radius_ratio=0.22)
 
 
 def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
@@ -106,8 +111,7 @@ def main():
         optimize=True,
     )
 
-    # Windows has no automatic Dock-style mask; generate its rounded ICO
-    # separately while keeping the shared app-icon master square for macOS.
+    # Windows and macOS both receive the same rounded, transparent artwork.
     windows_app_icon = ROOT / "windows/runner/resources/app_icon.ico"
     windows_app_icon.parent.mkdir(parents=True, exist_ok=True)
     make_rounded_icon(256).save(
