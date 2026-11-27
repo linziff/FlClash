@@ -687,11 +687,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     final themeMode = ref.watch(
       themeSettingProvider.select((settings) => settings.themeMode),
     );
-    final themeModeLabel = switch (themeMode) {
-      prism.ThemeMode.system => '跟随系统',
-      prism.ThemeMode.light => '正常模式',
-      prism.ThemeMode.dark => '夜间模式',
-    };
     return DefaultTextStyle.merge(
       // Use the native Windows UI font to avoid the softer fallback face in
       // compact shop labels, prices, and plan descriptions.
