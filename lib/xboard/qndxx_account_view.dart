@@ -659,7 +659,10 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     );
     if (amount == null) return;
     try {
-      await _service.transferCommissionToBalance(amount);
+      final transferred = await _service.transferCommissionToBalance(amount);
+      if (!transferred) {
+        throw StateError('面板未确认佣金划转成功，请刷新钱包余额后再检查');
+      }
       dialogs.showBanner('佣金已划转至网站钱包', level: BannerLevel.success);
       await _load();
     } catch (error) {
