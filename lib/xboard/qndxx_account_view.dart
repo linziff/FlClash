@@ -701,41 +701,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             bottom: 24 + context.bottomInset,
           ),
           children: [
-            if (widget.mode == QndxxAccountViewMode.account)
-              generateSection(
-                title: '外观设置',
-              items: [
-                ListItem(
-                  title: const Text('主题模式'),
-                  subtitle: Text(themeModeLabel),
-                  trailing: DropdownButton<ThemeMode>(
-                    value: themeMode,
-                    isDense: true,
-                    underline: const SizedBox.shrink(),
-                    items: const [
-                      DropdownMenuItem(
-                        value: ThemeMode.system,
-                        child: Text('跟随系统'),
-                      ),
-                      DropdownMenuItem(
-                        value: ThemeMode.light,
-                        child: Text('正常模式'),
-                      ),
-                      DropdownMenuItem(
-                        value: ThemeMode.dark,
-                        child: Text('夜间模式'),
-                      ),
-                    ],
-                    onChanged: (mode) {
-                      if (mode == null) return;
-                      ref.read(themeSettingProvider.notifier).value = ref
-                          .read(themeSettingProvider)
-                          .copyWith(themeMode: mode);
-                    },
-                  ),
-                ),
-              ],
-            ),
             if (_loading)
               const Padding(
                 padding: EdgeInsets.only(bottom: 12),
@@ -799,7 +764,7 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             ] else ...[
               if (widget.mode == QndxxAccountViewMode.account) ...[
                 generateSection(
-                  title: '账号信息',
+                  title: '当前套餐',
                   items: [
                     ListItem(
                       title: const Text('邮箱'),
@@ -876,33 +841,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               ],
               if (widget.mode == QndxxAccountViewMode.account) ...[
                 generateSection(
-                  title: '我的钱包',
-                  items: [
-                    ListItem(
-                      title: const Text('可用佣金'),
-                      subtitle: Text(
-                        _account['balance'] == null
-                            ? '面板暂未提供余额数据'
-                            : _formatPrice(_account['balance']),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('可划转佣金'),
-                      subtitle: Text(
-                        '¥${_availableCommission().toStringAsFixed(2)}',
-                      ),
-                      trailing: TextButton(
-                        onPressed: _transferCommission,
-                        child: const Text('划转到钱包'),
-                      ),
-                    ),
-                    const ListItem(
-                      title: Text('钱包用途'),
-                      subtitle: Text('划转后的余额仅可用于网站消费'),
-                    ),
-                  ],
-                ),
-                generateSection(
                   title: 'Orange 邀请功能',
                   items: [
                     ListItem(
@@ -958,6 +896,68 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                       ),
                   ],
                 ),
+                generateSection(
+                  title: '我的钱包',
+                  items: [
+                    ListItem(
+                      title: const Text('可用佣金'),
+                      subtitle: Text(
+                        _account['balance'] == null
+                            ? '面板暂未提供余额数据'
+                            : _formatPrice(_account['balance']),
+                      ),
+                    ),
+                    ListItem(
+                      title: const Text('可划转佣金'),
+                      subtitle: Text(
+                        '¥${_availableCommission().toStringAsFixed(2)}',
+                      ),
+                      trailing: TextButton(
+                        onPressed: _transferCommission,
+                        child: const Text('划转到钱包'),
+                      ),
+                    ),
+                    const ListItem(
+                      title: Text('钱包用途'),
+                      subtitle: Text('划转后的余额仅可用于网站消费'),
+                    ),
+                  ],
+                ),
+            if (widget.mode == QndxxAccountViewMode.account)
+              generateSection(
+                title: '外观设置',
+              items: [
+                ListItem(
+                  title: const Text('主题模式'),
+                  subtitle: Text(themeModeLabel),
+                  trailing: DropdownButton<ThemeMode>(
+                    value: themeMode,
+                    isDense: true,
+                    underline: const SizedBox.shrink(),
+                    items: const [
+                      DropdownMenuItem(
+                        value: ThemeMode.system,
+                        child: Text('跟随系统'),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.light,
+                        child: Text('正常模式'),
+                      ),
+                      DropdownMenuItem(
+                        value: ThemeMode.dark,
+                        child: Text('夜间模式'),
+                      ),
+                    ],
+                    onChanged: (mode) {
+                      if (mode == null) return;
+                      ref.read(themeSettingProvider.notifier).value = ref
+                          .read(themeSettingProvider)
+                          .copyWith(themeMode: mode);
+                    },
+                  ),
+                ),
+              ],
+            ),
                 generateSection(
                   title: '账户操作',
                   items: [
