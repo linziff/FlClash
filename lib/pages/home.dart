@@ -435,7 +435,7 @@ class _FadeTabPageState extends State<_FadeTabPage> {
       animation: widget.controller,
       builder: (_, child) {
         final offset = _delta;
-        _snapshot.allowSnapshotting = offset.abs() > _restingDelta;
+        // Live page content must remain the source of truth during tab changes.\n        // Snapshotting platform-backed/account views produced a persistent blank\n        // surface on Windows and Android after navigation. Keep the fade/slide\n        // transition, but render the page live instead of caching a texture.\n        _snapshot.allowSnapshotting = false;
         final delta = widget.enabled ? offset : 0.0;
         return FractionalTranslation(
           translation: Offset(-delta, 0),
