@@ -36,7 +36,7 @@ def make_app_icon(size: int = 1024) -> Image.Image:
     Android legacy launchers and other icon consumers do not depend on an
     operating-system-specific corner mask.
     """
-    return make_rounded_icon(size, radius_ratio=0.42)
+    return make_rounded_icon(size, radius_ratio=0.22)
 
 
 def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
@@ -64,7 +64,7 @@ def make_adaptive_foreground(size: int = 1024) -> Image.Image:
     the corner transition stays antialiased instead of showing jagged pixels.
     Android applies its own adaptive-icon mask on top of this transparent PNG.
     """
-    return make_rounded_icon(size, radius_ratio=0.42)
+    return make_rounded_icon(size, radius_ratio=0.22)
 
 def make_icon(status: int, size: int) -> Image.Image:
     """Preserve the original QNDXX logo and show FlClash state as a small badge.
