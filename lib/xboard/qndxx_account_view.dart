@@ -29,7 +29,6 @@ import 'package:flutter/material.dart'
         Clip,
         LinearProgressIndicator,
         IconButton;
-import 'package:flutter/material.dart' as material;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prism_ui/theme_data.dart' as prism;
