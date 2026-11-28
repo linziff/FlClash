@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart'
-    hide Card, Divider, FilledButton, LinearProgressIndicator, IconButton;
+    hide Card, Divider, FilledButton, LinearProgressIndicator, IconButton, OutlinedButton;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
     show
@@ -14,6 +14,7 @@ import 'package:flutter/material.dart'
         FilledButton,
         ChoiceChip,
         ListTile,
+        OutlinedButton,
         Card,
         Container,
         RoundedRectangleBorder,
