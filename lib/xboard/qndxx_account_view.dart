@@ -31,9 +31,7 @@ import 'package:flutter/material.dart'
         IconButton;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:prism_ui/theme_data.dart' as prism;
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:intl/intl.dart';
 
 import 'qndxx_config_service.dart';
@@ -50,17 +48,12 @@ class QndxxAccountView extends ConsumerStatefulWidget {
   ConsumerState<QndxxAccountView> createState() => _QndxxAccountViewState();
 }
 
-enum QndxxAccountViewMode { shop, account }
+enum QndxxAccountViewMode { shop }
 
 class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   final _service = QndxxXboardService.instance;
   bool _loading = false;
   bool _signedIn = false;
-  Map<String, dynamic> _account = const {};
-  Map<String, dynamic> _subscription = const {};
-  Map<String, dynamic> _invite = const {};
-  List<Map<String, dynamic>> _inviteCodes = const [];
-  List<Map<String, dynamic>> _commissions = const [];
   List<Map<String, dynamic>> _plans = const [];
   List<Map<String, dynamic>> _orders = const [];
   String? _error;
@@ -78,88 +71,24 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   Future<void> _load() async {
     if (_loading) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    setState(() { _loading = true; _error = null; });
     try {
-      // Existing sessions already have a panel URL. Do not block this page on
-      // remote-config retries; config refresh runs independently at startup.
-      await QndxxConfigService.instance
-          .initialize(refreshRemote: false)
-          .timeout(const Duration(seconds: 12));
+      await QndxxConfigService.instance.initialize(refreshRemote: false).timeout(const Duration(seconds: 12));
       await _service.restoreSession().timeout(const Duration(seconds: 8));
-      final account = await _service.getAccountInfo().timeout(
-        const Duration(seconds: 18),
-      );
-      late final Map<String, dynamic> subscription;
-      late final List<Map<String, dynamic>> plans;
-      late final List<Map<String, dynamic>> orders;
-      late final Map<String, dynamic> invite;
-      late final List<Map<String, dynamic>> inviteCodes;
-      late final List<Map<String, dynamic>> commissions;
-      if (widget.mode == QndxxAccountViewMode.account) {
-        final results = await Future.wait<dynamic>([
-          _service
-              .getSubscriptionInfo()
-              .timeout(const Duration(seconds: 12))
-              .catchError((_) => <String, dynamic>{}),
-          _service
-              .getInviteInfo()
-              .timeout(const Duration(seconds: 12))
-              .catchError((_) => <String, dynamic>{}),
-          _service
-              .getCommissionDetails()
-              .timeout(const Duration(seconds: 12))
-              .catchError((_) => <Map<String, dynamic>>[]),
-        ]);
-        subscription = results[0] as Map<String, dynamic>;
-        invite = results[1] as Map<String, dynamic>;
-        final rawCodes = invite['codes'];
-        inviteCodes = rawCodes is List
-            ? rawCodes
-                  .whereType<Map>()
-                  .map((item) => Map<String, dynamic>.from(item))
-                  .toList(growable: false)
-            : const [];
-        commissions = results[2] as List<Map<String, dynamic>>;
-        plans = const [];
-        orders = const [];
-      } else {
-        final results = await Future.wait<dynamic>([
-          _service
-              .getPlans()
-              .timeout(const Duration(seconds: 12))
-              .catchError((_) => <Map<String, dynamic>>[]),
-          _service
-              .getOrders()
-              .timeout(const Duration(seconds: 12))
-              .catchError((_) => <Map<String, dynamic>>[]),
-        ]);
-        plans = results[0] as List<Map<String, dynamic>>;
-        orders = results[1] as List<Map<String, dynamic>>;
-        subscription = const {};
-        invite = const {};
-        inviteCodes = const [];
-        commissions = const [];
-      }
+      await _service.getAccountInfo().timeout(const Duration(seconds: 18));
+      final results = await Future.wait<dynamic>([
+        _service.getPlans().timeout(const Duration(seconds: 12)).catchError((_) => <Map<String, dynamic>>[]),
+        _service.getOrders().timeout(const Duration(seconds: 12)).catchError((_) => <Map<String, dynamic>>[]),
+      ]);
       if (!mounted) return;
       setState(() {
         _signedIn = true;
-        _account = account;
-        _subscription = subscription;
-        _plans = plans;
-        _orders = orders;
-        _invite = invite;
-        _inviteCodes = inviteCodes;
-        _commissions = commissions;
+        _plans = results[0] as List<Map<String, dynamic>>;
+        _orders = results[1] as List<Map<String, dynamic>>;
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() {
-        _signedIn = false;
-        _error = error.toString();
-      });
+      setState(() { _signedIn = false; _error = error.toString(); _plans = const []; _orders = const []; });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -500,23 +429,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     if (mounted) await _load();
   }
 
-  Future<void> _logout() async {
-    final accepted = await dialogs.showMessage(
-      title: '退出账号',
-      message: const TextSpan(text: '退出后会清除本设备保存的登录凭据，不会删除本地订阅配置。'),
-      confirmText: '退出登录',
-      destructive: true,
-    );
-    if (accepted != true) return;
-    await _service.logout();
-    if (!mounted) return;
-    setState(() {
-      _signedIn = false;
-      _account = const {};
-      _subscription = const {};
-    });
-  }
-
   Future<void> _purchasePlan(Map<String, dynamic> plan) async {
     final period = await dialogs.showCommonDialog<String>(
       child: _PlanPeriodDialog(plan: plan),
@@ -638,549 +550,55 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
-  double _availableCommission() {
-    final stat = _invite['stat'];
-    final raw = stat is List && stat.length > 4
-        ? stat[4]
-        : stat is Map
-        ? (stat['available_commission'] ?? stat['availableCommission'])
-        : null;
-    final cents = num.tryParse(raw?.toString() ?? '') ?? 0;
-    return cents / 100;
-  }
-
-  Future<void> _transferCommission() async {
-    final available = _availableCommission();
-    if (available <= 0) {
-      await dialogs.showAlert(
-        title: '佣金划转',
-        message: const TextSpan(text: '当前没有可划转的佣金'),
-      );
-      return;
-    }
-    final amount = await dialogs.showCommonDialog<double>(
-      child: _TransferCommissionDialog(maxAmount: available),
-    );
-    if (amount == null) return;
-    try {
-      final transferred = await _service.transferCommissionToBalance(amount);
-      if (!transferred) {
-        throw StateError('面板未确认佣金划转成功，请刷新钱包余额后再检查');
-      }
-      dialogs.showBanner('佣金已划转至网站钱包', level: BannerLevel.success);
-      await _load();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '佣金划转失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
-  Future<void> _generateInvite() async {
-    try {
-      final code = await _service.generateInviteCode();
-      dialogs.showBanner('已生成邀请码：$code', level: BannerLevel.success);
-      await _load();
-    } catch (error) {
-      await dialogs.showAlert(
-        title: '生成邀请码失败',
-        message: TextSpan(text: error.toString()),
-      );
-    }
-  }
-
-  Widget _mySection(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    final colors = context.colorScheme;
-    return Card(
-      color: colors.surfaceContainerLow,
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 14),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(18),
-        side: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.55)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: colors.primary, size: 21),
-                const SizedBox(width: 9),
-                Text(
-                  title,
-                  style: TextStyle(
-                    color: colors.onSurface,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _myValueRow(BuildContext context, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 104,
-            child: Text(
-              label,
-              style: TextStyle(color: context.colorScheme.onSurfaceVariant),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              textAlign: TextAlign.end,
-              style: TextStyle(
-                color: context.colorScheme.onSurface,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMyPage(BuildContext context, prism.ThemeMode themeMode) {
-    final colors = context.colorScheme;
-    final stat = _invite['stat'];
-    final invited = stat is List && stat.isNotEmpty ? stat[0].toString() : '—';
-    final totalCommission = stat is List && stat.length > 1
-        ? ((num.tryParse(stat[1].toString()) ?? 0) / 100).toStringAsFixed(2)
-        : '0.00';
-    final plan = _subscription['plan'];
-    final planName = plan is Map ? plan['name'] : _subscription['plan_name'];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_error != null)
-          Card(
-            color: colors.errorContainer,
-            elevation: 0,
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Text(
-                '账户数据加载提示：' + _error!,
-                style: TextStyle(color: colors.onErrorContainer),
-              ),
-            ),
-          ),
-        _mySection(
-          context,
-          title: '当前套餐',
-          icon: Icons.workspace_premium_rounded,
-          children: [
-            _myValueRow(
-              context,
-              '账号',
-              _value(_account['email'] ?? _account['username']),
-            ),
-            Divider(color: colors.outlineVariant.withValues(alpha: 0.5)),
-            _myValueRow(context, '套餐名称', _value(planName, '暂未订阅套餐')),
-            _myValueRow(
-              context,
-              '到期时间',
-              _formatDate(
-                _subscription['expired_at'] ??
-                    _subscription['expired_at_timestamp'],
-              ),
-            ),
-            _myValueRow(
-              context,
-              '流量总额',
-              _formatBytes(_subscription['transfer_enable']),
-            ),
-            _myValueRow(
-              context,
-              '设备数量限制',
-              _value(_subscription['device_limit']),
-            ),
-          ],
-        ),
-        _mySection(
-          context,
-          title: 'Orange 邀请功能',
-          icon: Icons.card_giftcard_rounded,
-          children: [
-            _myValueRow(context, '已邀请人数', invited),
-            _myValueRow(context, '累计佣金', '¥' + totalCommission),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.tonalIcon(
-                onPressed: _generateInvite,
-                icon: const Icon(Icons.add_link_rounded, size: 18),
-                label: const Text('生成邀请码'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '邀请二维码',
-              style: TextStyle(
-                color: colors.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (_inviteCodes.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  '暂无邀请码，点击上方按钮生成',
-                  style: TextStyle(color: colors.onSurfaceVariant),
-                ),
-              ),
-            for (final code in _inviteCodes)
-              Container(
-                margin: const EdgeInsets.only(top: 10),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: colors.outlineVariant),
-                ),
-                child: Row(
-                  children: [
-                    QrImageView(
-                      data: _inviteUrl(_value(code['code'], '')),
-                      size: 112,
-                      backgroundColor: const Color(0xFFFFFFFF),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _value(code['code'], '邀请码'),
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          const SizedBox(height: 6),
-                          Text('访问次数：' + _value(code['pv'])),
-                          Text('状态：' + (code['status'] == true ? '有效' : '停用')),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 14),
-            Divider(color: colors.outlineVariant.withValues(alpha: 0.5)),
-            Text(
-              '邀请记录',
-              style: TextStyle(
-                color: colors.onSurface,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            if (_commissions.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                child: Text(
-                  '暂无邀请记录',
-                  style: TextStyle(color: colors.onSurfaceVariant),
-                ),
-              ),
-            for (final commission in _commissions)
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                dense: true,
-                leading: Icon(
-                  Icons.receipt_long_rounded,
-                  color: colors.primary,
-                ),
-                title: Text('订单：' + _value(commission['trade_no'])),
-                subtitle: Text(
-                  '订单金额：' +
-                      _formatPrice(commission['order_amount']) +
-                      ' · 佣金：' +
-                      _formatPrice(commission['get_amount']) +
-                      '\n' +
-                      _formatDate(commission['created_at']),
-                ),
-                isThreeLine: true,
-              ),
-          ],
-        ),
-        _mySection(
-          context,
-          title: '我的钱包',
-          icon: Icons.account_balance_wallet_rounded,
-          children: [
-            _myValueRow(
-              context,
-              '网站钱包余额',
-              _account['balance'] == null
-                  ? '面板暂未提供余额数据'
-                  : _formatPrice(_account['balance']),
-            ),
-            _myValueRow(
-              context,
-              '可划转佣金',
-              '¥' + _availableCommission().toStringAsFixed(2),
-            ),
-            const SizedBox(height: 8),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: FilledButton.tonalIcon(
-                onPressed: _transferCommission,
-                icon: const Icon(Icons.swap_horiz_rounded, size: 18),
-                label: const Text('佣金划转到网站钱包'),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '注意：佣金划转后的余额仅可用于网站消费，不可提现。',
-              style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12),
-            ),
-          ],
-        ),
-        _mySection(
-          context,
-          title: '外观设置',
-          icon: Icons.palette_outlined,
-          children: [
-            Text('主题模式', style: TextStyle(color: colors.onSurfaceVariant)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final (mode, label, icon)
-                    in <(prism.ThemeMode, String, IconData)>[
-                      (
-                        prism.ThemeMode.system,
-                        '跟随系统',
-                        Icons.brightness_auto_rounded,
-                      ),
-                      (prism.ThemeMode.light, '正常模式', Icons.light_mode_rounded),
-                      (prism.ThemeMode.dark, '夜间模式', Icons.dark_mode_rounded),
-                    ])
-                  ChoiceChip(
-                    avatar: Icon(icon, size: 17),
-                    label: Text(label),
-                    selected: themeMode == mode,
-                    onSelected: (_) {
-                      ref.read(themeSettingProvider.notifier).value = ref
-                          .read(themeSettingProvider)
-                          .copyWith(themeMode: mode);
-                    },
-                  ),
-              ],
-            ),
-          ],
-        ),
-        _mySection(
-          context,
-          title: '账户操作',
-          icon: Icons.settings_outlined,
-          children: [
-            OutlinedButton.icon(
-              onPressed: _loading ? null : _load,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('刷新账户数据'),
-            ),
-            const SizedBox(height: 8),
-            FilledButton.icon(
-              onPressed: _loading ? null : _logout,
-              icon: const Icon(Icons.logout_rounded),
-              label: const Text('退出登录'),
-              style: FilledButton.styleFrom(
-                backgroundColor: colors.error,
-                foregroundColor: colors.onError,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(
-      themeSettingProvider.select((settings) => settings.themeMode),
-    );
     final pageBody = ListView(
-      // Use the native Windows UI font to avoid the softer fallback face in
-      // compact shop labels, prices, and plan descriptions.
-      padding: EdgeInsets.only(
-        left: 16,
-        right: 16,
-        top: widget.mode == QndxxAccountViewMode.account
-            ? 12
-            : context.contentTopPadding,
-        bottom: 24 + context.bottomInset,
-      ),
+      padding: EdgeInsets.only(left: 16, right: 16, top: context.contentTopPadding, bottom: 24 + context.bottomInset),
       children: [
-        if (_loading)
-          const Padding(
-            padding: EdgeInsets.only(bottom: 12),
-            child: LinearProgressIndicator(),
-          ),
+        if (_loading) const Padding(padding: EdgeInsets.only(bottom: 12), child: LinearProgressIndicator()),
         if (_error != null && !_loading)
           Card(
             color: context.colorScheme.errorContainer,
             elevation: 0,
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: context.colorScheme.onErrorContainer,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Text(
-                      '账户数据暂时无法加载：$_error',
-                      style: TextStyle(
-                        color: context.colorScheme.onErrorContainer,
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: '重试',
-                    onPressed: _load,
-                    icon: const Icon(Icons.refresh_rounded),
-                  ),
-                ],
-              ),
+              child: Row(children: [
+                Icon(Icons.info_outline_rounded, color: context.colorScheme.onErrorContainer),
+                const SizedBox(width: 10),
+                Expanded(child: Text('账户数据暂时无法加载：$_error', style: TextStyle(color: context.colorScheme.onErrorContainer))),
+                IconButton(tooltip: '重试', onPressed: _load, icon: const Icon(Icons.refresh_rounded)),
+              ]),
             ),
           ),
-        if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
+        _buildShopHero(context),
         if (!_signedIn) ...[
           const Text('登录后即可查看套餐、订单和账户服务。'),
-          if (_error != null) ...[
-            const SizedBox(height: 8),
-            Text(_error!, style: TextStyle(color: context.colorScheme.error)),
-          ],
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _loading ? null : _login,
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.login_rounded, size: 18),
-                SizedBox(width: 8),
-                Text('登录账号'),
-              ],
-            ),
+            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.login_rounded, size: 18), SizedBox(width: 8), Text('登录账号')]),
           ),
-          const SizedBox(height: 8),
         ] else ...[
-          if (widget.mode == QndxxAccountViewMode.account)
-            _buildMyPage(context, themeMode),
-          if (widget.mode == QndxxAccountViewMode.shop) ...[
-            _buildPlansSection(context),
-            generateSection(
-              title: '订单记录',
-              items: [
-                if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
-                for (final order in _orders)
-                  ListItem(
-                    title: Row(
-                      children: [
-                        Icon(
-                          Icons.receipt_long_rounded,
-                          size: 18,
-                          color: context.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(child: Text(_value(order['trade_no'], '订单'))),
-                      ],
-                    ),
-                    subtitle: Text(
-                      '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
-                    ),
-                    onTap: () => _showOrder(order),
-                    trailing: (order['status']?.toString() == '0')
-                        ? TextButton(
-                            onPressed: () => _cancelOrder(order),
-                            child: const Text('取消'),
-                          )
-                        : null,
-                  ),
-              ],
-            ),
-          ],
+          _buildPlansSection(context),
+          generateSection(
+            title: '订单记录',
+            items: [
+              if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
+              for (final order in _orders)
+                ListItem(
+                  title: Row(children: [Icon(Icons.receipt_long_rounded, size: 18, color: context.colorScheme.primary), const SizedBox(width: 8), Expanded(child: Text(_value(order['trade_no'], '订单')))]),
+                  subtitle: Text('金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}'),
+                  onTap: () => _showOrder(order),
+                  trailing: order['status']?.toString() == '0' ? TextButton(onPressed: () => _cancelOrder(order), child: const Text('取消')) : null,
+                ),
+            ],
+          ),
         ],
       ],
     );
-    final fontStyle = TextStyle(
-      fontFamily: Platform.isWindows ? 'Segoe UI' : null,
-    );
-    if (widget.mode == QndxxAccountViewMode.account) {
-      // The account tab intentionally has no nested Scaffold, route host, or
-      // modal surface. Keep it as a plain painted subtree inside the home
-      // PageView so async account updates cannot replace the tab with a
-      // scaffold-owned transition/dimming layer.
-      return DefaultTextStyle.merge(
-        style: fontStyle,
-        child: ColoredBox(
-          color: context.colorScheme.surface,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              SafeArea(
-                bottom: false,
-                child: SizedBox(
-                  height: 52,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            '我的',
-                            style: TextStyle(
-                              color: context.colorScheme.onSurface,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          tooltip: '刷新账户数据',
-                          onPressed: _loading ? null : _load,
-                          icon: const Icon(Icons.refresh_rounded),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              Expanded(child: pageBody),
-            ],
-          ),
-        ),
-      );
-    }
     return DefaultTextStyle.merge(
-      style: fontStyle,
-      child: Scaffold(
-        title: '商店',
-        backgroundColor: context.colorScheme.surface,
-        body: pageBody,
-      ),
+      style: TextStyle(fontFamily: Platform.isWindows ? 'Segoe UI' : null),
+      child: Scaffold(title: '商店', backgroundColor: context.colorScheme.surface, body: pageBody),
     );
   }
 }
