@@ -26,12 +26,14 @@ class QndxxBootstrapSplash extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(34),
+                  borderRadius: BorderRadius.circular(42),
+                  clipBehavior: Clip.antiAliasWithSaveLayer,
                   child: Image.asset(
                     'assets/images/qndxx_app_icon.png',
                     width: 112,
                     height: 112,
-                    fit: BoxFit.contain,
+                    fit: BoxFit.cover,
+                    filterQuality: FilterQuality.high,
                     errorBuilder: (_, _, _) => const SizedBox(
                       width: 112,
                       height: 112,
