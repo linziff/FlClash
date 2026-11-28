@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:fl_clash/common/common.dart';
-import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart'
     hide
         Card,
@@ -40,7 +39,7 @@ import 'qndxx_crisp_service.dart';
 import 'qndxx_xboard_service.dart';
 
 class QndxxAccountView extends ConsumerStatefulWidget {
-  const QndxxAccountView({super.key, this.mode = QndxxAccountViewMode.account});
+  const QndxxAccountView({super.key, this.mode = QndxxAccountViewMode.shop});
 
   final QndxxAccountViewMode mode;
 
