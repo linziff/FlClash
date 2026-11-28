@@ -8,7 +8,7 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/widgets/widgets.dart';
 import 'package:flutter/widgets.dart';
-import 'package:flutter/material.dart' show Icon, Icons;
+import 'package:flutter/material.dart' show Icon, IconButton, Icons;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'qndxx_auth_dialogs.dart';
@@ -31,6 +31,7 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
   final _passwordController = TextEditingController();
   bool _busy = false;
   bool _authenticated = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -199,11 +200,22 @@ class _QndxxLoginDialogState extends ConsumerState<QndxxLoginDialog> {
                   const SizedBox(height: 14),
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     autofillHints: const [AutofillHints.password],
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       hintText: '密码',
-                      prefixIcon: Icon(Icons.lock_outline),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                      ),
                     ),
                     onFieldSubmitted: (_) => _loginAndImport(),
                   ),
