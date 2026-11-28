@@ -26,7 +26,7 @@ class QndxxBootstrapSplash extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(34),
                   child: Image.asset(
                     'assets/images/qndxx_app_icon.png',
                     width: 112,
