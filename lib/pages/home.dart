@@ -193,11 +193,6 @@ class _NavigationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The account page owns its own async state and route dialogs. Avoid
-    // nesting it in the desktop tab Navigator/KeepScope stack: that wrapper
-    // has produced an empty render surface on Windows and Android.
-    if (item.label == PageLabel.account) return view;
-
     // The global key lives here, not on the view: the same view also opens as
     // a pushed page, which may overlap a pop of itself.
     final scopedView = PageFocusScope(
