@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Keep native launch artwork rounded in Android system dark mode too.
+         Without this qualified theme Android falls back to the square launcher icon. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowSplashScreenBackground">#101827</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/qndxx_splash</item>
+    </style>
+</resources>
