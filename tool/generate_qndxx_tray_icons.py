@@ -116,7 +116,7 @@ def main():
     # adaptive icon or apply a second platform-specific mask.
     android_splash = ROOT / "android/app/src/main/res/drawable-nodpi/qndxx_splash.png"
     android_splash.parent.mkdir(parents=True, exist_ok=True)
-    make_rounded_icon(1024, radius_ratio=0.30).save(
+    make_rounded_icon(1024, radius_ratio=0.42).save(
         android_splash,
         format="PNG",
         optimize=True,
