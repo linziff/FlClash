@@ -36,7 +36,7 @@ def make_app_icon(size: int = 1024) -> Image.Image:
     Android legacy launchers and other icon consumers do not depend on an
     operating-system-specific corner mask.
     """
-    return make_rounded_icon(size, radius_ratio=0.30)
+    return make_rounded_icon(size, radius_ratio=0.42)
 
 
 def make_rounded_icon(size: int, radius_ratio: float = 0.22) -> Image.Image:
