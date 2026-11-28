@@ -46,9 +46,9 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
           .initialize(refreshRemote: false)
           .timeout(const Duration(seconds: 10));
       await _service.restoreSession().timeout(const Duration(seconds: 8));
-      final account = await _service
-          .getAccountInfo()
-          .timeout(const Duration(seconds: 15));
+      final account = await _service.getAccountInfo().timeout(
+        const Duration(seconds: 15),
+      );
       final results = await Future.wait<dynamic>([
         _service.getSubscriptionInfo().timeout(const Duration(seconds: 12)),
         _service.getInviteInfo().timeout(const Duration(seconds: 12)),
@@ -63,7 +63,10 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
         _subscription = results[0] as Map<String, dynamic>;
         _invite = invite;
         _codes = rawCodes is List
-            ? rawCodes.whereType<Map>().map((e) => Map<String, dynamic>.from(e)).toList()
+            ? rawCodes
+                  .whereType<Map>()
+                  .map((e) => Map<String, dynamic>.from(e))
+                  .toList()
             : const [];
         _commissions = results[2] as List<Map<String, dynamic>>;
       });
@@ -110,7 +113,8 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
     return '${(value / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB';
   }
 
-  String _inviteUrl(String code) => 'https://toufq.com/?code=${Uri.encodeComponent(code)}';
+  String _inviteUrl(String code) =>
+      'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
   Future<void> _login() async {
     await Navigator.of(context, rootNavigator: true).push<void>(
@@ -129,8 +133,14 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
         title: const Text('退出登录'),
         content: const Text('退出后会清除本设备保存的登录凭据，不会删除本地订阅配置。'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('取消')),
-          FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('退出')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('取消'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('退出'),
+          ),
         ],
       ),
     );
@@ -152,8 +162,8 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
     final raw = stat is List && stat.length > 4
         ? stat[4]
         : stat is Map
-            ? (stat['available_commission'] ?? stat['availableCommission'])
-            : null;
+        ? (stat['available_commission'] ?? stat['availableCommission'])
+        : null;
     return (num.tryParse(raw?.toString() ?? '') ?? 0) / 100;
   }
 
@@ -163,7 +173,9 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
       setState(() => _error = '当前没有可划转的佣金');
       return;
     }
-    final controller = TextEditingController(text: maxAmount.toStringAsFixed(2));
+    final controller = TextEditingController(
+      text: maxAmount.toStringAsFixed(2),
+    );
     final amount = await showDialog<double>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -178,7 +190,10 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('取消')),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text('取消'),
+          ),
           FilledButton(
             onPressed: () {
               final value = double.tryParse(controller.text.trim());
@@ -221,11 +236,19 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(children: [
-              Icon(icon, color: colors.primary),
-              const SizedBox(width: 9),
-              Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
-            ]),
+            Row(
+              children: [
+                Icon(icon, color: colors.primary),
+                const SizedBox(width: 9),
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 12),
             ...children,
           ],
@@ -236,23 +259,44 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
 
   Widget _value(String label, String value) => Padding(
     padding: const EdgeInsets.symmetric(vertical: 7),
-    child: Row(children: [
-      Expanded(child: Text(label, style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant))),
-      const SizedBox(width: 12),
-      Flexible(child: Text(value, textAlign: TextAlign.end, style: const TextStyle(fontWeight: FontWeight.w600))),
-    ]),
+    child: Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.end,
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    ),
   );
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final themeMode = ref.watch(themeSettingProvider.select((s) => s.themeMode));
+    final themeMode = ref.watch(
+      themeSettingProvider.select((s) => s.themeMode),
+    );
     final plan = _subscription['plan'];
     final planName = plan is Map ? plan['name'] : _subscription['plan_name'];
     final stat = _invite['stat'];
     final invited = stat is List && stat.isNotEmpty ? stat[0].toString() : '0';
-    final commission = stat is List && stat.length > 1 ? _money(stat[1]) : '¥0.00';
-    final available = stat is List && stat.length > 4 ? _money(stat[4]) : '¥0.00';
+    final commission = stat is List && stat.length > 1
+        ? _money(stat[1])
+        : '¥0.00';
+    final available = stat is List && stat.length > 4
+        ? _money(stat[4])
+        : '¥0.00';
 
     return ColoredBox(
       color: colors.surface,
@@ -264,38 +308,78 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
               height: 52,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(children: [
-                  const Expanded(child: Text('我的', style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700))),
-                  IconButton(tooltip: '刷新', onPressed: _loading ? null : _refresh, icon: const Icon(Icons.refresh_rounded)),
-                ]),
+                child: Row(
+                  children: [
+                    const Expanded(
+                      child: Text(
+                        '我的',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: '刷新',
+                      onPressed: _loading ? null : _refresh,
+                      icon: const Icon(Icons.refresh_rounded),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
           Expanded(
             child: ListView(
               key: const PageStorageKey<String>('qndxx-my-page-v2'),
-              padding: EdgeInsets.fromLTRB(16, 8, 16, 24 + MediaQuery.paddingOf(context).bottom),
+              padding: EdgeInsets.fromLTRB(
+                16,
+                8,
+                16,
+                24 + MediaQuery.paddingOf(context).bottom,
+              ),
               children: [
                 if (_loading) const LinearProgressIndicator(),
-                if (_error != null) Card(
-                  color: colors.errorContainer,
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Text(_error!, style: TextStyle(color: colors.onErrorContainer)),
+                if (_error != null)
+                  Card(
+                    color: colors.errorContainer,
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Text(
+                        _error!,
+                        style: TextStyle(color: colors.onErrorContainer),
+                      ),
+                    ),
                   ),
-                ),
                 if (!_signedIn) ...[
                   const SizedBox(height: 28),
-                  Icon(Icons.account_circle_outlined, size: 64, color: colors.primary),
+                  Icon(
+                    Icons.account_circle_outlined,
+                    size: 64,
+                    color: colors.primary,
+                  ),
                   const SizedBox(height: 12),
                   const Center(child: Text('登录 QNDXX 账号，管理套餐与账户服务')),
                   const SizedBox(height: 18),
-                  FilledButton.icon(onPressed: _loading ? null : _login, icon: const Icon(Icons.login), label: const Text('登录账号')),
+                  FilledButton.icon(
+                    onPressed: _loading ? null : _login,
+                    icon: const Icon(Icons.login),
+                    label: const Text('登录账号'),
+                  ),
                 ] else ...[
                   _section('账户信息', Icons.person_outline_rounded, [
-                    _value('登录账号', _text(_account['email'] ?? _account['username'])),
+                    _value(
+                      '登录账号',
+                      _text(_account['email'] ?? _account['username']),
+                    ),
                     _value('当前套餐', _text(planName, '暂未订阅')),
-                    _value('到期时间', _date(_subscription['expired_at'] ?? _subscription['expired_at_timestamp'])),
+                    _value(
+                      '到期时间',
+                      _date(
+                        _subscription['expired_at'] ??
+                            _subscription['expired_at_timestamp'],
+                      ),
+                    ),
                     _value('流量总额', _traffic(_subscription['transfer_enable'])),
                     _value('设备限制', _text(_subscription['device_limit'])),
                   ]),
@@ -303,43 +387,90 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
                     _value('已邀请人数', invited),
                     _value('累计佣金', commission),
                     _value('可用佣金', available),
-                    Align(alignment: Alignment.centerLeft, child: FilledButton.tonalIcon(onPressed: _loading ? null : _makeInvite, icon: const Icon(Icons.add_link), label: const Text('生成邀请码'))),
-                    for (final code in _codes) ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(_text(code['code'], '邀请码')),
-                      subtitle: Text('访问次数：${_text(code['pv'], '0')} · ${code['status'] == true ? '有效' : '停用'}'),
-                      trailing: IconButton(tooltip: '复制邀请链接', icon: const Icon(Icons.copy), onPressed: () => Clipboard.setData(ClipboardData(text: _inviteUrl(_text(code['code'], ''))))),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: FilledButton.tonalIcon(
+                        onPressed: _loading ? null : _makeInvite,
+                        icon: const Icon(Icons.add_link),
+                        label: const Text('生成邀请码'),
+                      ),
                     ),
+                    for (final code in _codes)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(_text(code['code'], '邀请码')),
+                        subtitle: Text(
+                          '访问次数：${_text(code['pv'], '0')} · ${code['status'] == true ? '有效' : '停用'}',
+                        ),
+                        trailing: IconButton(
+                          tooltip: '复制邀请链接',
+                          icon: const Icon(Icons.copy),
+                          onPressed: () => Clipboard.setData(
+                            ClipboardData(
+                              text: _inviteUrl(_text(code['code'], '')),
+                            ),
+                          ),
+                        ),
+                      ),
                     if (_codes.isEmpty) const Text('暂无邀请码'),
                     const Divider(),
                     for (final item in _commissions.take(10))
                       ListTile(
                         contentPadding: EdgeInsets.zero,
                         title: Text('订单：${_text(item['trade_no'])}'),
-                        subtitle: Text('佣金：${_money(item['get_amount'])} · ${_date(item['created_at'])}'),
+                        subtitle: Text(
+                          '佣金：${_money(item['get_amount'])} · ${_date(item['created_at'])}',
+                        ),
                       ),
                   ]),
                   _section('网站钱包', Icons.account_balance_wallet_outlined, [
                     _value('钱包余额', _money(_account['balance'])),
-                    OutlinedButton.icon(onPressed: _loading ? null : _transferCommission, icon: const Icon(Icons.swap_horiz), label: const Text('佣金划转到网站钱包')),
+                    OutlinedButton.icon(
+                      onPressed: _loading ? null : _transferCommission,
+                      icon: const Icon(Icons.swap_horiz),
+                      label: const Text('佣金划转到网站钱包'),
+                    ),
                     const SizedBox(height: 6),
                     const Text('佣金划转后仅可用于网站消费，不可提现。'),
                   ]),
                   _section('外观设置', Icons.palette_outlined, [
                     SegmentedButton<prism.ThemeMode>(
                       segments: const [
-                        ButtonSegment(value: prism.ThemeMode.system, label: Text('跟随系统'), icon: Icon(Icons.brightness_auto)),
-                        ButtonSegment(value: prism.ThemeMode.light, label: Text('浅色'), icon: Icon(Icons.light_mode)),
-                        ButtonSegment(value: prism.ThemeMode.dark, label: Text('深色'), icon: Icon(Icons.dark_mode)),
+                        ButtonSegment(
+                          value: prism.ThemeMode.system,
+                          label: Text('跟随系统'),
+                          icon: Icon(Icons.brightness_auto),
+                        ),
+                        ButtonSegment(
+                          value: prism.ThemeMode.light,
+                          label: Text('浅色'),
+                          icon: Icon(Icons.light_mode),
+                        ),
+                        ButtonSegment(
+                          value: prism.ThemeMode.dark,
+                          label: Text('深色'),
+                          icon: Icon(Icons.dark_mode),
+                        ),
                       ],
                       selected: {themeMode},
-                      onSelectionChanged: (v) => ref.read(themeSettingProvider.notifier).value = ref.read(themeSettingProvider).copyWith(themeMode: v.first),
+                      onSelectionChanged: (v) =>
+                          ref.read(themeSettingProvider.notifier).value = ref
+                              .read(themeSettingProvider)
+                              .copyWith(themeMode: v.first),
                     ),
                   ]),
                   _section('账户操作', Icons.settings_outlined, [
-                    OutlinedButton.icon(onPressed: _loading ? null : _refresh, icon: const Icon(Icons.refresh), label: const Text('刷新账户数据')),
+                    OutlinedButton.icon(
+                      onPressed: _loading ? null : _refresh,
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('刷新账户数据'),
+                    ),
                     const SizedBox(height: 8),
-                    FilledButton.icon(onPressed: _logout, icon: const Icon(Icons.logout), label: const Text('退出登录')),
+                    FilledButton.icon(
+                      onPressed: _logout,
+                      icon: const Icon(Icons.logout),
+                      label: const Text('退出登录'),
+                    ),
                   ]),
                 ],
               ],

@@ -71,14 +71,25 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
 
   Future<void> _load() async {
     if (_loading) return;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      await QndxxConfigService.instance.initialize(refreshRemote: false).timeout(const Duration(seconds: 12));
+      await QndxxConfigService.instance
+          .initialize(refreshRemote: false)
+          .timeout(const Duration(seconds: 12));
       await _service.restoreSession().timeout(const Duration(seconds: 8));
       await _service.getAccountInfo().timeout(const Duration(seconds: 18));
       final results = await Future.wait<dynamic>([
-        _service.getPlans().timeout(const Duration(seconds: 12)).catchError((_) => <Map<String, dynamic>>[]),
-        _service.getOrders().timeout(const Duration(seconds: 12)).catchError((_) => <Map<String, dynamic>>[]),
+        _service
+            .getPlans()
+            .timeout(const Duration(seconds: 12))
+            .catchError((_) => <Map<String, dynamic>>[]),
+        _service
+            .getOrders()
+            .timeout(const Duration(seconds: 12))
+            .catchError((_) => <Map<String, dynamic>>[]),
       ]);
       if (!mounted) return;
       setState(() {
@@ -88,7 +99,12 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       });
     } catch (error) {
       if (!mounted) return;
-      setState(() { _signedIn = false; _error = error.toString(); _plans = const []; _orders = const []; });
+      setState(() {
+        _signedIn = false;
+        _error = error.toString();
+        _plans = const [];
+        _orders = const [];
+      });
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -553,21 +569,46 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
   @override
   Widget build(BuildContext context) {
     final pageBody = ListView(
-      padding: EdgeInsets.only(left: 16, right: 16, top: context.contentTopPadding, bottom: 24 + context.bottomInset),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: context.contentTopPadding,
+        bottom: 24 + context.bottomInset,
+      ),
       children: [
-        if (_loading) const Padding(padding: EdgeInsets.only(bottom: 12), child: LinearProgressIndicator()),
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: LinearProgressIndicator(),
+          ),
         if (_error != null && !_loading)
           Card(
             color: context.colorScheme.errorContainer,
             elevation: 0,
             child: Padding(
               padding: const EdgeInsets.all(14),
-              child: Row(children: [
-                Icon(Icons.info_outline_rounded, color: context.colorScheme.onErrorContainer),
-                const SizedBox(width: 10),
-                Expanded(child: Text('账户数据暂时无法加载：$_error', style: TextStyle(color: context.colorScheme.onErrorContainer))),
-                IconButton(tooltip: '重试', onPressed: _load, icon: const Icon(Icons.refresh_rounded)),
-              ]),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: context.colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '账户数据暂时无法加载：$_error',
+                      style: TextStyle(
+                        color: context.colorScheme.onErrorContainer,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: '重试',
+                    onPressed: _load,
+                    icon: const Icon(Icons.refresh_rounded),
+                  ),
+                ],
+              ),
             ),
           ),
         _buildShopHero(context),
@@ -576,7 +617,14 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
           const SizedBox(height: 16),
           FilledButton(
             onPressed: _loading ? null : _login,
-            child: const Row(mainAxisSize: MainAxisSize.min, children: [Icon(Icons.login_rounded, size: 18), SizedBox(width: 8), Text('登录账号')]),
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.login_rounded, size: 18),
+                SizedBox(width: 8),
+                Text('登录账号'),
+              ],
+            ),
           ),
         ] else ...[
           _buildPlansSection(context),
@@ -586,10 +634,27 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
               for (final order in _orders)
                 ListItem(
-                  title: Row(children: [Icon(Icons.receipt_long_rounded, size: 18, color: context.colorScheme.primary), const SizedBox(width: 8), Expanded(child: Text(_value(order['trade_no'], '订单')))]),
-                  subtitle: Text('金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}'),
+                  title: Row(
+                    children: [
+                      Icon(
+                        Icons.receipt_long_rounded,
+                        size: 18,
+                        color: context.colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(child: Text(_value(order['trade_no'], '订单'))),
+                    ],
+                  ),
+                  subtitle: Text(
+                    '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
+                  ),
                   onTap: () => _showOrder(order),
-                  trailing: order['status']?.toString() == '0' ? TextButton(onPressed: () => _cancelOrder(order), child: const Text('取消')) : null,
+                  trailing: order['status']?.toString() == '0'
+                      ? TextButton(
+                          onPressed: () => _cancelOrder(order),
+                          child: const Text('取消'),
+                        )
+                      : null,
                 ),
             ],
           ),
@@ -598,7 +663,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     );
     return DefaultTextStyle.merge(
       style: TextStyle(fontFamily: Platform.isWindows ? 'Segoe UI' : null),
-      child: Scaffold(title: '商店', backgroundColor: context.colorScheme.surface, body: pageBody),
+      child: Scaffold(
+        title: '商店',
+        backgroundColor: context.colorScheme.surface,
+        body: pageBody,
+      ),
     );
   }
 }
