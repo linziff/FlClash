@@ -17,9 +17,6 @@ import 'package:flutter/material.dart'
         Icon,
         IconData,
         FilledButton,
-        ChoiceChip,
-        ListTile,
-        OutlinedButton,
         Card,
         Container,
         RoundedRectangleBorder,
@@ -145,33 +142,11 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     return '¥' + (amount / 100).toStringAsFixed(2);
   }
 
-  String _formatBytes(dynamic value) {
-    final bytes = num.tryParse(value?.toString() ?? '');
-    if (bytes == null || bytes < 0) return _value(value);
-    final gb = bytes / (1024 * 1024 * 1024);
-    return gb >= 1024
-        ? '${(gb / 1024).toStringAsFixed(2)} TB'
-        : '${gb.toStringAsFixed(2)} GB';
-  }
-
   String _formatPlanTraffic(dynamic value) {
     final gb = num.tryParse(value?.toString() ?? '');
     if (gb == null || gb < 0) return _value(value);
     if (gb >= 1024) return (gb / 1024).toStringAsFixed(2) + ' TB';
     return gb.toStringAsFixed(gb == gb.roundToDouble() ? 0 : 2) + ' GB';
-  }
-
-  String _formatDate(dynamic value) {
-    if (value == null || value.toString().isEmpty) return '不限时';
-    final numeric = int.tryParse(value.toString());
-    final date = numeric != null
-        ? DateTime.fromMillisecondsSinceEpoch(
-            numeric > 9999999999 ? numeric : numeric * 1000,
-          )
-        : DateTime.tryParse(value.toString());
-    return date == null
-        ? value.toString()
-        : DateFormat('yyyy-MM-dd HH:mm').format(date.toLocal());
   }
 
   Widget _buildShopHero(BuildContext context) {
@@ -426,9 +401,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       ],
     );
   }
-
-  String _inviteUrl(String code) =>
-      'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
   Future<void> _login() async {
     // Open authentication on the application root navigator. The account tab
