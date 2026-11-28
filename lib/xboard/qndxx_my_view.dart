@@ -147,6 +147,60 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
     });
   }
 
+  double _availableCommission() {
+    final stat = _invite['stat'];
+    final raw = stat is List && stat.length > 4
+        ? stat[4]
+        : stat is Map
+            ? (stat['available_commission'] ?? stat['availableCommission'])
+            : null;
+    return (num.tryParse(raw?.toString() ?? '') ?? 0) / 100;
+  }
+
+  Future<void> _transferCommission() async {
+    final maxAmount = _availableCommission();
+    if (maxAmount <= 0) {
+      setState(() => _error = '当前没有可划转的佣金');
+      return;
+    }
+    final controller = TextEditingController(text: maxAmount.toStringAsFixed(2));
+    final amount = await showDialog<double>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('佣金划转'),
+        content: TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(
+            labelText: '划转金额',
+            prefixText: '¥ ',
+            helperText: '最多可划转 ¥${maxAmount.toStringAsFixed(2)}',
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('取消')),
+          FilledButton(
+            onPressed: () {
+              final value = double.tryParse(controller.text.trim());
+              if (value == null || value <= 0 || value > maxAmount) return;
+              Navigator.pop(dialogContext, value);
+            },
+            child: const Text('确认划转'),
+          ),
+        ],
+      ),
+    );
+    controller.dispose();
+    if (amount == null) return;
+    try {
+      final ok = await _service.transferCommissionToBalance(amount);
+      if (!ok) throw StateError('面板未确认佣金划转成功');
+      await _refresh();
+    } catch (error) {
+      if (mounted) setState(() => _error = error.toString());
+    }
+  }
+
   Future<void> _makeInvite() async {
     try {
       await _service.generateInviteCode();
@@ -267,7 +321,9 @@ class _QndxxMyViewState extends ConsumerState<QndxxMyView> {
                   ]),
                   _section('网站钱包', Icons.account_balance_wallet_outlined, [
                     _value('钱包余额', _money(_account['balance'])),
-                    const Text('佣金划转功能将在新页面完成验证后接入，避免旧页面逻辑继续影响稳定性。'),
+                    OutlinedButton.icon(onPressed: _loading ? null : _transferCommission, icon: const Icon(Icons.swap_horiz), label: const Text('佣金划转到网站钱包')),
+                    const SizedBox(height: 6),
+                    const Text('佣金划转后仅可用于网站消费，不可提现。'),
                   ]),
                   _section('外观设置', Icons.palette_outlined, [
                     SegmentedButton<prism.ThemeMode>(
