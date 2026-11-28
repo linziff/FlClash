@@ -4,6 +4,7 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/ui/icons/app_glyphs.dart';
 import 'package:fl_clash/views/views.dart';
 import 'package:fl_clash/xboard/qndxx_account_view.dart';
+import 'package:fl_clash/xboard/qndxx_my_view.dart';
 import 'package:fl_clash/xboard/qndxx_support_view.dart';
 
 class Navigation implements NavigationPort {
@@ -33,7 +34,7 @@ class Navigation implements NavigationPort {
       NavigationItem(
         glyph: AppGlyphs.qndxxAccount,
         label: PageLabel.account,
-        builder: (_) => const QndxxAccountView(mode: QndxxAccountViewMode.account),
+        builder: (_) => const QndxxMyView(),
       ),
     ];
   }
