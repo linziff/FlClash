@@ -238,9 +238,8 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
               prefixIcon: const Icon(Icons.lock_outline_rounded),
               suffixIcon: IconButton(
                 tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
-                onPressed: () => setState(
-                  () => _obscurePassword = !_obscurePassword,
-                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
                 icon: Icon(
                   _obscurePassword
                       ? Icons.visibility_outlined
@@ -426,9 +425,8 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
               prefixIcon: const Icon(Icons.lock_outline_rounded),
               suffixIcon: IconButton(
                 tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
-                onPressed: () => setState(
-                  () => _obscurePassword = !_obscurePassword,
-                ),
+                onPressed: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
                 icon: Icon(
                   _obscurePassword
                       ? Icons.visibility_outlined
