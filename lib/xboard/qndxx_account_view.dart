@@ -29,6 +29,7 @@ import 'package:flutter/material.dart'
         Clip,
         LinearProgressIndicator,
         IconButton;
+import 'package:flutter/material.dart' as material;
 import 'package:flutter/material.dart' show MaterialPageRoute;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prism_ui/theme_data.dart' as prism;
@@ -1018,20 +1019,17 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     final themeMode = ref.watch(
       themeSettingProvider.select((settings) => settings.themeMode),
     );
-    return DefaultTextStyle.merge(
+    final pageBody = ListView(
       // Use the native Windows UI font to avoid the softer fallback face in
       // compact shop labels, prices, and plan descriptions.
-      style: TextStyle(fontFamily: Platform.isWindows ? 'Segoe UI' : null),
-      child: Scaffold(
-        title: widget.mode == QndxxAccountViewMode.shop ? '商店' : '我的',
-        backgroundColor: context.colorScheme.surface,
-        body: ListView(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: context.contentTopPadding,
-            bottom: 24 + context.bottomInset,
-          ),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: widget.mode == QndxxAccountViewMode.account
+            ? 12
+            : context.contentTopPadding,
+        bottom: 24 + context.bottomInset,
+      ),
           children: [
             if (_loading)
               const Padding(
@@ -1133,7 +1131,35 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               ],
             ],
           ],
+    );
+    final fontStyle = TextStyle(
+      fontFamily: Platform.isWindows ? 'Segoe UI' : null,
+    );
+    if (widget.mode == QndxxAccountViewMode.account) {
+      // The PrismScaffold introduces a route/dimming layer on this tab on
+      // Android after the account request settles. Use Flutter's Material
+      // scaffold for this page so the account content is not covered by it.
+      return DefaultTextStyle.merge(
+        style: fontStyle,
+        child: material.Scaffold(
+          backgroundColor: context.colorScheme.surface,
+          appBar: material.AppBar(
+            title: const Text('我的'),
+            automaticallyImplyLeading: false,
+            elevation: 0,
+            backgroundColor: context.colorScheme.surface,
+            surfaceTintColor: const material.Color(0x00000000),
+          ),
+          body: pageBody,
         ),
+      );
+    }
+    return DefaultTextStyle.merge(
+      style: fontStyle,
+      child: Scaffold(
+        title: '商店',
+        backgroundColor: context.colorScheme.surface,
+        body: pageBody,
       ),
     );
   }
