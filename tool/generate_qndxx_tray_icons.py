@@ -105,6 +105,13 @@ def save_png(path: Path, status: int, size: int):
 def main():
     (ROOT / "assets/images/qndxx_app_icon.png").parent.mkdir(parents=True, exist_ok=True)
     make_app_icon().save(ROOT / "assets/images/qndxx_app_icon.png", format="PNG", optimize=True)
+    # Dedicated Android Flutter first-frame artwork. Keep it separate from
+    # shared desktop/login artwork so splash-only rounding cannot alter them.
+    make_rounded_icon(1024, radius_ratio=0.42).save(
+        ROOT / "assets/images/qndxx_bootstrap_splash.png",
+        format="PNG",
+        optimize=True,
+    )
     make_adaptive_foreground().save(
         ROOT / "assets/images/qndxx_adaptive_foreground.png",
         format="PNG",
