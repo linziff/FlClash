@@ -16,7 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'add.dart';
 import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
-import 'package:fl_clash/xboard/qndxx_account_view.dart';
+import 'package:fl_clash/xboard/qndxx_my_view.dart';
 import 'package:fl_clash/xboard/qndxx_crisp_service.dart';
 import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'edit.dart';
@@ -133,7 +133,7 @@ class _ProfilesViewState extends ConsumerState<ProfilesView> {
                   TextButton(
                     onPressed: () {
                       unawaited(
-                        pushNestedPage<void>(context, const QndxxAccountView()),
+                        pushNestedPage<void>(context, const QndxxMyView()),
                       );
                     },
                     child: const Text('账户中心'),
