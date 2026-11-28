@@ -487,13 +487,17 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       'https://toufq.com/?code=${Uri.encodeComponent(code)}';
 
   Future<void> _login() async {
-    await Navigator.of(context).push<void>(
+    // Open authentication on the application root navigator. The account tab
+    // is intentionally rendered directly (without its old nested Navigator);
+    // pushing on an inherited tab navigator can leave a dimmed, empty route
+    // over the account body on Android.
+    await Navigator.of(context, rootNavigator: true).push<void>(
       MaterialPageRoute<void>(
         fullscreenDialog: true,
         builder: (_) => const QndxxLoginDialog(),
       ),
     );
-    await _load();
+    if (mounted) await _load();
   }
 
   Future<void> _logout() async {
