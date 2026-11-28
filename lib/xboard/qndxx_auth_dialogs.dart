@@ -3,7 +3,7 @@ import 'package:fl_clash/widgets/widgets.dart'
     hide PopupMenuItem, OutlinedButton;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart'
-    show Icon, Icons, MenuAnchor, MenuItemButton, OutlinedButton;
+    show Icon, IconButton, Icons, MenuAnchor, MenuItemButton, OutlinedButton;
 
 import 'qndxx_xboard_service.dart';
 
@@ -20,6 +20,7 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
   final _code = TextEditingController();
   final _invite = TextEditingController();
   bool _busy = false;
+  bool _obscurePassword = true;
   String _emailDomain = 'qq.com';
   static const _emailDomains = [
     'qq.com',
@@ -231,10 +232,21 @@ class _QndxxRegisterDialogState extends State<QndxxRegisterDialog> {
           ),
           TextFormField(
             controller: _password,
-            obscureText: true,
-            decoration: const InputDecoration(
+            obscureText: _obscurePassword,
+            decoration: InputDecoration(
               hintText: '设置密码',
-              prefixIcon: Icon(Icons.lock_outline_rounded),
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              suffixIcon: IconButton(
+                tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                onPressed: () => setState(
+                  () => _obscurePassword = !_obscurePassword,
+                ),
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
             ),
           ),
           Row(
@@ -281,6 +293,7 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
   final _code = TextEditingController();
   final _password = TextEditingController();
   bool _busy = false;
+  bool _obscurePassword = true;
 
   @override
   void dispose() {
@@ -407,10 +420,21 @@ class _QndxxForgotPasswordDialogState extends State<QndxxForgotPasswordDialog> {
           ),
           TextFormField(
             controller: _password,
-            obscureText: true,
-            decoration: const InputDecoration(
+            obscureText: _obscurePassword,
+            decoration: InputDecoration(
               hintText: '新密码',
-              prefixIcon: Icon(Icons.lock_outline_rounded),
+              prefixIcon: const Icon(Icons.lock_outline_rounded),
+              suffixIcon: IconButton(
+                tooltip: _obscurePassword ? '显示密码' : '隐藏密码',
+                onPressed: () => setState(
+                  () => _obscurePassword = !_obscurePassword,
+                ),
+                icon: Icon(
+                  _obscurePassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                ),
+              ),
             ),
           ),
         ],
