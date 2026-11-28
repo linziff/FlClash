@@ -1030,107 +1030,101 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
             : context.contentTopPadding,
         bottom: 24 + context.bottomInset,
       ),
-          children: [
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.only(bottom: 12),
-                child: LinearProgressIndicator(),
-              ),
-            if (_error != null && !_loading)
-              Card(
-                color: context.colorScheme.errorContainer,
-                elevation: 0,
-                child: Padding(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Icon(
-                        Icons.info_outline_rounded,
+      children: [
+        if (_loading)
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: LinearProgressIndicator(),
+          ),
+        if (_error != null && !_loading)
+          Card(
+            color: context.colorScheme.errorContainer,
+            elevation: 0,
+            child: Padding(
+              padding: const EdgeInsets.all(14),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: context.colorScheme.onErrorContainer,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      '账户数据暂时无法加载：$_error',
+                      style: TextStyle(
                         color: context.colorScheme.onErrorContainer,
                       ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          '账户数据暂时无法加载：$_error',
-                          style: TextStyle(
-                            color: context.colorScheme.onErrorContainer,
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: '重试',
-                        onPressed: _load,
-                        icon: const Icon(Icons.refresh_rounded),
-                      ),
-                    ],
+                    ),
                   ),
-                ),
+                  IconButton(
+                    tooltip: '重试',
+                    onPressed: _load,
+                    icon: const Icon(Icons.refresh_rounded),
+                  ),
+                ],
               ),
-            if (widget.mode == QndxxAccountViewMode.shop)
-              _buildShopHero(context),
-            if (!_signedIn) ...[
-              const Text('登录后即可查看套餐、订单和账户服务。'),
-              if (_error != null) ...[
-                const SizedBox(height: 8),
-                Text(
-                  _error!,
-                  style: TextStyle(color: context.colorScheme.error),
-                ),
-              ],
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: _loading ? null : _login,
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.login_rounded, size: 18),
-                    SizedBox(width: 8),
-                    Text('登录账号'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 8),
-            ] else ...[
-              if (widget.mode == QndxxAccountViewMode.account)
-                _buildMyPage(context, themeMode),
-              if (widget.mode == QndxxAccountViewMode.shop) ...[
-                _buildPlansSection(context),
-                generateSection(
-                  title: '订单记录',
-                  items: [
-                    if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
-                    for (final order in _orders)
-                      ListItem(
-                        title: Row(
-                          children: [
-                            Icon(
-                              Icons.receipt_long_rounded,
-                              size: 18,
-                              color: context.colorScheme.primary,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(_value(order['trade_no'], '订单')),
-                            ),
-                          ],
-                        ),
-                        subtitle: Text(
-                          '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
-                        ),
-                        onTap: () => _showOrder(order),
-                        trailing: (order['status']?.toString() == '0')
-                            ? TextButton(
-                                onPressed: () => _cancelOrder(order),
-                                child: const Text('取消'),
-                              )
-                            : null,
-                      ),
-                  ],
-                ),
-              ],
-            ],
+            ),
+          ),
+        if (widget.mode == QndxxAccountViewMode.shop) _buildShopHero(context),
+        if (!_signedIn) ...[
+          const Text('登录后即可查看套餐、订单和账户服务。'),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: TextStyle(color: context.colorScheme.error)),
           ],
+          const SizedBox(height: 16),
+          FilledButton(
+            onPressed: _loading ? null : _login,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.login_rounded, size: 18),
+                SizedBox(width: 8),
+                Text('登录账号'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+        ] else ...[
+          if (widget.mode == QndxxAccountViewMode.account)
+            _buildMyPage(context, themeMode),
+          if (widget.mode == QndxxAccountViewMode.shop) ...[
+            _buildPlansSection(context),
+            generateSection(
+              title: '订单记录',
+              items: [
+                if (_orders.isEmpty) const ListItem(title: Text('暂无订单')),
+                for (final order in _orders)
+                  ListItem(
+                    title: Row(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_rounded,
+                          size: 18,
+                          color: context.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(child: Text(_value(order['trade_no'], '订单'))),
+                      ],
+                    ),
+                    subtitle: Text(
+                      '金额：${_formatPrice(order['total_amount'])} · 状态：${_orderStatusLabel(order['status'])}',
+                    ),
+                    onTap: () => _showOrder(order),
+                    trailing: (order['status']?.toString() == '0')
+                        ? TextButton(
+                            onPressed: () => _cancelOrder(order),
+                            child: const Text('取消'),
+                          )
+                        : null,
+                  ),
+              ],
+            ),
+          ],
+        ],
+      ],
     );
     final fontStyle = TextStyle(
       fontFamily: Platform.isWindows ? 'Segoe UI' : null,
