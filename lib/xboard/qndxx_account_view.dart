@@ -12,6 +12,8 @@ import 'package:flutter/material.dart'
         Icon,
         IconData,
         FilledButton,
+        ChoiceChip,
+        ListTile,
         Card,
         Container,
         RoundedRectangleBorder,
@@ -677,6 +679,164 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
     }
   }
 
+
+  Widget _mySection(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required List<Widget> children,
+  }) {
+    final colors = context.colorScheme;
+    return Card(
+      color: colors.surfaceContainerLow,
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 14),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(color: colors.outlineVariant.withValues(alpha: 0.55)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 15, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(children: [
+              Icon(icon, color: colors.primary, size: 21),
+              const SizedBox(width: 9),
+              Text(title, style: TextStyle(
+                color: colors.onSurface, fontSize: 16, fontWeight: FontWeight.w800,
+              )),
+            ]),
+            const SizedBox(height: 12),
+            ...children,
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _myValueRow(BuildContext context, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(children: [
+        SizedBox(width: 104, child: Text(label,
+          style: TextStyle(color: context.colorScheme.onSurfaceVariant))),
+        Expanded(child: Text(value, textAlign: TextAlign.end,
+          style: TextStyle(color: context.colorScheme.onSurface, fontWeight: FontWeight.w600))),
+      ]),
+    );
+  }
+
+  Widget _buildMyPage(BuildContext context, prism.ThemeMode themeMode) {
+    final colors = context.colorScheme;
+    final stat = _invite['stat'];
+    final invited = stat is List && stat.isNotEmpty ? stat[0].toString() : '—';
+    final totalCommission = stat is List && stat.length > 1
+        ? ((num.tryParse(stat[1].toString()) ?? 0) / 100).toStringAsFixed(2)
+        : '0.00';
+    final plan = _subscription['plan'];
+    final planName = plan is Map ? plan['name'] : _subscription['plan_name'];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (_error != null)
+          Card(color: colors.errorContainer, elevation: 0,
+            child: Padding(padding: const EdgeInsets.all(14),
+              child: Text('账户数据加载提示：' + _error!,
+                style: TextStyle(color: colors.onErrorContainer)))),
+        _mySection(context, title: '当前套餐', icon: Icons.workspace_premium_rounded, children: [
+          _myValueRow(context, '账号', _value(_account['email'] ?? _account['username'])),
+          Divider(color: colors.outlineVariant.withValues(alpha: 0.5)),
+          _myValueRow(context, '套餐名称', _value(planName, '暂未订阅套餐')),
+          _myValueRow(context, '到期时间', _formatDate(_subscription['expired_at'] ?? _subscription['expired_at_timestamp'])),
+          _myValueRow(context, '流量总额', _formatBytes(_subscription['transfer_enable'])),
+          _myValueRow(context, '设备数量限制', _value(_subscription['device_limit'])),
+        ]),
+        _mySection(context, title: 'Orange 邀请功能', icon: Icons.card_giftcard_rounded, children: [
+          _myValueRow(context, '已邀请人数', invited),
+          _myValueRow(context, '累计佣金', '¥' + totalCommission),
+          const SizedBox(height: 8),
+          Align(alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(onPressed: _generateInvite,
+              icon: const Icon(Icons.add_link_rounded, size: 18),
+              label: const Text('生成邀请码'))),
+          const SizedBox(height: 8),
+          Text('邀请二维码', style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w700)),
+          if (_inviteCodes.isEmpty)
+            Padding(padding: const EdgeInsets.symmetric(vertical: 12),
+              child: Text('暂无邀请码，点击上方按钮生成', style: TextStyle(color: colors.onSurfaceVariant))),
+          for (final code in _inviteCodes)
+            Container(margin: const EdgeInsets.only(top: 10), padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: colors.outlineVariant)),
+              child: Row(children: [
+                QrImageView(data: _inviteUrl(_value(code['code'], '')), size: 112,
+                  backgroundColor: const Color(0xFFFFFFFF)),
+                const SizedBox(width: 12),
+                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                  Text(_value(code['code'], '邀请码'), style: const TextStyle(fontWeight: FontWeight.w700)),
+                  const SizedBox(height: 6),
+                  Text('访问次数：' + _value(code['pv'])),
+                  Text('状态：' + (code['status'] == true ? '有效' : '停用')),
+                ])),
+              ])),
+          const SizedBox(height: 14),
+          Divider(color: colors.outlineVariant.withValues(alpha: 0.5)),
+          Text('邀请记录', style: TextStyle(color: colors.onSurface, fontWeight: FontWeight.w700)),
+          if (_commissions.isEmpty)
+            Padding(padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Text('暂无邀请记录', style: TextStyle(color: colors.onSurfaceVariant))),
+          for (final commission in _commissions)
+            ListTile(contentPadding: EdgeInsets.zero, dense: true,
+              leading: Icon(Icons.receipt_long_rounded, color: colors.primary),
+              title: Text('订单：' + _value(commission['trade_no'])),
+              subtitle: Text('订单金额：' + _formatPrice(commission['order_amount']) +
+                ' · 佣金：' + _formatPrice(commission['get_amount']) + '\n' +
+                _formatDate(commission['created_at'])),
+              isThreeLine: true),
+        ]),
+        _mySection(context, title: '我的钱包', icon: Icons.account_balance_wallet_rounded, children: [
+          _myValueRow(context, '网站钱包余额', _account['balance'] == null
+            ? '面板暂未提供余额数据' : _formatPrice(_account['balance'])),
+          _myValueRow(context, '可划转佣金', '¥' + _availableCommission().toStringAsFixed(2)),
+          const SizedBox(height: 8),
+          Align(alignment: Alignment.centerLeft,
+            child: FilledButton.tonalIcon(onPressed: _transferCommission,
+              icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+              label: const Text('佣金划转到网站钱包'))),
+          const SizedBox(height: 8),
+          Text('注意：佣金划转后的余额仅可用于网站消费，不可提现。',
+            style: TextStyle(color: colors.onSurfaceVariant, fontSize: 12)),
+        ]),
+        _mySection(context, title: '外观设置', icon: Icons.palette_outlined, children: [
+          Text('主题模式', style: TextStyle(color: colors.onSurfaceVariant)),
+          const SizedBox(height: 10),
+          Wrap(spacing: 8, runSpacing: 8, children: [
+            for (final (mode, label, icon) in <(prism.ThemeMode, String, IconData)>[
+              (prism.ThemeMode.system, '跟随系统', Icons.brightness_auto_rounded),
+              (prism.ThemeMode.light, '正常模式', Icons.light_mode_rounded),
+              (prism.ThemeMode.dark, '夜间模式', Icons.dark_mode_rounded),
+            ])
+              ChoiceChip(avatar: Icon(icon, size: 17), label: Text(label),
+                selected: themeMode == mode,
+                onSelected: (_) {
+                  ref.read(themeSettingProvider.notifier).value = ref
+                    .read(themeSettingProvider).copyWith(themeMode: mode);
+                }),
+          ]),
+        ]),
+        _mySection(context, title: '账户操作', icon: Icons.settings_outlined, children: [
+          OutlinedButton.icon(onPressed: _loading ? null : _load,
+            icon: const Icon(Icons.refresh_rounded), label: const Text('刷新账户数据')),
+          const SizedBox(height: 8),
+          FilledButton.icon(onPressed: _loading ? null : _logout,
+            icon: const Icon(Icons.logout_rounded), label: const Text('退出登录'),
+            style: FilledButton.styleFrom(backgroundColor: colors.error, foregroundColor: colors.onError)),
+        ]),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeMode = ref.watch(
@@ -758,48 +918,8 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
               ),
               const SizedBox(height: 8),
             ] else ...[
-              if (widget.mode == QndxxAccountViewMode.account) ...[
-                generateSection(
-                  title: '当前套餐',
-                  items: [
-                    ListItem(
-                      title: const Text('邮箱'),
-                      subtitle: Text(
-                        _value(_account['email'] ?? _account['username']),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('当前套餐'),
-                      subtitle: Text(
-                        _value(
-                          (_subscription['plan'] is Map)
-                              ? (_subscription['plan'] as Map)['name']
-                              : _subscription['plan_name'],
-                        ),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('到期时间'),
-                      subtitle: Text(
-                        _formatDate(
-                          _subscription['expired_at'] ??
-                              _subscription['expired_at_timestamp'],
-                        ),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('流量总额'),
-                      subtitle: Text(
-                        _formatBytes(_subscription['transfer_enable']),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('设备数量限制'),
-                      subtitle: Text(_value(_subscription['device_limit'])),
-                    ),
-                  ],
-                ),
-              ],
+              if (widget.mode == QndxxAccountViewMode.account)
+                _buildMyPage(context, themeMode),
               if (widget.mode == QndxxAccountViewMode.shop) ...[
                 _buildPlansSection(context),
                 generateSection(
@@ -832,123 +952,6 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
                               )
                             : null,
                       ),
-                  ],
-                ),
-              ],
-              if (widget.mode == QndxxAccountViewMode.account) ...[
-                generateSection(
-                  title: 'Orange 邀请功能',
-                  items: [
-                    ListItem(
-                      title: const Text('邀请统计'),
-                      subtitle: Text(() {
-                        final stat = _invite['stat'];
-                        if (stat is List && stat.isNotEmpty) {
-                          final invited = stat[0];
-                          final total = stat.length > 1
-                              ? (num.tryParse(stat[1].toString()) ?? 0) / 100
-                              : 0;
-                          return '已邀请：$invited 人 · 累计佣金：¥${total.toStringAsFixed(2)}';
-                        }
-                        return _value(stat);
-                      }()),
-                    ),
-                    ListItem(
-                      title: const Text('生成邀请码'),
-                      trailing: TextButton(
-                        onPressed: _generateInvite,
-                        child: const Text('生成'),
-                      ),
-                    ),
-                    if (_inviteCodes.isEmpty)
-                      const ListItem(title: Text('暂无邀请码')),
-                    for (final code in _inviteCodes)
-                      ListItem(
-                        title: Text(_value(code['code'], '邀请码')),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '访问：${_value(code['pv'])} · 状态：${code['status'] == true ? '有效' : '停用'}',
-                            ),
-                            const SizedBox(height: 8),
-                            QrImageView(
-                              data: _inviteUrl(_value(code['code'], '')),
-                              size: 144,
-                              backgroundColor: const Color(0xFFFFFFFF),
-                            ),
-                          ],
-                        ),
-                      ),
-                    const ListItem(title: Text('邀请记录 / 佣金明细')),
-                    if (_commissions.isEmpty)
-                      const ListItem(title: Text('暂无邀请记录')),
-                    for (final commission in _commissions)
-                      ListItem(
-                        title: Text('订单：${_value(commission['trade_no'])}'),
-                        subtitle: Text(
-                          '订单金额：${_formatPrice(commission['order_amount'])} · 佣金：${_formatPrice(commission['get_amount'])} · 时间：${_formatDate(commission['created_at'])}',
-                        ),
-                      ),
-                  ],
-                ),
-                generateSection(
-                  title: '我的钱包',
-                  items: [
-                    ListItem(
-                      title: const Text('可用佣金'),
-                      subtitle: Text(
-                        _account['balance'] == null
-                            ? '面板暂未提供余额数据'
-                            : _formatPrice(_account['balance']),
-                      ),
-                    ),
-                    ListItem(
-                      title: const Text('可划转佣金'),
-                      subtitle: Text(
-                        '¥${_availableCommission().toStringAsFixed(2)}',
-                      ),
-                      trailing: TextButton(
-                        onPressed: _transferCommission,
-                        child: const Text('划转到钱包'),
-                      ),
-                    ),
-                    const ListItem(
-                      title: Text('钱包用途'),
-                      subtitle: Text('划转后的余额仅可用于网站消费'),
-                    ),
-                  ],
-                ),
-                if (widget.mode == QndxxAccountViewMode.account)
-                  generateSection(
-                    title: '外观设置',
-                    items: [
-                      ListItem<prism.ThemeMode>.options(
-                        title: const Text('主题模式'),
-                        options: const [
-                          prism.ThemeMode.system,
-                          prism.ThemeMode.light,
-                          prism.ThemeMode.dark,
-                        ],
-                        value: themeMode,
-                        textBuilder: (mode) => switch (mode) {
-                          prism.ThemeMode.system => '跟随系统',
-                          prism.ThemeMode.light => '正常模式',
-                          prism.ThemeMode.dark => '夜间模式',
-                        },
-                        onChanged: (mode) {
-                          ref.read(themeSettingProvider.notifier).value = ref
-                              .read(themeSettingProvider)
-                              .copyWith(themeMode: mode);
-                        },
-                      ),
-                    ],
-                  ),
-                generateSection(
-                  title: '账户操作',
-                  items: [
-                    ListItem(title: const Text('刷新账户数据'), onTap: _load),
-                    ListItem(title: const Text('退出登录'), onTap: _logout),
                   ],
                 ),
               ],
