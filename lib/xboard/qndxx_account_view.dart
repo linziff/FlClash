@@ -1130,21 +1130,48 @@ class _QndxxAccountViewState extends ConsumerState<QndxxAccountView> {
       fontFamily: Platform.isWindows ? 'Segoe UI' : null,
     );
     if (widget.mode == QndxxAccountViewMode.account) {
-      // The PrismScaffold introduces a route/dimming layer on this tab on
-      // Android after the account request settles. Use Flutter's Material
-      // scaffold for this page so the account content is not covered by it.
+      // The account tab intentionally has no nested Scaffold, route host, or
+      // modal surface. Keep it as a plain painted subtree inside the home
+      // PageView so async account updates cannot replace the tab with a
+      // scaffold-owned transition/dimming layer.
       return DefaultTextStyle.merge(
         style: fontStyle,
-        child: material.Scaffold(
-          backgroundColor: context.colorScheme.surface,
-          appBar: material.AppBar(
-            title: const Text('我的'),
-            automaticallyImplyLeading: false,
-            elevation: 0,
-            backgroundColor: context.colorScheme.surface,
-            surfaceTintColor: const material.Color(0x00000000),
+        child: ColoredBox(
+          color: context.colorScheme.surface,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SafeArea(
+                bottom: false,
+                child: SizedBox(
+                  height: 52,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            '我的',
+                            style: TextStyle(
+                              color: context.colorScheme.onSurface,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: '刷新账户数据',
+                          onPressed: _loading ? null : _load,
+                          icon: const Icon(Icons.refresh_rounded),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(child: pageBody),
+            ],
           ),
-          body: pageBody,
         ),
       );
     }
