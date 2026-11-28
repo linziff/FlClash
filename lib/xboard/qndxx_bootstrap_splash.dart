@@ -29,7 +29,7 @@ class QndxxBootstrapSplash extends StatelessWidget {
                   borderRadius: BorderRadius.circular(42),
                   clipBehavior: Clip.antiAliasWithSaveLayer,
                   child: Image.asset(
-                    'assets/images/qndxx_app_icon.png',
+                    'assets/images/qndxx_bootstrap_splash.png',
                     width: 112,
                     height: 112,
                     fit: BoxFit.cover,
