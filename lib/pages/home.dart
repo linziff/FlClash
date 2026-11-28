@@ -201,18 +201,18 @@ class _NavigationPage extends StatelessWidget {
     // Account keeps the shared page-activity/focus lifecycle, but does not
     // get a nested tab Navigator or KeepScope. Its auth route is opened on
     // the root navigator and its body must remain directly painted.
-    final keptView = item.label == PageLabel.account
-        ? view
-        : KeepScope(
-            key: ValueKey(item.label),
-            child: isMobile
-                ? scopedView
-                : Navigator(
-                    key: ValueKey('${item.label.name}_navigator'),
-                    pages: [RootPage(child: scopedView)],
-                    onDidRemovePage: (_) {},
-                  ),
-          );
+    final keptView = KeepScope(
+      key: ValueKey(item.label),
+      child: item.label == PageLabel.account
+          ? scopedView
+          : isMobile
+              ? scopedView
+              : Navigator(
+                  key: ValueKey('${item.label.name}_navigator'),
+                  pages: [RootPage(child: scopedView)],
+                  onDidRemovePage: (_) {},
+                ),
+    );
     return Consumer(
       builder: (_, ref, child) {
         final isActive = ref.watch(
