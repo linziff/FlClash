@@ -64,7 +64,7 @@ def make_adaptive_foreground(size: int = 1024) -> Image.Image:
     the corner transition stays antialiased instead of showing jagged pixels.
     Android applies its own adaptive-icon mask on top of this transparent PNG.
     """
-    return make_rounded_icon(size, radius_ratio=0.22)
+    return make_rounded_icon(size, radius_ratio=0.42)
 
 def make_icon(status: int, size: int) -> Image.Image:
     """Preserve the original QNDXX logo and show FlClash state as a small badge.
