@@ -6,7 +6,7 @@ import 'dart:typed_data';
 import 'package:fl_clash/common/common.dart';
 import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
-import 'package:fl_clash/widgets/widgets.dart';
+import 'package:fl_clash/widgets/widgets.dart' hide IconButton;
 import 'package:flutter/widgets.dart';
 import 'package:flutter/material.dart' show Icon, IconButton, Icons;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
