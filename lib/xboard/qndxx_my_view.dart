@@ -6,6 +6,7 @@ import 'package:fl_clash/xboard/qndxx_config_service.dart';
 import 'package:fl_clash/xboard/qndxx_login_dialog.dart';
 import 'package:fl_clash/xboard/qndxx_xboard_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:prism_ui/theme_data.dart' as prism;
 
